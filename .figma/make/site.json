@@ -1,0 +1,10 @@
+{
+  "description": "Streamlines school vaccination booking with tailored workspaces for parents, pharmacists, and administrators to manage appointments and records efficiently.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
