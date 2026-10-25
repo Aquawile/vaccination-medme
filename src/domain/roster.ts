@@ -72,6 +72,8 @@ export function generateRoster(seed: number, size: number, today: string): Stude
     } else {
       hasRecord = false
     }
+    const booked = rand()
+    const visitDate = hasRecord && roll >= 0.45 && booked < 0.3 ? addDays(today, 2 + Math.floor(rand() * 12)) : undefined
     out.push({
       id: `st-${String(i + 1).padStart(3, "0")}`,
       name: uniqueName(),
@@ -81,6 +83,7 @@ export function generateRoster(seed: number, size: number, today: string): Stude
       state,
       doses,
       hasRecord,
+      visitDate,
     })
   }
   return out

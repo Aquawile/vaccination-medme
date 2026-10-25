@@ -23,6 +23,8 @@ export type Student = {
   doses: Dose[]
   /** false when no record could be found at all (distinct from a record with zero doses) */
   hasRecord?: boolean
+  /** DEMO-FAKE: a booked visit date for students who already scheduled */
+  visitDate?: string
 }
 
 export type Requirement = {
