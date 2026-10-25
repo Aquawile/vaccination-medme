@@ -210,3 +210,81 @@ Demo script outline (to be written as W-54): sign in as parent, review what is m
 From the team notes, outside this repo: deck structure and content (Mayu), one-pager (Mayu, maybe), memo (Eva), demo changes (Izzy), recording the demo on Loom or similar, demo script. The demo script (W-54) is the only item that lives here.
 
 Reference documents in Claude Docs: MedMe School Vaccines Core User Flows, Requirements and Use Cases, UC Master Table (all v2), and Prototype PRD and AI Build Guide. Where this PRD and those documents disagree, this PRD wins for the prototype; update the documents afterward.
+
+## 12. Edit map: what changes in which file
+
+This is the plan for the code. Nothing in this section is done yet. File paths are relative to the repo root.
+
+### Do not touch
+
+`vite.config.ts`, `.figma/**`, `index.html`, `AGENTS.md`, `.mise.toml`, and anything on `main`. Do not add a router or state library; use a small hash-based view switch and the existing React context.
+
+### New files
+
+| File | Purpose | Work items |
+| --- | --- | --- |
+| `src/domain/dates.ts` | `ageAt`, `addDays`, weekday generator, all taking the date as an argument | W-01, W-07 |
+| `src/domain/missingShots.ts` | `getMissingShots(student, requirements, intervals, today)` and `getChildStatus` | W-01, W-05 |
+| `src/domain/eligibility.ts` | `eligibility(store, child, vaccines, stateRule, today)` returning reasons that quote the rule and its source | W-03, W-06 |
+| `src/domain/roster.ts` | `generateRoster(seed, size)` deterministic fake students | W-10 |
+| `src/domain/cohorts.ts` | counts for vaccinated, not vaccinated, unknown, by school, grade and vaccine | W-22, W-23 |
+| `src/domain/*.test.ts` | Vitest tests beside each module | W-60 |
+| `src/data/stateRules.json` | all states, researched ones seeded from section 5 table | W-03 |
+| `src/data/schoolRequirements.json` | state, grade, vaccine, doses, source, status | W-04 |
+| `src/data/intervals.json` | placeholder intervals marked `SAMPLE` | W-05 |
+| `src/data/vaccines.ts` | vaccine ids, names, details (replaces the array in `config.ts`) | W-01 |
+| `src/data/pharmacies.ts` | stores with state, youngest age per vaccine, prescription flag, hours, capacity, fake prices | W-03, W-06 |
+| `src/components/Logo.tsx` | logo placeholder, one place to swap in the real asset | W-51 |
+| `src/components/Tabs.tsx`, `DataTable.tsx`, `Calendar.tsx`, `Expandable.tsx`, `Modal.tsx`, `FilterBar.tsx`, `Pagination.tsx` | shared primitives | W-11, W-14, W-20, W-21, W-52 |
+| `src/screens/admin/` (`Overview`, `Students`, `Appointments`, `Tracker`, `FollowUps`, `Rules`) | admin tabs | W-20 to W-26 |
+| `src/screens/StudentProfile.tsx` | one page per child | W-12 |
+| `src/screens/parent/Records.tsx`, `Messages.tsx` | records page and visit confirmation inbox | W-30, W-31 |
+| `src/screens/Dev.tsx` | archived scenario controls, reached at `#dev` | W-25 |
+| `tests/unit/` | optional home for non-Playwright tests if Vitest config needs it | W-60 |
+| `.github/workflows/ci.yml`, `.github/pull_request_template.md` | CI and PR template | W-61, W-63 |
+| `README.md`, `CHANGELOG.md`, `docs/demo-script.md` | run instructions, history, demo script | W-54, W-63 |
+
+### Existing files
+
+| File | Edits | Work items |
+| --- | --- | --- |
+| `src/demo/config.ts` | Remove the hard-coded `vaccines` array, `initialData.rules` and the 50-state list (they move to `src/data`). Add a `demoAccounts` list (email, role, label) for the switcher. Replace the fixed `referenceDate` with a function that returns today. Keep `accountRoles` and the demo password. Update the `DemoData` type. | W-01, 03, 04, 07, 50 |
+| `src/demo/journey.ts` | Move `locations` to `src/data/pharmacies.ts` and add a state and per-vaccine youngest age. Move `ageAt` and `eligibility` to `src/domain`. Generate `bookingDates` from today. Add to `Appointment`: `confirmation` (`pending`, `sent`, `acknowledged`), `confirmationMessage`, `studentId`. Extend `appointmentStatus` with "Awaiting confirmation". Remove or relabel the seeded appointment. | W-03, 06, 07, 40 |
+| `src/demo/services.ts` | Bump the storage key to `school-demo-data-v2` with a migration from v1. `createBooking` calls the domain eligibility and requirement check. `saveDose` also writes to the student's history. Add `sendVisitConfirmation`, `acknowledgeConfirmation`, `scheduleFollowUp`, `switchAccount`, roster loading. All `DEMO-FAKE` tagged. | W-02, 40, 41, 42, 50 |
+| `src/demo/documents.ts` | Rewrite the PDF: header with logo and campaign, child block, per-vaccine table with source, registry status, footer, multi-page safe, "Demo, not valid proof" marking. Take colors from one constants object that mirrors the CSS tokens (PDFs cannot read CSS variables). Replace the pink square. CSV export gains a source column. | W-53, 52 |
+| `src/state.tsx` | Add roster, confirmations and follow-ups to state and expose selectors. Keep the existing `update` and `event` API so current screens keep working during the migration. | W-10, 31, 42 |
+| `src/App.tsx` | Header: logo, "Switch account" menu, role label. Add a hash-based view switch for `#student/<id>` and `#dev`. | W-12, 25, 50, 51 |
+| `src/index.css` | Collapse the palette into named variables in one block, rename `--pink` and `--jade`, remove the beige, pink and purple leftovers, map variables into Tailwind `@theme`. Add styles for Tabs, DataTable, Calendar, Expandable and the density toggle. Consider splitting into `tokens.css` and `components.css`. | W-52 |
+| `src/components/ui.tsx` | Keep current primitives and class names. Add `StatusBadge` (complete, missing, not yet due, unknown) and `SearchInput`. | W-52 |
+| `src/components/RecordPanel.tsx` | Becomes part of the Records page. Manual entry picks from the school's required vaccines, with the requirement shown beside each field. Photo stays filename-only. | W-02, 30 |
+| `src/components/Proof.tsx` | Use the new PDF, show confirmation status and sources. | W-53, 31 |
+| `src/screens/Parent.tsx` | Split into home, requirements (driven by `getMissingShots`, no hard-coded two vaccines or "of 2 selected"), Records and Messages. Remove the hard-coded "Oregon" labels; the state comes from the child's school. Add nav items Records and Messages with unread count. | W-01, 30, 31 |
+| `src/screens/Booking.tsx` | Eligibility reasons come from the domain and quote the state rule and its source. Show prescription and parent-present requirements before booking. Add the no-eligible fallback. Dates from today. Split the four steps into separate files. | W-03, 06, 07, 62 |
+| `src/screens/ParentAppointments.tsx` | List and calendar toggle, show confirmation status, fix the ICS timestamp to the current time. | W-14, 32 |
+| `src/screens/Pharmacist.tsx` | Date, search and status filters, pagination, calendar toggle, link to the student profile. Add "Send visit confirmation" and block closing until it exists. Rename the follow-up card to "Suggested follow-up (template)" and make the text editable with an approve step. Split into schedule and detail components. | W-13, 14, 40, 41, 62 |
+| `src/screens/Admin.tsx` | Becomes a thin tab container. Move content into `src/screens/admin/*`. Remove scenario controls (go to `Dev.tsx`). Remove any activity feed. Fix the two type errors: type `metrics` as `[string, number][]` so `setOpenMetric` receives a string. Metric boxes use `Expandable`. Add the cohort box. | W-20 to W-25, 60 |
+| `src/screens/Auth.tsx` | Add the logo. Add one-click fill for the three demo accounts. | W-50, 51 |
+| `tests/journey.spec.ts`, `tests/edgecases.spec.ts` | Update for new labels and tabs. Reach scenario controls through `#dev`. Add tests: missing-shot results, fallback, North Carolina prescription banner, directory search and filters at 300 students, account switching, visit confirmation, follow-up scheduling. Remove date dependence. | W-60 |
+| `package.json` | Add scripts `typecheck`, `test:unit`, `test`. Add Vitest. Keep `pnpm` as the only package manager. | W-60, 61 |
+| `package-lock.json` | Delete (keep `pnpm-lock.yaml`). | W-61 |
+| `playwright.config.ts` | Leave behavior as is; document the base URL in the README. Optionally add a `webServer` block only if the team agrees. | W-63 |
+
+### Pull request sequence
+
+Each pull request goes into `staging`, passes type check, build and tests, and does not break the golden path.
+
+1. PR A, logic and data, no visible change: `src/domain`, `src/data`, unit tests, Vitest, type error fix, CI, single lockfile (W-01 to W-06, W-60, W-61).
+2. PR B, wire logic into the parent flow: requirements screen, booking eligibility, fallback, structured records (W-01, 02, 03, 06, 07).
+3. PR C, scale and admin: roster, directory, tabs, expandable boxes, cohort box, scenario controls moved to `#dev` (W-10, 11, 20 to 25).
+4. PR D, student profile and pharmacist at scale: profile page, schedule filters, calendar (W-12, 13, 14).
+5. PR E, communication: records page, visit confirmation inbox, honest follow-ups, group scheduling (W-30, 31, 40, 41, 42).
+6. PR F, theme and polish: tokens, shared primitives, logo placeholder, account switcher, PDF (W-50 to W-53).
+7. PR G, docs and demo: README, CHANGELOG, demo script (W-54, W-63).
+
+### Risks to watch
+
+- The existing tests use visible text such as button labels. Keep labels stable where you can, and update tests in the same pull request when you cannot.
+- Saved browser data from the old version must migrate or reset cleanly (new storage key plus a migration, tested).
+- Every list must be tested with the 300-student roster, not just the 3-appointment seed.
+- The PDF is hand-built with no library. Keep it dependency-free unless the team agrees to add one.
+- Do not let the missing-shot check quietly pass when a rule is `not-researched`; it must return `unknown`.

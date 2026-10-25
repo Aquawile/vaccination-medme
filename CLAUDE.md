@@ -67,6 +67,10 @@ Before every push run type check, build and the browser tests. All three must pa
 
 Type check, build and browser tests pass. The demo script in `docs/prd.md` section 9 still runs end to end. New fakes carry `DEMO-FAKE` tags. `docs/prd.md` or `CHANGELOG.md` is updated if behavior changed. The pull request description lists what was tested and anything left faked.
 
+## Files you must not touch
+
+`vite.config.ts`, `.figma/**`, `index.html`, `AGENTS.md`, `.mise.toml`, and anything on `main`. The full file-by-file edit plan and the pull request sequence are in `docs/prd.md` section 12; follow that order unless the team says otherwise.
+
 ## When unsure
 
 Ask the team instead of inventing. Items that wait on the MedMe founder or on pharmacists are listed in `docs/prd.md` section 10 and must stay behind a data flag so an answer changes a file, not the code.
