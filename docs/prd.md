@@ -308,3 +308,63 @@ Rule features that vary (prescription needed, written consent, physician agreeme
 **Sustainability.** Researching every state by hand is not sustainable for the prototype and is not needed. Plan: ship the four researched states (OR, NC, GA, CA) plus the honest "no rules on file" path for everything else, then add states in the order MedMe's real footprint dictates (open item in section 10). One state per pull request, each with source URL and reviewer date. Until MedMe names its states, Oregon and North Carolina are the demo states because they show the two main behaviors (no prescription needed at 7, prescription needed).
 
 **Status of data seeded in code:** all four rules are `unverified` because the source URLs from the research were not saved. Adding the URL and a reviewer date moves each to `read-on-official-page`.
+
+## 14. School administrator view: redesign plan
+
+Purpose of this view in the demo: show that a school can see who is not compliant, reach the family, and get a clean record or report out, without wading through data. It is not a full student information system.
+
+### Jobs the administrator does
+
+1. See at a glance whether the school is on track (one headline, not five funnel counters).
+2. Work through who needs attention (a short worklist, most urgent first).
+3. Find one student fast and see their status without opening anything.
+4. Act: send a notice or schedule a follow-up for one student or a selected group.
+5. Get documents out: a student record, a class or school compliance report, both downloadable.
+6. Rarely: maintain rules (moved out of the main path).
+
+### Structure (replaces the five tabs)
+
+| Area | What is in it | Replaces |
+| --- | --- | --- |
+| Today | Headline: "X of 300 students have all required vaccines." Four numbers only: up to date, missing at least one, unknown, appointments this week. Below it a worklist of queues (missing a dose, no record, visit booked, awaiting school acceptance), each with a count and "Open". Top 5 per queue, "See all" opens Students with that filter. | Overview, funnel metrics, tracker |
+| Students | Directory with saved views (chips for the queues), selection checkboxes, batch actions bar (send notice, schedule follow-up, download list), profile on row open | Students, Appointments |
+| Reports | Coverage by school and grade, compliance report, downloads. The campaign funnel (scans, profiles, bookings, completed, reported) lives here, collapsed. | Vaccination tracker, funnel metrics |
+| Settings | State rules, requirements, sources, reviewer dates | Rules |
+
+Dropped from the front page: scans, profiles created, bookings, completed appointments, reported doses, proof created, proof shared, cancelled counts, the appointments table. They stay available under Reports for the demo but are no longer competing with the worklist.
+
+### Finding a student
+
+One search box in the page header on every admin screen. Matches name parts in any order, student ID and birth date. Results appear as you type with status badge, school, grade and the missing vaccines inline, keyboard navigable, Enter opens the profile. Recent students listed when the box is empty.
+
+### Organizing a lot of data without overwhelming people
+
+- Default to a summary, reveal detail on demand: headline, then queue, then student.
+- Show counts everywhere and show at most five items before "See all".
+- Saved views instead of many filters; advanced filters collapsed.
+- Sort by urgency by default, not alphabet.
+- Batch actions only appear after something is selected.
+- One accent color for "needs action"; everything else stays neutral.
+- No tables wider than the screen; compact toggle stays.
+
+### Documents (PDF and CSV)
+
+All generated in the browser and clearly marked as demo documents.
+
+1. Student vaccination record, one page: school and campaign header, student block (name, birth date, ID, grade, school), requirement table (vaccine, doses required, doses on record, dates, provider or source, status), verification note for each rule, a "prepared by / date prepared" block, signature and date lines left blank for a school official, record ID and page numbers.
+2. Compliance report for a school, grade or selection: summary counts, list of students not in compliance with missing vaccines, same header and footer conventions.
+3. CSV export of any filtered student list, for spreadsheets.
+
+Layout follows how official school immunization records and compliance reports are formatted (title block, labeled fields, ruled tables, signature lines, footer with record ID and page numbers). It does not copy any state or district form, seal or wording, and every page says "Demo document, fictional data, not a legal record." Making it look legally official without that marking would mislead, so the marking stays.
+
+### Work items
+
+| ID | Pri | Item |
+| --- | --- | --- |
+| W-90 | P0 | Restructure admin into Today, Students, Reports, Settings with the headline and worklist |
+| W-91 | P0 | Global student search with inline status and keyboard use |
+| W-92 | P0 | Saved views and urgency sort in Students; batch selection bar |
+| W-93 | P0 | Student record PDF in official-record layout |
+| W-94 | P0 | Compliance report PDF and CSV export of any filtered list |
+| W-95 | P1 | Funnel and secondary metrics collapsed under Reports |
+| W-96 | P1 | Batch send notice and schedule follow-up (ties to W-42) |
