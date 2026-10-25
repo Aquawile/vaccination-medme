@@ -174,6 +174,7 @@ test("registration validation, manual/photo records and editable sample rules", 
   await page.getByLabel("Email address").fill("admin@example.test")
   await page.getByLabel("Password", { exact: true }).fill("Demo123!")
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
+  await page.getByRole("tab", { name: "Rules" }).click()
   await page.getByLabel("DTaP requirement").fill("")
   await page.getByRole("button", { name: "Save rules" }).click()
   await expect(page.getByText("Required", { exact: true })).toBeVisible()
@@ -184,6 +185,9 @@ test("registration validation, manual/photo records and editable sample rules", 
   await expect(
     page.getByText("Sample rules saved on this device."),
   ).toBeVisible()
+  await page.evaluate(() => {
+    window.location.hash = "dev"
+  })
   await page.getByLabel("Parent record scenario").selectOption("complete")
   await page.getByRole("button", { name: "Sign out" }).click()
   await page.getByLabel("Email address").fill("parent@example.test")
@@ -204,6 +208,9 @@ test("reporting failure exports without reporting; referral retains saved doses"
   await page.getByLabel("Email address").fill("admin@example.test")
   await page.getByLabel("Password", { exact: true }).fill("Demo123!")
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
+  await page.evaluate(() => {
+    window.location.hash = "dev"
+  })
   await page
     .getByLabel("Registry reporting", { exact: true })
     .selectOption("failure")

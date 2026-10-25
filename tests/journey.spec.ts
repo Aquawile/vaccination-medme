@@ -123,6 +123,7 @@ test("connected booking, clinician doses, PDF, reporting, sharing and school out
   await expect(
     page.getByRole("heading", { name: "Campaign overview" }),
   ).toBeVisible()
+  await page.getByRole("tab", { name: "Appointments" }).click()
   await page.getByRole("checkbox", { name: "Demo accepted" }).last().check()
   await expect
     .poll(() =>
@@ -141,6 +142,7 @@ test("connected booking, clinician doses, PDF, reporting, sharing and school out
     fullPage: true,
   })
   await page.reload()
+  await page.getByRole("tab", { name: "Appointments" }).click()
   await expect(
     page.getByRole("checkbox", { name: "Demo accepted" }).last(),
   ).toBeChecked()
@@ -160,6 +162,9 @@ test("unknown cost blocks booking, unavailable records are distinct, cancellatio
 }) => {
   await page.goto("/")
   await login(page, "admin")
+  await page.evaluate(() => {
+    window.location.hash = "dev"
+  })
   await page.getByLabel("Registry lookup").selectOption("unavailable")
   await page
     .getByLabel("Registry reporting", { exact: true })

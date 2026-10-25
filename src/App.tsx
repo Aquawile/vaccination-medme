@@ -3,6 +3,8 @@ import { Button, Icon } from "./components/ui"
 import { accountRoles } from "./demo/config"
 import { DemoProvider } from "./state"
 import Auth from "./screens/Auth"
+import Dev from "./screens/Dev"
+import { useHash } from "./hooks/useHash"
 const Parent = lazy(() => import("./screens/Parent"))
 const Pharmacist = lazy(() => import("./screens/Pharmacist"))
 const Admin = lazy(() => import("./screens/Admin"))
@@ -11,6 +13,7 @@ export default function App() {
     () => localStorage.getItem("school-demo-session") || "",
   )
   const role = accountRoles[email]
+  const [hash] = useHash()
   return (
     <DemoProvider>
       {!role ? (
@@ -46,6 +49,7 @@ export default function App() {
                 variant="text"
                 onClick={() => {
                   localStorage.removeItem("school-demo-session")
+                  window.location.hash = ""
                   setEmail("")
                 }}
               >
@@ -61,7 +65,9 @@ export default function App() {
               </main>
             }
           >
-            {role === "parent" ? (
+            {hash === "dev" ? (
+              <Dev />
+            ) : role === "parent" ? (
               <Parent />
             ) : role === "pharmacist" ? (
               <Pharmacist />
