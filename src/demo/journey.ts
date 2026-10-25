@@ -34,6 +34,9 @@ export type Appointment = {
   proofShared: boolean
   schoolAccepted: boolean
   reportStatus: "not sent" | "reported" | "failed" | "exported"
+  parentConfirmation?: "pending" | "sent" | "confirmed"
+  followUpDate?: string
+  followUpNote?: string
 }
 export const locations = [
   {

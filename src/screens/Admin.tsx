@@ -10,7 +10,7 @@ import {
   Select,
   Check,
 } from "../components/ui"
-import { defaults } from "../demo/config"
+import { defaults, states } from "../demo/config"
 import { useDemo } from "../state"
 import { appointmentStatus, dateLabel, locations } from "../demo/journey"
 export default function Admin() {
@@ -19,10 +19,21 @@ export default function Admin() {
   const [rules, setRules] = useState(data.rules)
   const [saved, setSaved] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [state, setState] = useState("Oregon")
+  const [openMetric, setOpenMetric] = useState("")
+  const [studentQuery, setStudentQuery] = useState("")
   const active = campaign === "fall"
   const appointments = data.appointments.filter((a) => a.campaign === campaign)
   const generated = appointments.filter((a) => !a.seeded)
-  const seed = appointments.find((a) => a.seeded)
+  const allChildren = data.appointments
+    .map((a) => a.child)
+    .filter(
+      (child, index, list) =>
+        list.findIndex((x) => x.name === child.name && x.birthDate === child.birthDate) === index,
+    )
+  const matchingChildren = allChildren.filter((child) =>
+    `${child.name} ${child.school}`.toLowerCase().includes(studentQuery.toLowerCase()),
+  )
   const metrics = [
     ["Scans", data.events.filter((e) => e.type === "scan").length],
     ["Profiles created", data.childSaved ? 1 : 0],
@@ -87,7 +98,16 @@ export default function Admin() {
         </Alert>
         <div className="metrics">
           {metrics.map(([label, value]) => (
-            <Card key={label}>
+            <Card
+              key={label}
+              className={`metric-card ${openMetric === label ? "expanded" : ""}`}
+              role="button"
+              tabIndex={0}
+              onClick={() => setOpenMetric(openMetric === label ? "" : label)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") setOpenMetric(openMetric === label ? "" : label)
+              }}
+            >
               <span>{label}</span>
               <strong>{active ? value : 0}</strong>
               <small>
@@ -95,63 +115,62 @@ export default function Admin() {
                   ? "Notice opens · Simulated scans"
                   : "Generated demo activity"}
               </small>
+              {openMetric === label && (
+                <p className="metric-detail">
+                  {label === "Reported doses"
+                    ? "Counts only saved doses acknowledged by the simulated reporting service."
+                    : label === "Completed appointments"
+                      ? "A visit is complete when every selected dose has been saved."
+                      : "Click any metric card to collapse this explanation."}
+                </p>
+              )}
             </Card>
           ))}
         </div>
-        <div className="admin-panels">
-          <Card>
+        <div className="admin-overview-grid">
+          <Card className="tracker-card">
             <div className="section-heading">
-              <Heading level={2}>Recent activity</Heading>
-              <Badge>Local demo</Badge>
+              <div>
+                <Heading level={2}>Vaccination tracker</Heading>
+                <p className="muted">How many selected doses are saved for this campaign.</p>
+              </div>
+              <Badge kind="success">
+                {generated.reduce((n, a) => n + a.doses.length, 0)} saved
+              </Badge>
             </div>
-            {active && data.events.length ? (
-              <div className="activity-list">
-                {data.events.slice(0, 6).map((e) => (
-                  <div key={e.id}>
-                    <span className="activity-dot" />
-                    <div>
-                      <strong>{e.text}</strong>
-                      <p>
-                        {new Date(e.time).toLocaleString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}{" "}
-                        · Session event
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state">
-                <span className="surface-icon">
-                  <Icon name="document" />
-                </span>
-                <Heading level={3}>No activity yet</Heading>
-                <p>Changes made in this demo will appear here.</p>
-              </div>
-            )}
+            {["dtap", "polio"].map((id) => {
+              const total = generated.filter((a) => a.vaccines.includes(id)).length
+              const saved = generated.reduce(
+                (n, a) => n + a.doses.filter((d) => d.vaccine === id).length,
+                0,
+              )
+              return (
+                <div className="tracker-row" key={id}>
+                  <span>{id === "dtap" ? "DTaP" : "IPV"}</span>
+                  <div className="tracker-bar"><i style={{ width: `${total ? Math.min(100, (saved / total) * 100) : 0}%` }} /></div>
+                  <strong>{saved}/{total}</strong>
+                </div>
+              )
+            })}
+            <p className="inline-note">Seeded examples are intentionally excluded from campaign progress.</p>
           </Card>
-          <Card>
-            <Heading level={2}>Seeded appointment</Heading>
-            <p className="muted">A separate example, not a live booking.</p>
-            <div className="seed-summary">
-              <span>Appointments</span>
-              <strong>{seed ? 1 : 0}</strong>
-              <span>Selected dose entries</span>
-              <strong>{seed?.vaccines.length || 0}</strong>
-              <span>Signed dose entries</span>
-              <strong>{seed?.doses.length || 0}</strong>
-              <span>Registry-reported doses</span>
-              <strong>
-                {seed?.doses.filter((d) => d.reported).length || 0}
-              </strong>
+          <Card className="lookup-card">
+            <div className="section-heading">
+              <div>
+                <Heading level={2}>Find a student</Heading>
+                <p className="muted">Search locally stored demo records by name or school.</p>
+              </div>
+              <Icon name="user" size={18} />
             </div>
-            <p className="inline-note">
-              Recording a dose does not report it to a registry.
-            </p>
+            <Field label="Student lookup" value={studentQuery} onChange={(e) => setStudentQuery(e.target.value)} placeholder="Search Sam Parker" />
+            {studentQuery && matchingChildren.length === 0 && <p className="muted">No demo student matches that search.</p>}
+            {studentQuery && matchingChildren.map((child) => (
+              <div className="lookup-result" key={`${child.name}-${child.birthDate}`}>
+                <span className="avatar">{child.name[0]}</span>
+                <div><strong>{child.name}</strong><small>{child.school} · Grade {child.grade}</small></div>
+                <Badge>{data.appointments.find((a) => a.child.name === child.name)?.doses.length || 0} doses</Badge>
+              </div>
+            ))}
           </Card>
         </div>
         <div className="metrics secondary-metrics">
@@ -377,6 +396,28 @@ export default function Admin() {
             </div>
             <Badge kind="warning">Unverified</Badge>
           </div>
+          <Select
+            label="State source to verify"
+            value={state}
+            onChange={(e) => {
+              const nextState = e.target.value
+              setState(nextState)
+              setRules((current) =>
+                current.map((rule) => ({
+                  ...rule,
+                  source: rule.source.includes("Placeholder")
+                    ? `Placeholder — ${nextState} state source needed`
+                    : rule.source,
+                })),
+              )
+              setSaved(false)
+            }}
+          >
+            {states.map((name) => <option key={name}>{name}</option>)}
+          </Select>
+          <Alert>
+            Rules are shown as editable demo placeholders for all 50 states. Verify requirements against the {state} health department before using this workflow.
+          </Alert>
           {!active ? (
             <div className="empty-state">
               <p>No sample rules configured for this campaign.</p>
