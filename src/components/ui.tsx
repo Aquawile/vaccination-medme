@@ -330,3 +330,34 @@ export function Tabs({
     </div>
   )
 }
+export type Segment = { label: string; value: number; tone: "ok" | "gap" | "unknown" | "neutral"; onClick?: () => void }
+/** One horizontal bar split into labeled segments. Segments are buttons when they have an onClick. */
+export function StackedBar({ segments, ariaLabel }: { segments: Segment[]; ariaLabel: string }) {
+  const total = segments.reduce((n, s) => n + s.value, 0)
+  return (
+    <div className="stacked" role="group" aria-label={ariaLabel}>
+      {segments.map((s) => {
+        const style = { flexGrow: s.value, flexBasis: 0 }
+        const text = `${s.label}: ${s.value}${total ? ` (${Math.round((s.value / total) * 100)}%)` : ""}`
+        return s.value === 0 ? null : s.onClick ? (
+          <button key={s.label} className={`seg ${s.tone}`} style={style} title={text} aria-label={text} onClick={s.onClick}>
+            {s.value}
+          </button>
+        ) : (
+          <span key={s.label} className={`seg ${s.tone}`} style={style} title={text} aria-label={text}>
+            {s.value}
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+export function Legend({ items }: { items: { label: string; tone: string }[] }) {
+  return (
+    <div className="legend">
+      {items.map((i) => (
+        <span key={i.label}><i className={`dot ${i.tone}`} />{i.label}</span>
+      ))}
+    </div>
+  )
+}

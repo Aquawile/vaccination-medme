@@ -326,3 +326,14 @@
 .admin-title .global-search { margin-left: auto; }
 @media (max-width: 1100px) { .queue-grid,.compose { grid-template-columns: 1fr; } .stat-row { grid-template-columns: 1fr 1fr; } }
 .compose { margin-top: var(--space-5); } .compose + .check { margin-top: var(--space-4); }
+:root { --status-ok: var(--jade); --status-gap: var(--warning); --status-unknown: var(--periwinkle); --status-neutral: var(--lavender); }
+.stacked { display: flex; gap: 2px; height: 28px; border-radius: 8px; overflow: hidden; background: var(--subtle); }
+.stacked .seg { display: grid; place-items: center; min-width: 0; border: 0; padding: 0; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--navy); }
+.stacked .seg.ok { background: var(--status-ok); } .stacked .seg.gap { background: var(--status-gap); color: var(--white); } .stacked .seg.unknown { background: var(--status-unknown); } .stacked .seg.neutral { background: var(--status-neutral); }
+.stacked button.seg { cursor: pointer; min-height: 0; } .stacked button.seg:hover { filter: brightness(.94); }
+.legend { display: flex; gap: var(--space-4); flex-wrap: wrap; font-size: 11px; color: var(--text-secondary); } .legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; } .legend .dot.ok { background: var(--status-ok); } .legend .dot.gap { background: var(--status-gap); } .legend .dot.unknown { background: var(--status-unknown); } .legend .dot.neutral { background: var(--status-neutral); }
+.dist-row { display: grid; grid-template-columns: 90px 1fr; gap: var(--space-3); align-items: center; margin: var(--space-3) 0; font-size: 12px; }
+.dist-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--space-5); margin-top: var(--space-5); }
+.cov-table td,.cov-table th { padding: 10px 12px; font-size: 12px; } .cov-table .mini { display: inline-block; vertical-align: middle; width: 120px; height: 8px; border-radius: 8px; background: var(--subtle); overflow: hidden; margin-right: 8px; } .cov-table .mini i { display: block; height: 100%; background: var(--status-ok); }
+@media (max-width: 1100px) { .dist-grid { grid-template-columns: 1fr; } }

@@ -1,5 +1,4 @@
-import { useState } from "react"
-import { Button, Card, Heading, MetricCard } from "../../components/ui"
+import { Button, Card, Heading } from "../../components/ui"
 import { complianceReportPdf, studentsCsv } from "../../demo/adminDocs"
 import { downloadBlob } from "../../demo/documents"
 import type { StudentSummary } from "../../domain/cohorts"
@@ -9,7 +8,6 @@ import Tracker from "./Tracker"
 
 export default function Reports({ campaign, summaries }: { campaign: string; summaries: StudentSummary[] }) {
   const { data } = useDemo()
-  const [open, setOpen] = useState("")
   const generated = data.appointments.filter((a) => a.campaign === campaign && !a.seeded)
   const funnel: [string, number, string][] = [
     ["Scans", data.events.filter((e) => e.type === "scan").length, "Parents who opened the school notice code. Simulated."],
@@ -38,12 +36,15 @@ export default function Reports({ campaign, summaries }: { campaign: string; sum
       <Card style={{ marginTop: "var(--space-5)" }}>
         <details>
           <summary><strong>Parent activity (demo funnel)</strong> <span className="muted">Scans, profiles, bookings, completed visits, reported doses</span></summary>
-          <div className="metrics" style={{ marginTop: "var(--space-4)" }}>
-            {funnel.map(([label, value, detail]) => (
-              <MetricCard key={label} label={label} value={campaign === "fall" ? value : 0} open={open === label} onToggle={() => setOpen(open === label ? "" : label)}>
-                <p className="metric-detail">{detail}</p>
-              </MetricCard>
-            ))}
+          <div className="table-scroll" style={{ marginTop: "var(--space-4)" }}>
+            <table>
+              <thead><tr><th>Step</th><th>Count</th><th>What it counts</th></tr></thead>
+              <tbody>
+                {funnel.map(([label, value, detail]) => (
+                  <tr key={label}><td><strong>{label}</strong></td><td>{campaign === "fall" ? value : 0}</td><td className="muted">{detail}</td></tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </details>
       </Card>
