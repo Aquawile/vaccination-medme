@@ -38,7 +38,17 @@ export function generateRoster(seed: number, size: number, today: string): Stude
   const rand = mulberry32(seed)
   const pick = <T,>(list: T[]) => list[Math.floor(rand() * list.length)]
   const out: Student[] = []
+  const used = new Set<string>()
   const todayYear = Number(today.slice(0, 4))
+  const uniqueName = () => {
+    for (let tries = 0; ; tries++) {
+      const n = `${pick(first)} ${pick(last)}`
+      if (!used.has(n) || tries > 50) {
+        used.add(n)
+        return n
+      }
+    }
+  }
   for (let i = 0; i < size; i++) {
     const grade = pick(rosterGrades)
     const gradeIndex = rosterGrades.indexOf(grade)
@@ -64,7 +74,7 @@ export function generateRoster(seed: number, size: number, today: string): Stude
     }
     out.push({
       id: `st-${String(i + 1).padStart(3, "0")}`,
-      name: `${pick(first)} ${pick(last)}`,
+      name: uniqueName(),
       birthDate,
       grade,
       school: pick(rosterSchools),
