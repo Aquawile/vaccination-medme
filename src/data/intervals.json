@@ -1,0 +1,4 @@
+[
+  { "vaccineId": "dtap", "minDaysBetweenDoses": 28, "status": "SAMPLE" },
+  { "vaccineId": "polio", "minDaysBetweenDoses": 28, "status": "SAMPLE" }
+]
