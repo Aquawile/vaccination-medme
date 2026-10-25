@@ -63,3 +63,14 @@ export function coverageBy(
       ),
     }))
 }
+
+export type Queue = { id: string; label: string; hint: string; members: StudentSummary[] }
+
+/** Work queues for the administrator. A student can be in more than one queue. */
+export function buildQueues(summaries: StudentSummary[]): Queue[] {
+  return [
+    { id: "needs-visit", label: "Missing doses, no visit booked", hint: "Most urgent: documented gap and nothing scheduled", members: summaries.filter((s) => s.status === "missing" && !s.student.visitDate) },
+    { id: "booked", label: "Visit booked", hint: "Missing doses with an appointment on the calendar", members: summaries.filter((s) => s.status === "missing" && !!s.student.visitDate) },
+    { id: "no-record", label: "Unknown", hint: "No record found, or no rules on file for the state", members: summaries.filter((s) => s.status === "unknown") },
+  ]
+}

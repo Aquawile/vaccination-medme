@@ -51,7 +51,7 @@ export function studentRecordPdf(s: StudentSummary) {
   cell(48, y + 34, 258, "School", st.school)
   cell(306, y + 34, 129, "Grade", st.grade)
   cell(435, y + 34, 129, "State", stateName(st.state))
-  y = section(pdf, y + 76, "2. Required vaccines")
+  y = section(pdf, y + 92, "2. Required vaccines")
   const cols = [48, 150, 235, 320, 450]
   pdf.rect(48, y - 4, 516, 18, { fill: 0.9 })
   ;["Vaccine", "Doses required", "Doses on record", "Status", "Requirement status"].forEach((h, i) => pdf.text(cols[i] + 4, y + 9, 8, h, true))
@@ -106,17 +106,25 @@ export function complianceReportPdf(rows: StudentSummary[], scope: string) {
     pdf.text(300, y + 30 + i * 15, 9, `${v}${rows.length ? `  (${Math.round((v / rows.length) * 100)}%)` : ""}`, true)
   })
   const list = rows.filter((r) => r.status !== "up-to-date")
-  const perPage = 36
-  const chunks: StudentSummary[][] = []
-  for (let i = 0; i < list.length; i += perPage) chunks.push(list.slice(i, i + perPage))
   const cols = [48, 200, 262, 310, 440]
   const tableHead = (yy: number) => {
     pdf.rect(48, yy - 4, 516, 18, { fill: 0.9 })
     ;["Student", "ID", "Grade", "School", "Missing / status"].forEach((h, i) => pdf.text(cols[i] + 4, yy + 9, 8, h, true))
   }
-  const draw = (chunk: StudentSummary[], top: number) => {
+  y = section(pdf, y + 100, "2. Students not yet in compliance")
+  if (list.length === 0) pdf.text(52, y + 10, 9, "Every student in scope is up to date.")
+  else {
+    let top = y
+    tableHead(top)
     let yy = top + 18
-    for (const r of chunk) {
+    for (const r of list) {
+      if (yy > 725) {
+        pdf.newPage()
+        header(pdf, "Immunization Compliance Report", id)
+        top = 160
+        tableHead(top)
+        yy = top + 18
+      }
       pdf.line(48, yy + 14, 564, yy + 14, 0.3, 0.8)
       pdf.text(cols[0] + 4, yy + 9, 8.5, r.student.name)
       pdf.text(cols[1] + 4, yy + 9, 8.5, r.student.id)
@@ -126,26 +134,6 @@ export function complianceReportPdf(rows: StudentSummary[], scope: string) {
       yy += 14
     }
   }
-  y = section(pdf, y + 100, "2. Students not yet in compliance")
-  if (chunks.length === 0) pdf.text(52, y + 10, 9, "Every student in scope is up to date.")
-  chunks.forEach((chunk, i) => {
-    if (i > 0) {
-      pdf.newPage()
-      header(pdf, "Immunization Compliance Report", id)
-      tableHead(160)
-      draw(chunk, 160)
-    } else {
-      tableHead(y)
-      draw(chunk.slice(0, Math.floor((650 - y) / 14)), y)
-      const rest = chunk.slice(Math.floor((650 - y) / 14))
-      if (rest.length) {
-        pdf.newPage()
-        header(pdf, "Immunization Compliance Report", id)
-        tableHead(160)
-        draw(rest, 160)
-      }
-    }
-  })
   const count = pdf.pages.length
   for (let i = 0; i < count; i++) {
     pdf.go(i)

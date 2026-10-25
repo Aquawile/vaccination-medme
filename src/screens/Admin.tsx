@@ -2,26 +2,30 @@ import { useState } from "react"
 import { Heading, Icon, Select, Tabs } from "../components/ui"
 import { defaults } from "../demo/config"
 import { useHash } from "../hooks/useHash"
-import Appointments from "./admin/Appointments"
+import Outreach from "./admin/Outreach"
 import Overview from "./admin/Overview"
+import Reports from "./admin/Reports"
 import { useRoster } from "./admin/roster"
 import Rules from "./admin/Rules"
+import StudentSearch from "./admin/StudentSearch"
 import { emptyFilter, StudentDirectory, StudentProfile, type StudentFilter } from "./admin/Students"
-import Tracker from "./admin/Tracker"
 
 const tabs = [
-  { id: "overview", label: "Overview" },
+  { id: "overview", label: "Today" },
   { id: "students", label: "Students" },
-  { id: "appointments", label: "Appointments" },
-  { id: "tracker", label: "Vaccination tracker" },
-  { id: "rules", label: "Rules" },
+  { id: "outreach", label: "Outreach" },
+  { id: "reports", label: "Reports" },
+  { id: "settings", label: "Settings" },
 ]
+const icons: Record<string, string> = { overview: "grid", students: "user", outreach: "document", reports: "calendar", settings: "lock" }
 
 export default function Admin() {
   const [hash, setHash] = useHash()
   const [tab, setTab] = useState("overview")
   const [campaign, setCampaign] = useState("fall")
   const [filter, setFilter] = useState<StudentFilter>(emptyFilter)
+  const [selected, setSelected] = useState<string[]>([])
+  const [audience, setAudience] = useState("")
   const summaries = useRoster()
   const studentId = hash.startsWith("student/") ? hash.slice(8) : ""
   const current = studentId ? "students" : tab
@@ -33,6 +37,15 @@ export default function Admin() {
     setFilter({ ...emptyFilter, ...patch })
     go("students")
   }
+  const openProfile = (id: string) => {
+    setTab("students")
+    setHash(`student/${id}`)
+  }
+  const contact = (a: string) => {
+    setAudience(a)
+    go("outreach")
+  }
+  const title = current === "overview" ? "Campaign overview" : tabs.find((t) => t.id === current)?.label
   return (
     <div className="admin-layout">
       <aside className="admin-sidebar">
@@ -45,7 +58,7 @@ export default function Admin() {
             aria-current={current === t.id ? "page" : undefined}
             onClick={() => go(t.id)}
           >
-            <Icon name={t.id === "students" ? "user" : t.id === "appointments" ? "calendar" : "grid"} />
+            <Icon name={icons[t.id]} />
             {t.label}
           </button>
         ))}
@@ -61,26 +74,34 @@ export default function Admin() {
       <main className="admin-main">
         <div className="admin-title">
           <div className="page-heading">
-            <div className="eyebrow">A SHARED VIEW OF PROGRESS</div>
-            <Heading>{tabs.find((t) => t.id === current)?.label === "Overview" ? "Campaign overview" : tabs.find((t) => t.id === current)?.label}</Heading>
-            <p>A clear view of activity, from first scan to reported dose.</p>
+            <div className="eyebrow">{defaults.campaign.toUpperCase()}</div>
+            <Heading>{title}</Heading>
           </div>
+          <StudentSearch summaries={summaries} onOpen={openProfile} />
           <Select label="Campaign" value={campaign} onChange={(e) => setCampaign(e.target.value)}>
             <option value="fall">{defaults.campaign}</option>
             <option value="spring">Fern Valley · Spring 2027</option>
           </Select>
         </div>
         <Tabs tabs={tabs} active={current} onChange={go} />
-        {current === "overview" && <Overview campaign={campaign} summaries={summaries} openStudents={openStudents} />}
+        {current === "overview" && <Overview summaries={summaries} openStudents={openStudents} openOutreach={contact} openProfile={openProfile} />}
         {current === "students" &&
           (studentId ? (
             <StudentProfile summary={summaries.find((s) => s.student.id === studentId)} onBack={() => setHash("")} />
           ) : (
-            <StudentDirectory summaries={summaries} filter={filter} setFilter={setFilter} onOpen={(id) => setHash(`student/${id}`)} />
+            <StudentDirectory
+              summaries={summaries}
+              filter={filter}
+              setFilter={setFilter}
+              onOpen={openProfile}
+              selected={selected}
+              setSelected={setSelected}
+              onContact={() => contact("selected")}
+            />
           ))}
-        {current === "appointments" && <Appointments campaign={campaign} />}
-        {current === "tracker" && <Tracker summaries={summaries} />}
-        {current === "rules" && <Rules active={campaign === "fall"} />}
+        {current === "outreach" && <Outreach summaries={summaries} initialAudience={audience} selected={selected} />}
+        {current === "reports" && <Reports campaign={campaign} summaries={summaries} />}
+        {current === "settings" && <Rules active={campaign === "fall"} />}
       </main>
     </div>
   )

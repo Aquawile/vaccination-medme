@@ -81,6 +81,14 @@ export const initialData = {
       status: "Unverified",
     },
   ],
+  outreach: [] as {
+    id: string
+    date: string
+    audience: string
+    studentIds: string[]
+    subject: string
+    body: string
+  }[],
   events: [] as {
     id: string
     text: string

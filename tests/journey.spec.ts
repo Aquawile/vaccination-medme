@@ -123,7 +123,7 @@ test("connected booking, clinician doses, PDF, reporting, sharing and school out
   await expect(
     page.getByRole("heading", { name: "Campaign overview" }),
   ).toBeVisible()
-  await page.getByRole("tab", { name: "Appointments" }).click()
+  await page.getByRole("tab", { name: "Reports" }).click()
   await page.getByRole("checkbox", { name: "Demo accepted" }).last().check()
   await expect
     .poll(() =>
@@ -142,7 +142,7 @@ test("connected booking, clinician doses, PDF, reporting, sharing and school out
     fullPage: true,
   })
   await page.reload()
-  await page.getByRole("tab", { name: "Appointments" }).click()
+  await page.getByRole("tab", { name: "Reports" }).click()
   await expect(
     page.getByRole("checkbox", { name: "Demo accepted" }).last(),
   ).toBeChecked()

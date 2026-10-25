@@ -174,7 +174,7 @@ test("registration validation, manual/photo records and editable sample rules", 
   await page.getByLabel("Email address").fill("admin@example.test")
   await page.getByLabel("Password", { exact: true }).fill("Demo123!")
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
-  await page.getByRole("tab", { name: "Rules" }).click()
+  await page.getByRole("tab", { name: "Settings" }).click()
   await page.getByLabel("DTaP requirement").fill("")
   await page.getByRole("button", { name: "Save rules" }).click()
   await expect(page.getByText("Required", { exact: true })).toBeVisible()

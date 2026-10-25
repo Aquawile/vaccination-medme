@@ -1,78 +1,79 @@
-import { useState } from "react"
-import { Alert, Badge, Button, Card, Heading, MetricCard } from "../../components/ui"
-import { cohortCounts, type StudentSummary } from "../../domain/cohorts"
-import { defaults } from "../../demo/config"
-import { useDemo } from "../../state"
+import { Badge, Button, Card, Heading, StatusBadge } from "../../components/ui"
+import { buildQueues, cohortCounts, type StudentSummary } from "../../domain/cohorts"
+import { vaccineName } from "../../data/vaccines"
+import { dateLabel } from "../../demo/journey"
 import type { StudentFilter } from "./Students"
 
-const pct = (n: number, total: number) => (total ? `${Math.round((n / total) * 100)}%` : "0%")
+const pct = (n: number, t: number) => (t ? Math.round((n / t) * 100) : 0)
 
 export default function Overview({
-  campaign,
   summaries,
   openStudents,
+  openOutreach,
+  openProfile,
 }: {
-  campaign: string
   summaries: StudentSummary[]
   openStudents: (patch: Partial<StudentFilter>) => void
+  openOutreach: (audience: string) => void
+  openProfile: (id: string) => void
 }) {
-  const { data } = useDemo()
-  const [open, setOpen] = useState("")
-  const toggle = (label: string) => setOpen(open === label ? "" : label)
-  const active = campaign === "fall"
-  const generated = data.appointments.filter((a) => a.campaign === campaign && !a.seeded)
   const c = cohortCounts(summaries)
-  const metrics: { label: string; value: number; note: string; detail: string }[] = [
-    { label: "Scans", value: data.events.filter((e) => e.type === "scan").length, note: "Notice opens · Simulated scans", detail: "A scan is counted when a parent opens the school notice code. Simulated in this demo." },
-    { label: "Profiles created", value: data.childSaved ? 1 : 0, note: "Generated demo activity", detail: "Counts child profiles a parent saved during this demo session. The 300 fictional students are not included." },
-    { label: "Bookings", value: generated.length, note: "Generated demo activity", detail: "Every booking a parent made, including cancelled ones." },
-    { label: "Completed appointments", value: generated.filter((a) => a.doses.length === a.vaccines.length).length, note: "Generated demo activity", detail: "A visit is complete when every selected dose has been saved." },
-    { label: "Reported doses", value: generated.reduce((n, a) => n + a.doses.filter((d) => d.reported).length, 0), note: "Generated demo activity", detail: "Counts only saved doses acknowledged by the simulated reporting service." },
-  ]
+  const queues = buildQueues(summaries)
+  const booked = queues.find((q) => q.id === "booked")!.members.length
+  const done = pct(c.upToDate, c.total)
   return (
     <>
-      <Alert>
-        Activity starts at zero. The funnel counts generated demo activity, not the seeded example. Bookings include cancelled visits; appointment and dose counts are distinct.
-      </Alert>
-      <div className="metrics">
-        {metrics.map((m) => (
-          <MetricCard key={m.label} label={m.label} value={active ? m.value : 0} note={m.note} open={open === m.label} onToggle={() => toggle(m.label)}>
-            <p className="metric-detail">{m.detail}</p>
-          </MetricCard>
-        ))}
-      </div>
-      <Card className="cohort-card">
+      <Card className="headline-card">
         <div className="section-heading">
           <div>
-            <Heading level={2}>Students by vaccination status</Heading>
-            <p className="muted">Against the school's requirement list. Select a box to see those students.</p>
+            <Heading level={2}>{c.upToDate} of {c.total} students have every required vaccine</Heading>
+            <p className="muted">Measured against the requirement list on file. Requirements are unverified samples.</p>
           </div>
           <Badge kind="warning">Requirements unverified</Badge>
         </div>
-        <div className="cohort-grid">
-          <button className="cohort" onClick={() => openStudents({ status: "up-to-date" })}>
-            <span>Children with all required vaccines</span>
-            <strong>{c.upToDate}</strong>
-            <small>{pct(c.upToDate, c.total)} of {c.total}</small>
-          </button>
-          <button className="cohort" onClick={() => openStudents({ status: "missing" })}>
-            <span>Children missing at least one</span>
-            <strong>{c.missing}</strong>
-            <small>{pct(c.missing, c.total)} of {c.total}</small>
-          </button>
-          <button className="cohort" onClick={() => openStudents({ status: "unknown" })}>
-            <span>Unknown (no record or no rules on file)</span>
-            <strong>{c.unknown}</strong>
-            <small>{pct(c.unknown, c.total)} of {c.total} · not counted as missing</small>
-          </button>
+        <div className="progress" role="img" aria-label={`${done} percent up to date`}>
+          <i style={{ width: `${done}%` }} />
         </div>
-        <p className="inline-note" style={{ marginTop: "var(--space-4)" }}>
-          Roster: 300 fictional students at {defaults.campaign}. Counts match the Students tab filters.
-        </p>
-        <div className="action-row">
-          <Button variant="secondary" onClick={() => openStudents({})}>Open all students</Button>
+        <div className="stat-row">
+          <button onClick={() => openStudents({ status: "up-to-date" })}><strong>{c.upToDate}</strong><span>Up to date</span></button>
+          <button onClick={() => openStudents({ status: "missing" })}><strong>{c.missing}</strong><span>Missing doses</span></button>
+          <button onClick={() => openStudents({ status: "unknown" })}><strong>{c.unknown}</strong><span>Unknown</span></button>
+          <button onClick={() => openStudents({ status: "missing" })}><strong>{booked}</strong><span>Visits booked</span></button>
         </div>
+        <p className="inline-note">Unknown means no record or no rules on file. It is not counted as missing.</p>
       </Card>
+      <div className="queue-grid">
+        {queues.map((q) => (
+          <Card key={q.id} className="queue-card">
+            <div className="section-heading">
+              <div>
+                <Heading level={2}>{q.label}</Heading>
+                <p className="muted">{q.hint}</p>
+              </div>
+              <strong className="queue-count">{q.members.length}</strong>
+            </div>
+            <ul className="queue-list">
+              {q.members.slice(0, 5).map((m) => (
+                <li key={m.student.id}>
+                  <button onClick={() => openProfile(m.student.id)}>{m.student.name}</button>
+                  <span>
+                    Grade {m.student.grade}
+                    {m.missing.length ? ` · ${m.missing.map(vaccineName).join(", ")}` : ""}
+                    {m.student.visitDate ? ` · ${dateLabel(m.student.visitDate)}` : ""}
+                  </span>
+                  <StatusBadge status={m.status} />
+                </li>
+              ))}
+            </ul>
+            <div className="action-row">
+              <Button variant="secondary" onClick={() => openStudents({ queue: q.id })}>See all {q.members.length}</Button>
+              {q.id !== "booked" && q.members.length > 0 && (
+                <Button variant="text" onClick={() => openOutreach(q.id)}>Contact families</Button>
+              )}
+            </div>
+          </Card>
+        ))}
+      </div>
     </>
   )
 }
