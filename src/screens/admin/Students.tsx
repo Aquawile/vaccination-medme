@@ -170,7 +170,7 @@ export function StudentProfile({ summary, onBack }: { summary?: StudentSummary; 
                   {r.dosesRecorded} of {r.dosesRequired} doses
                   <small>
                     {r.verification === "unverified" || r.verification === "SAMPLE" ? "Requirement not verified against an official source" : "Source on file"}
-                    {r.earliestDate && r.status !== "complete" ? ` · Earliest next dose ${dateLabel(r.earliestDate)} (sample interval)` : ""}
+                    {r.earliestDate && r.status === "not-yet-due" ? ` · Earliest next dose ${dateLabel(r.earliestDate)} (sample interval)` : ""}
                   </small>
                 </span>
                 <StatusBadge status={r.status} />
