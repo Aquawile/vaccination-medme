@@ -1,0 +1,4 @@
+[
+  { "state": "OR", "grade": "*", "vaccineId": "dtap", "dosesRequired": 5, "sourceUrl": "", "status": "unverified" },
+  { "state": "OR", "grade": "*", "vaccineId": "polio", "dosesRequired": 4, "sourceUrl": "", "status": "unverified" }
+]

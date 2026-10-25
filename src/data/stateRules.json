@@ -1,0 +1,51 @@
+[
+  {
+    "state": "OR",
+    "status": "unverified",
+    "sourceUrl": "",
+    "lastReviewed": "",
+    "minAgeNoRx": 7,
+    "minAgeWithRx": 0,
+    "vaccinesNoRx": "all-acip",
+    "requiresAgreement": false,
+    "writtenConsentUnderAge": null,
+    "notes": "Read on an official state page by the team: pharmacists may give ACIP vaccines from age 7, any age with a prescription. TODO: add the source URL and reviewer date, then set status to read-on-official-page."
+  },
+  {
+    "state": "NC",
+    "status": "unverified",
+    "sourceUrl": "",
+    "lastReviewed": "",
+    "minAgeNoRx": 18,
+    "minAgeWithRx": 6,
+    "vaccinesNoRx": "all-acip",
+    "exceptionsNoRx": { "vaccines": ["flu", "covid"], "minAge": 7 },
+    "requiresAgreement": false,
+    "writtenConsentUnderAge": 18,
+    "notes": "Read on the Board of Pharmacy FAQ: with a prescription from a prescriber who examined the child, ages 6 and up. Without one, only flu and COVID from age 7; other vaccines 18 and up. Written parental consent under 18. A federal PREP declaration is said to cover routine childhood vaccines ages 3 to 18 through 2029; the end date is not confirmed, so it is not used. TODO: source URL and reviewer date."
+  },
+  {
+    "state": "GA",
+    "status": "unverified",
+    "sourceUrl": "",
+    "lastReviewed": "",
+    "minAgeNoRx": null,
+    "minAgeWithRx": null,
+    "vaccinesNoRx": "unknown",
+    "requiresAgreement": true,
+    "writtenConsentUnderAge": null,
+    "notes": "Read on an official page: needs a physician agreement, Form 3231 signed by a physician, NP, PA or health department. Age limits not read yet. TODO: source URL, ages."
+  },
+  {
+    "state": "CA",
+    "status": "unverified",
+    "sourceUrl": "",
+    "lastReviewed": "",
+    "minAgeNoRx": 3,
+    "minAgeWithRx": 3,
+    "vaccinesNoRx": "all-acip",
+    "requiresAgreement": false,
+    "writtenConsentUnderAge": null,
+    "notes": "From a secondary report only: independent administration from age 3. Not read on an official page."
+  }
+]
