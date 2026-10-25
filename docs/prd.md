@@ -288,3 +288,23 @@ Each pull request goes into `staging`, passes type check, build and tests, and d
 - Every list must be tested with the 300-student roster, not just the 3-appointment seed.
 - The PDF is hand-built with no library. Keep it dependency-free unless the team agrees to add one.
 - Do not let the missing-shot check quietly pass when a rule is `not-researched`; it must return `unknown`.
+
+## 13. How the UI changes by state
+
+Decision: one code path, many data rows. We do not build a screen or a code branch per state. A state changes three things, all read from `src/data`: which rule applies to pharmacies, which school requirements apply, and which notices the parent sees. Adding a state is a data change in `stateRules.json` and `schoolRequirements.json`, never a code change.
+
+**Where the state comes from.** The child's school has a state, and the school's state decides the requirement list. The store has a state, and the store's state decides which pharmacist rule applies. For a normal family these match. For the demo, the header shows "State: Oregon" with a "Change" menu (all 50 states plus DC) so the presenter can show any state. Changing it re-runs the missing-shot check and the pharmacy search immediately. In a real build the state would come from the school the parent picks at sign-up, with a "My child's school is in another state" link, not from a free setting.
+
+**What the screens show, by rule status.**
+
+| Status | Parent sees | Pharmacy list |
+| --- | --- | --- |
+| `read-on-official-page` | Full flow, rule source linked | Normal |
+| `unverified` | Full flow, plus a visible "not checked against an official source" notice | Normal, notice on each store |
+| `not-researched` | "No rules on file, check with the state health department" | Pharmacies hidden with that reason; clinics and health department options shown (W-06) |
+
+Rule features that vary (prescription needed, written consent, physician agreement) appear as notices before booking, produced from the rule's fields. Three fields cover every state we have read so far, so a new state rarely needs a new field.
+
+**Sustainability.** Researching every state by hand is not sustainable for the prototype and is not needed. Plan: ship the four researched states (OR, NC, GA, CA) plus the honest "no rules on file" path for everything else, then add states in the order MedMe's real footprint dictates (open item in section 10). One state per pull request, each with source URL and reviewer date. Until MedMe names its states, Oregon and North Carolina are the demo states because they show the two main behaviors (no prescription needed at 7, prescription needed).
+
+**Status of data seeded in code:** all four rules are `unverified` because the source URLs from the research were not saved. Adding the URL and a reviewer date moves each to `read-on-official-page`.
