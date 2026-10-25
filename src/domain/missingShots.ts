@@ -32,7 +32,7 @@ export function getMissingShots(
   intervals: Interval[],
   today: string,
   /** true when the family has no record at all (not even an empty one) */
-  hasRecord = true,
+  hasRecord = student.hasRecord !== false,
 ): VaccineResult[] {
   return getRequirementsFor(student, requirements).map((req) => {
     const given: Dose[] = student.doses

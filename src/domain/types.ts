@@ -21,6 +21,8 @@ export type Student = {
   school: string
   state: string // two-letter code
   doses: Dose[]
+  /** false when no record could be found at all (distinct from a record with zero doses) */
+  hasRecord?: boolean
 }
 
 export type Requirement = {

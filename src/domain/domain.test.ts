@@ -100,3 +100,35 @@ describe("eligibility", () => {
     expect(r.eligible).toBe(true)
   })
 })
+
+import { cohortCounts, coverageBy, summarize } from "./cohorts"
+import { generateRoster } from "./roster"
+
+describe("roster and cohorts", () => {
+  it("same seed gives the same roster", () => {
+    expect(generateRoster(7, 300, today)).toEqual(generateRoster(7, 300, today))
+    expect(generateRoster(7, 20, today)).not.toEqual(generateRoster(8, 20, today))
+  })
+  it("makes the requested size with unique ids", () => {
+    const r = generateRoster(1, 300, today)
+    expect(r).toHaveLength(300)
+    expect(new Set(r.map((s) => s.id)).size).toBe(300)
+  })
+  it("cohort counts add up and include all three groups", () => {
+    const s = summarize(generateRoster(1, 300, today), allRequirements, allIntervals, today)
+    const c = cohortCounts(s)
+    expect(c.upToDate + c.missing + c.unknown).toBe(300)
+    expect(c.upToDate).toBeGreaterThan(0)
+    expect(c.missing).toBeGreaterThan(0)
+    expect(c.unknown).toBeGreaterThan(0)
+  })
+  it("students in a state with no requirements on file are unknown", () => {
+    const s = summarize(generateRoster(1, 300, today), allRequirements, allIntervals, today)
+    expect(s.filter((x) => x.student.state !== "OR").every((x) => x.status === "unknown")).toBe(true)
+  })
+  it("coverage groups by school", () => {
+    const s = summarize(generateRoster(1, 300, today), allRequirements, allIntervals, today)
+    const rows = coverageBy(s, (st) => st.school, ["dtap", "polio"])
+    expect(rows.reduce((n, r) => n + r.size, 0)).toBe(300)
+  })
+})
