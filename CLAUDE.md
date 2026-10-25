@@ -27,10 +27,14 @@ Before every push run type check, build and the browser tests. All three must pa
 
 ## Branches and safety
 
-- Never commit to or edit `main`. It is read-only for us.
-- `staging` is the integration branch. Branch from `staging`, open pull requests into `staging`, and never merge your own pull request.
-- Small branches, small pull requests, one work item each. Commit messages: `feat(W-01): short description`.
-- Do not force push. Do not rewrite shared history.
+- Never commit to or edit `main` or `staging`. Not even a small fix.
+- All work happens on `hotfix/prd-implement`. Isabella runs `staging` locally and promotes the hotfix branch into it only after she has seen it working and likes how it looks. Never push or merge into `staging` yourself, and never open a pull request into `staging` unless she asks.
+- Commit small and often, one logical change per commit, so any single change can be reverted on its own with `git revert`. Do not mix a logic change, a UI change and a refactor in one commit. Do not squash or amend commits already pushed. Do not force push.
+- Commit message format: `feat(W-12): short description`, `fix(...)`, `refactor(...)`, `docs(...)`, `test(...)`, `chore(...)`. The body says what changed and how to see it. Always name the work item.
+- Push after each working commit so the history is backed up and Isabella can pull it.
+- Keep the app working at every commit. If a step is half done, hide it behind the existing screens rather than leaving the app broken.
+- Before a risky or large change (theme rewrite, storage migration, splitting a big screen) tag the last good commit: `git tag good/<short-name>` and push the tag, so there is a named place to go back to.
+- Keep `CHANGELOG.md` (created in W-63) current: one line per user-visible change.
 
 ## Hard rules for the product
 
