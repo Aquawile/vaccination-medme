@@ -34,7 +34,7 @@ export default function Admin() {
   const matchingChildren = allChildren.filter((child) =>
     `${child.name} ${child.school}`.toLowerCase().includes(studentQuery.toLowerCase()),
   )
-  const metrics = [
+  const metrics: [string, number][] = [
     ["Scans", data.events.filter((e) => e.type === "scan").length],
     ["Profiles created", data.childSaved ? 1 : 0],
     ["Bookings", generated.length],
