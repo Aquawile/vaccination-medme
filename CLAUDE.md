@@ -21,6 +21,8 @@ Three demo roles share one app: parent, pharmacist, administrator (school and ca
 - Browser tests: `pnpm exec playwright test` (needs a running server, defaults to `http://localhost:3000`; set `DEMO_BASE_URL` and `CHROMIUM_PATH` if different; tests never start a server)
 - Format: `pnpm format`
 
+**Current pause: do not run any of these commands (dev server, type check, build, tests, formatter) until Isabella says "execute". Write code and tests, commit, and stop. Once she lifts the pause, the rule below applies.**
+
 Before every push run type check, build and the browser tests. All three must pass. At the time of writing `tsc` reports 2 errors in `src/screens/Admin.tsx`; fixing them is work item W-60.
 
 ## Branches and safety
