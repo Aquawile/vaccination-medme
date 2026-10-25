@@ -256,3 +256,77 @@ export function Illustration() {
     </div>
   )
 }
+export function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, [string, string]> = {
+    "up-to-date": ["Up to date", "success"],
+    complete: ["Complete", "success"],
+    missing: ["Missing doses", "warning"],
+    "not-yet-due": ["Not yet due", ""],
+    unknown: ["Unknown", ""],
+  }
+  const [label, kind] = map[status] ?? [status, ""]
+  return <Badge kind={kind}>{label}</Badge>
+}
+/** A metric box that expands in place to show a definition and an optional action. */
+export function MetricCard({
+  label,
+  value,
+  note,
+  open,
+  onToggle,
+  children,
+}: {
+  label: string
+  value: ReactNode
+  note?: string
+  open: boolean
+  onToggle: () => void
+  children?: ReactNode
+}) {
+  return (
+    <Card
+      className={`metric-card ${open ? "expanded" : ""}`}
+      role="button"
+      tabIndex={0}
+      aria-expanded={open}
+      onClick={onToggle}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          onToggle()
+        }
+      }}
+    >
+      <span>{label}</span>
+      <strong>{value}</strong>
+      {note && <small>{note}</small>}
+      {open && children}
+    </Card>
+  )
+}
+/** Tab row. Same buttons as the rest of the app, with an active state. */
+export function Tabs({
+  tabs,
+  active,
+  onChange,
+}: {
+  tabs: { id: string; label: string }[]
+  active: string
+  onChange: (id: string) => void
+}) {
+  return (
+    <div className="tabs" role="tablist">
+      {tabs.map((t) => (
+        <button
+          key={t.id}
+          role="tab"
+          aria-selected={active === t.id}
+          className={`button text tab ${active === t.id ? "nav-active" : ""}`}
+          onClick={() => onChange(t.id)}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  )
+}
