@@ -4,6 +4,7 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
+  type HTMLAttributes,
 } from "react"
 interface IconProps {
   name: string
@@ -166,11 +167,16 @@ export function Select({
 export function Card({
   children,
   className = "",
+  ...props
 }: {
   children: ReactNode
   className?: string
-}) {
-  return <section className={`card ${className}`}>{children}</section>
+} & HTMLAttributes<HTMLElement>) {
+  return (
+    <section className={`card ${className}`} {...props}>
+      {children}
+    </section>
+  )
 }
 export function Alert({
   children,

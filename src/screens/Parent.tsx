@@ -199,6 +199,38 @@ export function ChildRequirements({ onBook }: { onBook: () => void }) {
                 : "Awaiting clinical review"}
             </Badge>
           </div>
+          <Card className="history-card">
+            <div className="section-heading">
+              <div>
+                <div className="eyebrow">SEPARATE FROM DOSES TO REVIEW</div>
+                <Heading level={2}>Vaccination history</Heading>
+              </div>
+              <Badge>
+                {data.appointments.reduce((n, a) => n + a.doses.length, 0)} saved
+              </Badge>
+            </div>
+            <p className="muted">
+              This is the child’s saved administered-dose history. It never counts a selected dose as given.
+            </p>
+            {data.appointments.some((a) => a.doses.length) ? (
+              <div className="history-list">
+                {data.appointments.flatMap((a) =>
+                  a.doses.map((d) => (
+                    <div className="history-row" key={d.id}>
+                      <span className="history-check"><Icon name="check" size={15} /></span>
+                      <div>
+                        <strong>{vaccines.find((v) => v.id === d.vaccine)?.name} administered</strong>
+                        <small>{dateLabel(d.date)} · Lot {d.lot} · {d.signature}</small>
+                      </div>
+                      <Badge kind={d.reported ? "success" : ""}>{d.reported ? "Reported" : "Saved locally"}</Badge>
+                    </div>
+                  )),
+                )}
+              </div>
+            ) : (
+              <p className="empty-inline">No administered doses saved yet.</p>
+            )}
+          </Card>
           <RecordPanel />
           {data.record.state !== "sample" && (
             <RecordState state={data.record.state} />
@@ -216,7 +248,10 @@ export function ChildRequirements({ onBook }: { onBook: () => void }) {
             </p>
           </Alert>
           <div className="section-heading">
-            <Heading level={2}>Doses to review</Heading>
+            <div>
+              <div className="eyebrow">NEXT STEP</div>
+              <Heading level={2}>Doses to review</Heading>
+            </div>
             <span className="muted">Select any to save</span>
           </div>
           {data.record.state !== "complete" && (

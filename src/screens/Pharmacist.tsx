@@ -30,8 +30,13 @@ export default function Pharmacist() {
     data.appointments.find((a) => !a.seeded && !a.cancelled)?.id || "DEMO-001",
   )
   const [filter, setFilter] = useState("all")
+  const [query, setQuery] = useState("")
   const appointments = data.appointments
-    .filter((a) => filter === "all" || a.locationId === filter)
+    .filter(
+      (a) =>
+        (filter === "all" || a.locationId === filter) &&
+        `${a.child.name} ${a.child.school}`.toLowerCase().includes(query.toLowerCase()),
+    )
     .slice()
     .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))
   const appointment = data.appointments.find((a) => a.id === selected)
@@ -70,6 +75,12 @@ export default function Pharmacist() {
               </option>
             ))}
           </Select>
+          <Field
+            label="Find a student"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by name or school"
+          />
           {appointments.map((a) => (
             <Button
               key={a.id}
@@ -125,6 +136,8 @@ function AppointmentDetails({ appointment: a }: { appointment: Appointment }) {
   const [message, setMessage] = useState("")
   const [busy, setBusy] = useState(false)
   const [reason, setReason] = useState("")
+  const [followUpDate, setFollowUpDate] = useState(a.followUpDate || "")
+  const [followUpNote, setFollowUpNote] = useState(a.followUpNote || "")
   const dialogRef = useRef<HTMLDialogElement>(null)
   const location = locations.find((p) => p.id === a.locationId)
   const provider = location?.providers.find((p) => p.id === a.providerId)
@@ -277,6 +290,55 @@ function AppointmentDetails({ appointment: a }: { appointment: Appointment }) {
           eligibility and intervals are unverified and are not recommendations
           to vaccinate.
         </Alert>
+        <div className="follow-up-card">
+          <div className="section-heading">
+            <div>
+              <div className="eyebrow">AI FOLLOW-UP DRAFT</div>
+              <Heading level={2}>Keep the parent in the loop</Heading>
+            </div>
+            <Badge kind={a.parentConfirmation === "confirmed" ? "success" : ""}>
+              {a.parentConfirmation === "confirmed" ? "Confirmed" : a.parentConfirmation === "sent" ? "Sent" : "Pending"}
+            </Badge>
+          </div>
+          <p className="muted">
+            Suggested message: “{a.child.name.split(" ")[0]}’s visit has been reviewed. Please confirm you received this update.”
+          </p>
+          <div className="action-row">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                patch({ parentConfirmation: "sent" })
+                event(`Parent follow-up sent for ${a.child.name}`, "follow-up")
+              }}
+            >
+              Send demo follow-up
+            </Button>
+            <Button
+              variant="text"
+              onClick={() => {
+                patch({ parentConfirmation: "confirmed" })
+                event(`Parent confirmed vaccine update for ${a.child.name}`, "follow-up")
+              }}
+            >
+              Confirm received
+            </Button>
+          </div>
+          <div className="form-grid follow-up-fields">
+            <Field label="Schedule one follow-up" type="date" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)} />
+            <Field label="Follow-up note" value={followUpNote} onChange={(e) => setFollowUpNote(e.target.value)} placeholder="AI draft or reminder" />
+          </div>
+          <Button
+            variant="secondary"
+            disabled={!followUpDate}
+            onClick={() => {
+              patch({ followUpDate, followUpNote: followUpNote || "Review parent confirmation and remaining doses." })
+              event(`Follow-up scheduled for ${a.child.name}`, "follow-up")
+            }}
+          >
+            Schedule follow-up
+          </Button>
+          {a.followUpDate && <p className="inline-note">Follow-up scheduled for {dateLabel(a.followUpDate)} · {a.followUpNote}</p>}
+        </div>
       </Card>
       <Card>
         <Heading level={2}>Review checklist</Heading>
