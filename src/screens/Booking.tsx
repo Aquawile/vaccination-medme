@@ -503,6 +503,12 @@ export default function Booking({
                 }))
               }
             />
+            <Field
+              label="Anything the pharmacist should know (optional intake)"
+              hint="Allergies, medicines, past reactions. The pharmacist reviews this at the visit. Demo only."
+              value={draft.intake}
+              onChange={(e) => update((d) => ({ ...d, draft: { ...d.draft, intake: e.target.value } }))}
+            />
             <Check
               checked={draft.consent}
               onChange={(e) =>

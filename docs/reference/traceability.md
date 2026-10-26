@@ -7,7 +7,7 @@ Build status of every use case in the UC Master Table v2 PDF. Work items refer t
 | UC-Profile-01 Create Parent Account | Partial (demo sign-in by email, role by email) | W-50 | Auth.tsx |
 | UC-Profile-02 Add Child Profile | Built, verify | W-02 | Parent.tsx |
 | UC-Profile-03 Record Parent Consent | Partial | W-02 | Booking.tsx |
-| UC-Entry-01 Open from QR or Link | Gap | none | add school landing route |
+| UC-Entry-01 Open from QR or Link | Partial (`#from/<source>` records where the parent came from) | W-110 | App.tsx |
 | UC-Entry-02 Sign In | Partial | W-50 | Auth.tsx |
 | UC-Entry-03 Manage Session | Gap (30 min idle timeout) | none | services.ts |
 | UC-Record-01 Pull Registry Record | Simulated | W-71 | services.ts |

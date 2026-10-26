@@ -1,0 +1,6 @@
+[
+  { "id": "school", "label": "School notice", "line": "You came from your school's notice." },
+  { "id": "maps", "label": "Google Maps", "line": "You came from a Google Maps \"book online\" button." },
+  { "id": "hotline", "label": "Health line referral", "line": "A health line nurse sent you here." },
+  { "id": "ai", "label": "AI search", "line": "You found this pharmacy through an AI search." }
+]

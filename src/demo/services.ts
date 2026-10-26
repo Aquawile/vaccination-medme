@@ -150,6 +150,8 @@ export function createBooking(data: DemoData, draft: Draft): DemoData {
         ? "Confirmed sample self-pay"
         : "Confirmed sample insurance response",
     consent: draft.guardian.trim(),
+    source: data.entrySource,
+    intake: draft.intake.trim(),
     recordSource: [
       data.record.source,
       data.record.retrieved,

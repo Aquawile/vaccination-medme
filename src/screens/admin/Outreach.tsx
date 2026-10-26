@@ -1,3 +1,4 @@
+import { optedOut } from "../../domain/consent"
 import { useMemo, useState } from "react"
 import { Alert, Badge, Button, Card, Check, Heading, Select } from "../../components/ui"
 import { buildQueues, type StudentSummary } from "../../domain/cohorts"
@@ -29,10 +30,12 @@ export default function Outreach({
   const [body, setBody] = useState(template.body)
   const [reviewed, setReviewed] = useState(false)
   const [sent, setSent] = useState("")
-  const recipients =
+  const audienceAll =
     audience === "selected"
       ? summaries.filter((s) => selected.includes(s.student.id))
       : (queues.find((q) => q.id === audience)?.members ?? [])
+  const recipients = audienceAll.filter((s) => !optedOut(s.student.id))
+  const skipped = audienceAll.length - recipients.length
   const contacted = new Set(data.outreach.flatMap((b) => b.studentIds))
   const fresh = recipients.filter((r) => !contacted.has(r.student.id))
   const first = recipients[0]
@@ -77,7 +80,7 @@ export default function Outreach({
           <option value="selected">Students I selected ({selected.length})</option>
         </Select>
         <p className="muted">
-          <strong>{recipients.length}</strong> families · {fresh.length} not contacted yet · {recipients.length - fresh.length} contacted before
+          <strong>{recipients.length}</strong> families{skipped > 0 && <> ({skipped} opted out of texts and email, skipped)</>} · {fresh.length} not contacted yet · {recipients.length - fresh.length} contacted before
           {recipients.length > 0 && <> · e.g. {recipients.slice(0, 3).map((r) => r.student.name).join(", ")}{recipients.length > 3 ? ` and ${recipients.length - 3} more` : ""}</>}
         </p>
         <div className="compose">

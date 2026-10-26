@@ -26,11 +26,11 @@ test("administrator finds a student, contacts families and downloads documents",
   await page.getByRole("button", { name: "Contact families", exact: true }).click()
   await expect(page.getByText("Template, edited by a person")).toBeVisible()
   await page.getByLabel(/I reviewed this message/).check()
-  await page.getByRole("button", { name: /^Send to 25 families/ }).click()
+  await page.getByRole("button", { name: /^Send to \d+ families/ }).click()
   await expect(page.getByText(/Simulated: nothing was emailed/)).toBeVisible()
   // notice tracking lists the families just contacted
   await expect(page.getByRole("heading", { name: "Notice tracking" })).toBeVisible()
-  await expect(page.getByText("25 families", { exact: true })).toBeVisible()
+  await expect(page.getByText(/^\d+ families$/)).toBeVisible()
   await page.getByRole("button", { name: "Mark replied" }).first().click()
   await expect(page.getByRole("button", { name: "Undo reply" })).toBeVisible()
 
