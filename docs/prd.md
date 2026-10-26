@@ -368,3 +368,99 @@ Layout follows how official school immunization records and compliance reports a
 | W-94 | P0 | Compliance report PDF and CSV export of any filtered list |
 | W-95 | P1 | Funnel and secondary metrics collapsed under Reports |
 | W-96 | P1 | Batch send notice and schedule follow-up (ties to W-42) |
+
+## 15. What real school immunization documents and reports contain
+
+Why this section exists: the documents and numbers in section 14 should match what schools already use, so nothing in the prototype comes from guesswork. Research below was read on 2026-10-26 from the sources linked. Two states were read (Oregon, North Carolina). Other states differ; each added state needs its own check (W-80). Dates and rules change, so treat every date as "as read in the handbook, verify each year". I read written descriptions of the forms, not the official form PDFs themselves, so the layouts below follow the described fields and conventions, not a pixel copy.
+
+Sources: [Oregon School Law Handbook (Oregon Health Authority)](https://www.oregon.gov/oha/ph/PreventionWellness/VaccinesImmunization/GettingImmunized/Documents/SchLawHandbook.pdf); [North Carolina Division of Public Health, school immunization rules and laws](https://www.dph.ncdhhs.gov/programs/epidemiology/immunization/schools/rules-and-laws); [CDC MMWR, kindergarten coverage and exemptions 2023-24](https://www.cdc.gov/mmwr/volumes/73/wr/mm7341a3.htm).
+
+### 15.1 The record a family hands a school
+
+Oregon uses a Certificate of Immunization Status (CIS), required for every student:
+- Lists vaccine dates, or a nonmedical exemption.
+- Signed by the parent, or by the student at 15 or older. Electronic signature is allowed.
+- Verified records (state registry printout, medical provider record, parent-signed record) are copied onto the CIS with a note such as "See attached." Records given by phone are not accepted.
+- A nonmedical exemption needs a signed CIS naming the exempted vaccines plus a Vaccine Education Certificate dated within 12 months.
+- A medical exemption is a separate form completed by a physician or local health department with the child's name and birth date, the contraindicating condition, affected vaccines, how long it applies, signature, contact and date.
+- Proof of immunity (diagnosis or lab report) counts as complete, not as an exemption, and is not allowed for DTaP or polio.
+
+North Carolina requires schools to keep records containing: name, address, date of birth and sex; vaccine type and number of doses; date of the first MMR and the last DTP and polio doses; and the name and address of the administering physician or health department.
+
+Design consequences for the student record PDF (W-93):
+
+| Include | Why |
+| --- | --- |
+| Student name, date of birth, student ID, school, grade | Identification on every school form |
+| Address and sex | Required by NC; make them optional fields, blank in the demo, so the layout is complete without inventing data |
+| Dose-by-dose grid: one row per vaccine, columns Dose 1 to Dose 5, each cell a date | This is how a CIS reads; our current "required / on record / status" table hides the dates a school needs |
+| Source of each date (registry, provider record, parent-signed) and "See attached" note | Oregon separates verified from unverified records |
+| Provider name for each dose | NC requires administering provider |
+| Exemption section: type (medical or nonmedical), vaccines covered, document on file, date | Oregon and NC both track exemptions separately |
+| Status line using the six categories in 15.3 | Matches how schools sort students |
+| Parent or guardian signature and date; school staff "received by" and date | The legal weight of the CIS comes from the parent's signature; left blank in the demo |
+| Record ID, date prepared, page x of y, demo marking | Normal document control; the marking stays because this is fictional |
+
+Dropped as unnecessary: the "Notes" paragraph about recommendations (a school form has none), and the "Requirement status" column on the family-facing page (keep verification wording in a footnote instead).
+
+### 15.2 Reports a school or its health department expects
+
+Oregon (as read in the handbook): schools submit an annual immunization report to the local health department in sections. Sections A and B are due mid-January; the later sections (D to H) are due late February or early March and no later than 12 days after Exclusion Day, which is the fourth Wednesday in February. The health department issues exclusion orders to families for students who are incomplete, insufficient or have no record; the school cancels an order when valid dates, an exemption or immunity documentation arrive, and records the date received. Schools with 10 or more students must post their immunization numbers within 30 days of the start of school and again within 30 days after Exclusion Day (website, main office, and to parents). Reports and exclusion orders are kept one year.
+
+North Carolina (as read on the state page): there is no annual K-12 report described on that page (an annual report applies to child care). Instead, parents must be told on day one that they have 30 calendar days to present a record or show the child has begun the series. A child incomplete only because of minimum intervals between doses is "in process" and may attend. After 30 days a child without a qualifying record is excluded. Schools keep a separate list of exempt students because they may need to be excluded in an outbreak.
+
+Design consequences for the compliance report PDF and Reports tab (W-94):
+- Title block with school, school year, as-of date, prepared by, and the state the rules are from.
+- Summary table with the six categories (15.3), counts, percent, by grade, with a total that reconciles to enrollment.
+- A section "Students requiring notice" listing students in categories that need a parent notice, with the reason (incomplete, insufficient, no record) and notice status.
+- An exemptions list kept separate from the noncompliance list.
+- A "Key dates" block that shows the state's deadline logic as configurable data (NC 30-day rule, Oregon Exclusion Day and report due dates), labeled with its source and "verify each year". Not hard-coded.
+- A public posting version: counts only, no names, for the "post your numbers" requirement. This is the one report that must never contain student names.
+- Footer: report ID, page x of y, demo marking.
+
+### 15.3 Status categories to use
+
+Replace the three statuses (up to date, missing, unknown) with the categories schools actually use. Oregon's list, each student in exactly one:
+
+| Category | Needs parent notice | Maps to our current status |
+| --- | --- | --- |
+| Complete (all doses for grade, or not yet due) | No | Up to date |
+| Incomplete (a dose is due now) | Yes | Missing doses |
+| Insufficient (record errors: date before birth, dates out of order, missing dates, unsigned certificate) | Yes | New |
+| Nonmedical exemption | No | New |
+| Medical exemption | No | New |
+| No record | Yes | Unknown (no record) |
+
+Two things we keep that schools do not have: "Unknown, no rules on file for this state" (our honesty rule, shown separately and never counted as incomplete), and "In process" (NC: incomplete only because of required minimum intervals; counts as attending in good standing). Roster generator and logic need exemption, error and in-process cases (work items below).
+
+### 15.4 Metrics a school administrator needs
+
+Chosen from what the reports above require and what CDC reports for kindergarten (coverage per vaccine, exemption rate, grace period or provisional enrollment rate, "potentially achievable" coverage, change from the previous year):
+
+| Metric | Why an administrator wants it | Where |
+| --- | --- | --- |
+| Percent complete, overall and by grade | The headline; the state report asks for it | Today headline |
+| Counts in all six categories | Reconciles to the state report | Today, Reports |
+| Students needing a parent notice, and notices sent versus resolved | The actual workload | Today queue, Outreach |
+| Coverage per vaccine (DTaP, polio, MMR, varicella as required) | CDC and state reporting is per vaccine | Reports |
+| Exemption rate, medical and nonmedical separately | CDC and state reporting; outbreak planning | Reports |
+| In-process or provisional count | CDC reports it; NC allows attending while in process | Today |
+| Potentially achievable coverage: complete plus those with no exemption and still able to complete | Shows how far outreach can move the school | Reports |
+| Days until the next deadline (NC 30-day from first day, Oregon Exclusion Day and report due dates) | Drives the calendar | Today header |
+| Change since last year or last report (percentage points) | Trend that boards ask for | Reports |
+| Students with a visit booked | Specific to MedMe; shows outreach working | Today |
+
+Dropped from the front page and not needed by a school: scans, profiles created, bookings, proof shared and copied, cancelled counts (kept only as a MedMe usage table under Reports).
+
+### 15.5 New work items
+
+| ID | Pri | Item |
+| --- | --- | --- |
+| W-97 | P0 | Add the six categories plus "in process" to the domain types, roster and cohort counts; add exemption and record-error cases to the roster and unit tests |
+| W-98 | P0 | Redesign the student record PDF as a dose-grid certificate with source, provider, exemption and signature blocks (15.1) |
+| W-99 | P0 | Redesign the compliance report: category summary by grade, students requiring notice, separate exemptions list, key dates block, posting version without names (15.2) |
+| W-100 | P1 | Key dates as data per state (NC 30-day rule, Oregon dates), labeled with source and review date |
+| W-101 | P1 | Add MMR and varicella to vaccines; per-vaccine coverage, exemption rate, potentially achievable coverage, year-over-year change in Reports |
+| W-102 | P1 | Notice tracking: a student needing a notice shows notice sent, resolved date (matches Oregon's cancel-order step) |
+
+Not decided: which states MedMe serves, so Oregon and North Carolina remain the only two with researched document rules. Nothing here is legal advice, and the prototype's documents stay marked as fictional.
