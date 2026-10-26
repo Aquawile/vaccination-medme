@@ -485,9 +485,12 @@ function AppointmentDetails({ appointment: a }: { appointment: Appointment }) {
           <Card>
             <div className="section-heading">
               <Heading level={2}>Registry reporting</Heading>
-              <Badge kind={a.reportStatus === "reported" ? "success" : ""}>
-                {a.reportStatus}
-              </Badge>
+              <span className="action-row" style={{ margin: 0 }}>
+                {a.doses.length > 0 && <Badge kind={a.parentReceived ? "success" : ""}>{a.parentReceived ? "Parent received" : "Parent not yet received"}</Badge>}
+                <Badge kind={a.reportStatus === "reported" ? "success" : ""}>
+                  {a.reportStatus}
+                </Badge>
+              </span>
             </div>
             <p className="muted">
               {a.doses.filter((d) => d.reported).length} of {a.doses.length}{" "}

@@ -35,6 +35,7 @@ export type Appointment = {
   schoolAccepted: boolean
   reportStatus: "not sent" | "reported" | "failed" | "exported"
   parentConfirmation?: "pending" | "sent" | "confirmed"
+  parentReceived?: boolean
   followUpDate?: string
   followUpNote?: string
 }

@@ -394,3 +394,4 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
 .more { background: none; border: 0; font-size: 11px; font-weight: 600; color: var(--deep-teal); padding: 0; }
 @media (max-width: 1000px) { .cal-body { grid-template-columns: 1fr; } .day-panel { border-left: 0; border-top: 1px solid var(--border); max-height: none; } .week-grid { grid-template-columns: 1fr; } .week-col { min-height: 0; border-right: 0; border-bottom: 1px solid var(--border); } .cal-day { min-height: 52px; } }
 .page-intro { margin: 0 0 var(--space-3); font-size: 13px; } .secure-change { display: grid; gap: var(--space-3); border-top: 1px solid var(--border); padding-top: var(--space-4); margin-top: var(--space-4); }
+@media (max-width: 600px) { .parent-nav { overflow-x: auto; justify-content: flex-start; } .parent-nav .button { white-space: nowrap; flex: none; } }
