@@ -118,6 +118,12 @@ test("connected booking, clinician doses, PDF, reporting, sharing and school out
   await expect(
     page.getByText("Demo summary copied to clipboard.", { exact: false }),
   ).toBeVisible()
+  await page.getByRole("button", { name: /^Messages/ }).click()
+  await expect(page.getByText("Visit confirmed")).toBeVisible()
+  await page.getByRole("button", { name: "Mark received" }).click()
+  await expect(page.getByText("Received", { exact: true })).toBeVisible()
+  await page.getByRole("button", { name: "Records", exact: true }).click()
+  await expect(page.getByRole("heading", { name: "History" })).toBeVisible()
   await logout(page)
   await login(page, "admin")
   await expect(

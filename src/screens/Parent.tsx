@@ -13,6 +13,8 @@ import {
 import { defaults, vaccines } from "../demo/config"
 import { useDemo } from "../state"
 import RecordPanel from "../components/RecordPanel"
+import Records from "./parent/Records"
+import Messages, { unreadCount } from "./parent/Messages"
 import Booking from "./Booking"
 import ParentAppointments from "./ParentAppointments"
 import usePageTransition from "../usePageTransition"
@@ -199,38 +201,6 @@ export function ChildRequirements({ onBook }: { onBook: () => void }) {
                 : "Awaiting clinical review"}
             </Badge>
           </div>
-          <Card className="history-card">
-            <div className="section-heading">
-              <div>
-                <div className="eyebrow">SEPARATE FROM DOSES TO REVIEW</div>
-                <Heading level={2}>Vaccination history</Heading>
-              </div>
-              <Badge>
-                {data.appointments.reduce((n, a) => n + a.doses.length, 0)} saved
-              </Badge>
-            </div>
-            <p className="muted">
-              This is the child’s saved administered-dose history. It never counts a selected dose as given.
-            </p>
-            {data.appointments.some((a) => a.doses.length) ? (
-              <div className="history-list">
-                {data.appointments.flatMap((a) =>
-                  a.doses.map((d) => (
-                    <div className="history-row" key={d.id}>
-                      <span className="history-check"><Icon name="check" size={15} /></span>
-                      <div>
-                        <strong>{vaccines.find((v) => v.id === d.vaccine)?.name} administered</strong>
-                        <small>{dateLabel(d.date)} · Lot {d.lot} · {d.signature}</small>
-                      </div>
-                      <Badge kind={d.reported ? "success" : ""}>{d.reported ? "Reported" : "Saved locally"}</Badge>
-                    </div>
-                  )),
-                )}
-              </div>
-            ) : (
-              <p className="empty-inline">No administered doses saved yet.</p>
-            )}
-          </Card>
           <RecordPanel />
           {data.record.state !== "sample" && (
             <RecordState state={data.record.state} />
@@ -369,6 +339,13 @@ export default function Parent() {
             {data.appointments.filter((a) => !a.seeded && !a.cancelled).length}
           </Badge>
         </Button>
+        <Button variant={view === "records" ? "nav-active" : "text"} onClick={() => setView("records")}>
+          Records
+        </Button>
+        <Button variant={view === "messages" ? "nav-active" : "text"} onClick={() => setView("messages")}>
+          Messages
+          {unreadCount(data.appointments) > 0 && <Badge kind="warning">{unreadCount(data.appointments)}</Badge>}
+        </Button>
       </nav>
       {view === "home" ? (
         <main className="parent-main">
@@ -431,6 +408,10 @@ export default function Parent() {
             </Button>
           )}
         </main>
+      ) : view === "records" ? (
+        <Records />
+      ) : view === "messages" ? (
+        <Messages />
       ) : view === "details" ? (
         <ChildRequirements onBook={() => setView("booking")} />
       ) : view === "booking" ? (
