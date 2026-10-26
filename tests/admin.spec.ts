@@ -64,4 +64,16 @@ test("administrator finds a student, contacts families and downloads documents",
   await page.getByLabel("Reviewer date").fill("2026-09-01")
   await page.getByRole("button", { name: "Save review" }).click()
   await expect(page.getByText(/Saved. The change is in the log/)).toBeVisible()
+
+  // drives: a closed day is declined, an open day is accepted
+  await page.getByRole("tab", { name: "Drives" }).click()
+  await page.getByLabel("Partner pharmacy").selectOption({ label: "Oak Street Pharmacy" })
+  await page.getByLabel("Date").fill("2026-09-12") // a Saturday
+  await page.getByRole("button", { name: "Send request" }).click()
+  await expect(page.getByText("Pharmacy declined")).toBeVisible()
+  await page.getByLabel("Partner pharmacy").selectOption({ label: "Willow & Pine Pharmacy" })
+  await page.getByLabel("Date").fill("2026-09-15")
+  await page.getByRole("button", { name: "Send request" }).click()
+  await expect(page.getByText("Pharmacy accepted")).toBeVisible()
+  await expect(page.getByText(/QR code/).first()).toBeVisible()
 })

@@ -31,12 +31,12 @@ Build status of every use case in the UC Master Table v2 PDF. Work items refer t
 | UC-Proof-02 Generate Proof | Built (PDF redesign parked) | W-53, W-98 | Parent.tsx |
 | UC-Proof-03 Share Proof with School | Partial; signer data exists, screen does not read it | W-31 | |
 | UC-Proof-04 Send Next-Dose Reminder | Gap | none | |
-| UC-School-01 Create School Drive | Gap | W-70 | |
-| UC-School-02 Accept Drive | Gap | W-70 | |
-| UC-School-03 Notify Families | Partial (outreach templates) | W-42, W-102 | admin/Outreach.tsx |
-| UC-School-04 View Drive Completion | Partial (aggregate counts in admin) | W-22, W-23 | admin/Overview.tsx |
+| UC-School-01 Create School Drive | Built (simulated pharmacy answer) | W-70 | admin/Drives.tsx |
+| UC-School-02 Accept Drive | Built (simulated, sample hours and capacity) | W-70 | domain/drives.ts |
+| UC-School-03 Notify Families | Built (template, a person approves, notice tracking) | W-42, W-102 | admin/Outreach.tsx |
+| UC-School-04 View Drive Completion | Built (counts only, groups under 10 hidden) | W-70 | admin/Drives.tsx |
 | UC-Admin-01 View Campaign Funnel | Partial (cohort and tracker; no scan-to-reported funnel) | W-23 | admin/Reports.tsx |
-| UC-Admin-02 Maintain State Rules | Partial (read-only tab) | W-26 | admin/Rules.tsx |
+| UC-Admin-02 Maintain State Rules | Partial (review card with source link and date; app still reads data files) | W-26 | admin/RuleReview.tsx |
 
 ## Use cases with no work item yet
 
