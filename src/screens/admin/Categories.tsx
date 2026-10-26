@@ -18,7 +18,7 @@ export default function Categories({ summaries }: { summaries: StudentSummary[] 
         </div>
       </div>
       <div className="table-scroll">
-        <table>
+        <table className="numeric">
           <thead>
             <tr>
               <th>Category</th>

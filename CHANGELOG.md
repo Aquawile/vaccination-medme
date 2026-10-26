@@ -7,3 +7,4 @@
 - Admin Settings: rule review needs a source link and reviewer date to mark verified (W-26).
 - Admin Drives tab: plan a vaccination day, simulated pharmacy accept or decline, slots, family link, counts without names (W-70).
 - Docs: v2 PDFs, parallel lanes and agent brief (W-115, W-116).
+- Admin layout: header controls on one baseline, consistent dropdowns with spaced arrows, even numeric table columns, phone spacing (W-117).
