@@ -1,0 +1,6 @@
+[
+  { "state": "OR", "label": "Oregon Health Authority: school immunization reporting", "url": "https://www.oregon.gov/oha/ph/preventionwellness/vaccinesimmunization/school/pages/reportingrequirements.aspx" },
+  { "state": "NC", "label": "North Carolina DHHS: school immunization rules and laws", "url": "https://www.dph.ncdhhs.gov/programs/epidemiology/immunization/schools/rules-and-laws" },
+  { "state": "CA", "label": "California Department of Public Health: school immunization resources", "url": "https://www.cdph.ca.gov/Programs/CID/DCDC/Pages/Immunization/School/resources-SCRL.aspx" },
+  { "state": "GA", "label": "Georgia Department of Public Health: Form 3231 instructions", "url": "https://dph.georgia.gov/document/document/3231-ins-rev-72021pdf/download" }
+]

@@ -8,3 +8,4 @@
 - Admin Drives tab: plan a vaccination day, simulated pharmacy accept or decline, slots, family link, counts without names (W-70).
 - Docs: v2 PDFs, parallel lanes and agent brief (W-115, W-116).
 - Admin layout: header controls on one baseline, consistent dropdowns with spaced arrows, even numeric table columns, phone spacing (W-117).
+- W-118: Admin reworked. Reports has a clickable category view, by-vaccine view and one summary PDF. New Calendar tab (visits, notices, state dates). Settings sets the school's one state and links to official government pages. Drives hidden pending validation. Removed worksheet, rule review, appointments table and written pharmacist rules from the admin UI.
