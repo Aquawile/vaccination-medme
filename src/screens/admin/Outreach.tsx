@@ -5,6 +5,7 @@ import { vaccineName } from "../../data/vaccines"
 import { defaults } from "../../demo/config"
 import { dateLabel } from "../../demo/journey"
 import { useDemo } from "../../state"
+import NoticeLog from "./NoticeLog"
 
 // DEMO-FAKE: nothing is emailed. "Send" records the batch on this device so the flow can be shown.
 const template = {
@@ -107,6 +108,7 @@ export default function Outreach({
           </table></div>
         )}
       </Card>
+      <NoticeLog summaries={summaries} />
     </>
   )
 }

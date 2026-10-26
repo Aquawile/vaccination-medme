@@ -8,7 +8,7 @@ import Categories from "./Categories"
 import Tracker from "./Tracker"
 import Worksheet from "./Worksheet"
 
-export default function Reports({ campaign, summaries }: { campaign: string; summaries: StudentSummary[] }) {
+export default function Reports({ campaign, summaries, everyone }: { campaign: string; summaries: StudentSummary[]; everyone: StudentSummary[] }) {
   const { data } = useDemo()
   const generated = data.appointments.filter((a) => a.campaign === campaign && !a.seeded)
   const funnel: [string, number, string][] = [
@@ -34,7 +34,7 @@ export default function Reports({ campaign, summaries }: { campaign: string; sum
         </div>
         <p className="inline-note">Student records are downloaded from each student's profile.</p>
       </Card>
-      <div style={{ marginTop: "var(--space-5)" }}><Worksheet summaries={summaries} /></div>
+      <div style={{ marginTop: "var(--space-5)" }}><Worksheet summaries={everyone} /></div>
       <div style={{ marginTop: "var(--space-5)" }}><Categories summaries={summaries} /></div>
       <div style={{ marginTop: "var(--space-5)" }}><Tracker summaries={summaries} /></div>
       <Card style={{ marginTop: "var(--space-5)" }}>
