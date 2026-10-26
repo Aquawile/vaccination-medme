@@ -2,6 +2,8 @@
 
 Status: draft v1, 2026-10-25. Applies to branch `staging`. Owner: Isabella. Reference documents (kept in Claude Docs, listed in section 11): Core User Flows, Requirements and Use Cases, UC Master Table, Prototype PRD and AI Build Guide.
 
+> **Governing source.** The build follows the three v2 documents in `docs/reference/` (Core User Flows, Requirements and Use Cases, UC Master Table). Decisions made since are in `docs/reference/updates-since-v2.md`. Use-case status per work item is in `docs/reference/traceability.md`. Where this PRD disagrees with those, they win.
+
 ## 1. Purpose
 
 Show MedMe's founder one thing: a parent can go from a school notice to a booked, recorded and provable vaccination, with MedMe in the middle, and the hard parts work. Those hard parts are (a) telling the parent exactly which school-required vaccines are missing, (b) matching the child to a pharmacy or clinic that will actually take them under that state's rules, and (c) recording the dose once and producing proof and a registry report.
