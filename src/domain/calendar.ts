@@ -10,6 +10,7 @@ export function buildEvents(
   outreach: { date: string; audience: string; studentIds: string[] }[],
   keyDates: KeyDate[],
   state: string,
+  extra: CalEvent[] = [],
 ): CalEvent[] {
   const visits: CalEvent[] = summaries
     .filter((s) => s.student.visitDate)
@@ -18,7 +19,7 @@ export function buildEvents(
   const deadlines: CalEvent[] = keyDates
     .filter((d) => d.state === state && d.kind === "fixed-date" && d.date)
     .map((d) => ({ date: d.date!, type: "deadline", title: d.label, detail: d.status === "unverified" ? "Unverified. Confirm at the source." : "", sourceUrl: d.sourceUrl }))
-  return [...visits, ...notices, ...deadlines].sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title))
+  return [...visits, ...notices, ...deadlines, ...extra].sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title))
 }
 
 export function countsByDay(events: CalEvent[]) {
@@ -49,4 +50,21 @@ export function monthGrid(year: number, month: number): { date: string; inMonth:
     weeks.push(week)
   } while (cursor.getUTCMonth() === month)
   return weeks
+}
+
+/** Sunday to Saturday dates of the week containing a date. */
+export function weekOf(date: string): string[] {
+  const d = new Date(`${date}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() - d.getUTCDay())
+  return Array.from({ length: 7 }, (_, i) => {
+    const x = new Date(d)
+    x.setUTCDate(d.getUTCDate() + i)
+    return iso(x)
+  })
+}
+
+export function addDays(date: string, n: number): string {
+  const d = new Date(`${date}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + n)
+  return iso(d)
 }
