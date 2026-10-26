@@ -1,6 +1,6 @@
 # Traceability: use cases to the app
 
-Build status of every use case in `uc-master-table-v2.md`. Work items refer to `docs/prd.md` section 5. "Verify" means the screen exists but a test does not yet prove the use case end to end; it is checked in the first PR that touches it.
+Build status of every use case in the UC Master Table v2 PDF. Work items refer to `docs/prd.md` section 5. "Verify" means the screen exists but a test does not yet prove the use case end to end; it is checked in the first PR that touches it.
 
 | Use case | Status | Work item | Where |
 | --- | --- | --- | --- |

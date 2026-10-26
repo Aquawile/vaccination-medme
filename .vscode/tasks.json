@@ -2,12 +2,27 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Sync with GitHub",
+      "label": "Keep in sync with GitHub",
       "type": "shell",
-      "command": "bash scripts/sync.sh",
-      "runOptions": { "runOn": "folderOpen" },
-      "presentation": { "reveal": "silent", "panel": "shared" },
-      "problemMatcher": []
+      "command": "bash scripts/watch.sh",
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activelyWatching": true,
+          "beginsPattern": ".",
+          "endsPattern": "."
+        }
+      },
+      "isBackground": true
     }
   ]
 }
