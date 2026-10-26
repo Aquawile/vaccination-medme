@@ -1,0 +1,48 @@
+# Runs on every feature or hotfix branch push and on every pull request into staging or main.
+# Nothing is deployed from here; Vercel handles previews. A red check means do not merge.
+name: ci
+
+on:
+  push:
+    branches: ["feat/**", "hotfix/**", "fix/**", "chore/**", "docs/**"]
+  pull_request:
+    branches: [staging, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+      - name: Unit tests
+        run: pnpm exec vitest run
+      - name: Build
+        run: pnpm build
+      - name: Install browser for tests
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Browser tests (mobile, tablet, desktop)
+        run: |
+          pnpm exec vite --port 3000 --strictPort > vite.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:3000 > /dev/null && break; sleep 1; done
+          export CHROMIUM_PATH="$(node -e "console.log(require('@playwright/test').chromium.executablePath())")"
+          pnpm exec playwright test --reporter=list
+      - name: Keep failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7

@@ -21,19 +21,18 @@ Three demo roles share one app: parent, pharmacist, administrator (school and ca
 - Browser tests: `pnpm exec playwright test` (needs a running server, defaults to `http://localhost:3000`; set `DEMO_BASE_URL` and `CHROMIUM_PATH` if different; tests never start a server)
 - Format: `pnpm format`
 
-**Current pause: do not run any of these commands (dev server, type check, build, tests, formatter) until Isabella says "execute". Write code and tests, commit, and stop. Once she lifts the pause, the rule below applies.**
-
-Before every push run type check, build and the browser tests. All three must pass. At the time of writing `tsc` reports 2 errors in `src/screens/Admin.tsx`; fixing them is work item W-60.
+Before every push run type check, unit tests, build and the browser tests. All must pass. CI runs the same checks. At the time of writing `tsc` reports 2 errors in `src/screens/Admin.tsx`; fixing them is work item W-60.
 
 ## Branches and safety
 
-- Never commit to or edit `main` or `staging`. Not even a small fix.
-- All work happens on `hotfix/prd-implement`. Isabella runs `staging` locally and promotes the hotfix branch into it only after she has seen it working and likes how it looks. Never push or merge into `staging` yourself, and never open a pull request into `staging` unless she asks.
+- Never commit to or edit `main` or `staging`. Not even a small fix. `main` is production, `staging` is where finished work is tested before `main`.
+- Every task gets its own short-lived branch cut from `staging`: `feat/<work-item>-<short-name>` for features, `hotfix/<short-name>` for urgent fixes (examples: `feat/w97-status-categories`, `hotfix/pdf-overflow`). Never reuse one long branch for unrelated work. When a branch is merged, start a new one.
+- A branch is pushed after every working commit. GitHub Actions (`ci.yml`) then runs the type check, unit tests, build and browser tests on it. A branch only goes into `staging` through a pull request whose checks are green and whose preview Isabella has looked at. Never merge your own pull request, and never push straight to `staging` or `main`.
 - Commit small and often, one logical change per commit, so any single change can be reverted on its own with `git revert`. Do not mix a logic change, a UI change and a refactor in one commit. Do not squash or amend commits already pushed. Do not force push.
 - Commit message format: `feat(W-12): short description`, `fix(...)`, `refactor(...)`, `docs(...)`, `test(...)`, `chore(...)`. The body says what changed and how to see it. Always name the work item.
-- Push after each working commit so the history is backed up and Isabella can pull it.
 - Keep the app working at every commit. If a step is half done, hide it behind the existing screens rather than leaving the app broken.
-- Before a risky or large change (theme rewrite, storage migration, splitting a big screen) tag the last good commit: `git tag good/<short-name>` and push the tag, so there is a named place to go back to.
+- Before a risky or large change (theme rewrite, storage migration, splitting a big screen) note the last good commit hash in the commit message so there is a named place to go back to.
+- Hosted previews run on Vercel from any pushed branch. The footer shows `Build: <branch> @ <commit>` so it is always clear which version is on screen.
 - Keep `CHANGELOG.md` (created in W-63) current: one line per user-visible change.
 
 ## Hard rules for the product
