@@ -1,0 +1,12 @@
+[
+  {
+    "state": "CA",
+    "kind": "audit-share",
+    "share": 0.1,
+    "label": "Over 10% of students conditional or overdue can trigger an audit of the school",
+    "sourceUrl": "",
+    "status": "unverified",
+    "lastReviewed": "2026-10-26",
+    "note": "Read on the California annual assessment page on 2026-10-26. Source link still needed, so this stays unverified. Our 'conditional or overdue' count is an approximation: in process, incomplete and insufficient."
+  }
+]
