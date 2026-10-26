@@ -28,3 +28,13 @@ describe("month grid", () => {
   })
   it("handles a month that starts on Sunday", () => expect(monthGrid(2026, 1)[0][0].date).toBe("2026-02-01"))
 })
+
+import { addDays, weekOf } from "./calendar"
+describe("weeks", () => {
+  it("runs Sunday to Saturday", () => {
+    const w = weekOf("2026-09-08")
+    expect(w[0]).toBe("2026-09-06")
+    expect(w[6]).toBe("2026-09-12")
+  })
+  it("adds days across a month end", () => expect(addDays("2026-09-30", 1)).toBe("2026-10-01"))
+})

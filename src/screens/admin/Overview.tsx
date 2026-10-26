@@ -35,7 +35,7 @@ export default function Overview({
         <div className="section-heading">
           <div>
             <Heading level={2}>{c.upToDate} of {c.total} students have every required vaccine</Heading>
-            <p className="muted">Measured against the requirement list on file. Requirements are unverified samples.</p>
+            <p className="muted">Today is the working view: who needs action now. Counts for filing are in Reports. Measured against the requirement list on file. Requirements are unverified samples.</p>
           </div>
           <Badge kind="warning">Requirements unverified</Badge>
         </div>

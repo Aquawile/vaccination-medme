@@ -16,6 +16,7 @@ export default function Reports({ summaries, state, onOpen }: { summaries: Stude
   const [view, setView] = useState("category")
   return (
     <>
+      <p className="muted page-intro">Reports are for filing, posting and sharing: counts and lists by category, and documents. For who needs action today, use Today.</p>
       <Tabs tabs={views} active={view} onChange={setView} />
       <div style={{ marginTop: "var(--space-5)" }}>
         {view === "category" && <CategoryView summaries={summaries} state={state} onOpen={onOpen} />}

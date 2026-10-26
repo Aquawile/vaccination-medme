@@ -1,0 +1,14 @@
+[
+  { "date": "2026-08-18", "type": "notice", "title": "Back-to-school immunization reminder", "detail": "Sent to all families, 300 recipients. Sample." },
+  { "date": "2026-09-02", "type": "notice", "title": "First notice: missing doses", "detail": "Sent to 91 families. Sample." },
+  { "date": "2026-09-04", "type": "notice", "title": "MedMe follow-up text: book a visit", "detail": "Sent to 40 families without a booked visit. Sample." },
+  { "date": "2026-09-16", "type": "notice", "title": "MedMe follow-up text: visit reminder", "detail": "Scheduled for 22 booked families. Sample." },
+  { "date": "2026-09-22", "type": "notice", "title": "Second notice: missing doses", "detail": "Scheduled for families still missing doses. Sample." },
+  { "date": "2026-10-06", "type": "notice", "title": "MedMe follow-up text: records received", "detail": "Scheduled. Sample." },
+  { "date": "2026-10-13", "type": "notice", "title": "Final notice before exclusion warning", "detail": "Scheduled. Sample." },
+  { "date": "2026-11-10", "type": "notice", "title": "Exclusion warning letters", "detail": "Scheduled for students still not compliant. Sample." },
+  { "date": "2026-09-30", "type": "deadline", "title": "Sample: staff records review complete", "detail": "Sample date for the demo. Not a legal deadline." },
+  { "date": "2026-10-15", "type": "deadline", "title": "Sample: status report to health department", "detail": "Sample date for the demo. Not a legal deadline." },
+  { "date": "2026-11-16", "type": "deadline", "title": "Sample: exclusion day", "detail": "Sample date for the demo. Not a legal deadline." },
+  { "date": "2026-12-04", "type": "deadline", "title": "Sample: registry upload for second period", "detail": "Sample date for the demo. Not a legal deadline." }
+]
