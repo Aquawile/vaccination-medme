@@ -89,6 +89,19 @@ export const initialData = {
     subject: string
     body: string
   }[],
+  // DEMO-FAKE: school drives requested by the school nurse (UC-School-01 to 04)
+  drives: [] as {
+    id: string
+    school: string
+    pharmacyId: string
+    date: string
+    startTime: string
+    hours: number
+    families: number
+    status: "accepted" | "declined"
+    reason: string
+    slots: string[]
+  }[],
   // DEMO-FAKE: family ids who answered a notice (W-102)
   noticeReplies: [] as string[],
   // DEMO-FAKE: reviews of state rules saved on this device (W-26)

@@ -4,6 +4,29 @@ Status: draft v1, 2026-10-25. Applies to branch `staging`. Owner: Isabella. Refe
 
 > **Governing source.** The build follows the three v2 documents in `docs/reference/` (Core User Flows, Requirements and Use Cases, UC Master Table). Decisions made since are in `docs/reference/updates-since-v2.md`. Use-case status per work item is in `docs/reference/traceability.md`. Where this PRD disagrees with those, they win.
 
+## Backlog index
+
+Status as of 2026-10-26. Lane: A admin, P parent, H pharmacist, X shared. Full text of each item is in section 5.
+
+| ID | Pri | Item | Lane | Status |
+| --- | --- | --- | --- | --- |
+| W-97 | P0 | School status categories | A | Done |
+| W-100 | P0 | Key dates per state, rule fixes | A | Done |
+| W-102 | P0 | Notice tracking | A | Done |
+| W-103 | P0 | Report worksheet by grade and category | A | Done |
+| W-104 | P1 | Worksheet CSV | A | Done |
+| W-105 | P1 | State filter in the admin header | A | Done |
+| W-108 | P1 | Audit-share alert | A | Done |
+| W-109 | P1 | Counts-only posting text | A | Done |
+| W-26 | P1 | Rule review needs source and date | A | Done (demo-only storage) |
+| W-70 | P2 | School drives | A | Done (simulated pharmacy answer) |
+| W-101 | P1 | MMR and varicella per vaccine | A | Blocked: needs a source read for the state |
+| W-98, W-99 | P2 | PDF redesign | A | Parked |
+| W-02, W-30, W-31, W-32 | P0 | Parent records, inbox, upcoming visits | P | Open |
+| W-13, W-14, W-40, W-41 | P0 | Pharmacist schedule, calendar, confirmations, honest follow-ups | H | Open |
+| W-110 to W-113 | P1 | Landing route, idle timeout, photo upload, next-dose reminder | P | Proposed |
+| W-115, W-116 | P1 | Local sync, parallel lanes, v2 PDFs | X | Done |
+
 ## 1. Purpose
 
 Show MedMe's founder one thing: a parent can go from a school notice to a booked, recorded and provable vaccination, with MedMe in the middle, and the hard parts work. Those hard parts are (a) telling the parent exactly which school-required vaccines are missing, (b) matching the child to a pharmacy or clinic that will actually take them under that state's rules, and (c) recording the dose once and producing proof and a registry report.
