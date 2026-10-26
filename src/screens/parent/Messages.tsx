@@ -1,4 +1,4 @@
-import { Badge, Button, Card, Heading } from "../../components/ui"
+import { Badge, Button, Card, Check, Heading } from "../../components/ui"
 import { vaccines } from "../../demo/config"
 import type { Appointment } from "../../demo/journey"
 import { dateLabel } from "../../demo/journey"
@@ -15,6 +15,12 @@ export default function Messages() {
     <main className="screen">
       <Heading level={1}>Messages</Heading>
       <p className="muted">Visit confirmations from your pharmacy. Marking one received tells the pharmacy you saw it.</p>
+      <Card>
+        <Heading level={2}>How we may contact you</Heading>
+        <p className="muted">Scheduling and records only, never medical advice. Turn either off at any time.</p>
+        <Check checked={data.contactPrefs.sms} onChange={(e) => update((d) => ({ ...d, contactPrefs: { ...d.contactPrefs, sms: e.target.checked } }))}>Text messages</Check>
+        <Check checked={data.contactPrefs.email} onChange={(e) => update((d) => ({ ...d, contactPrefs: { ...d.contactPrefs, email: e.target.checked } }))}>Email</Check>
+      </Card>
       {list.length === 0 ? <Card><p className="empty-inline">No messages yet. A confirmation appears here after a pharmacist records a visit.</p></Card> : list.map((a) => (
         <Card key={a.id}>
           <div className="section-heading">

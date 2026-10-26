@@ -36,6 +36,8 @@ export type Appointment = {
   reportStatus: "not sent" | "reported" | "failed" | "exported"
   parentConfirmation?: "pending" | "sent" | "confirmed"
   parentReceived?: boolean
+  source?: string
+  intake?: string
   followUpDate?: string
   followUpNote?: string
 }
@@ -155,6 +157,7 @@ export type Draft = {
   plan: string
   guardian: string
   consent: boolean
+  intake: string
 }
 export const emptyDraft: Draft = {
   locationId: "",
@@ -165,6 +168,7 @@ export const emptyDraft: Draft = {
   plan: "covered",
   guardian: "",
   consent: false,
+  intake: "",
 }
 export const seedAppointment: Appointment = {
   id: "DEMO-001",

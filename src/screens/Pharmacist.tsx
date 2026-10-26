@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent } from "react"
+import entrySources from "../data/entrySources.json"
 import {
   Alert,
   Badge,
@@ -257,6 +258,14 @@ function AppointmentDetails({ appointment: a }: { appointment: Appointment }) {
                 .map((id) => vaccines.find((v) => v.id === id)?.name)
                 .join(" · ")}
             </strong>
+          </div>
+          <div>
+            <small>Booked from</small>
+            <strong>{entrySources.find((s) => s.id === a.source)?.label ?? "School notice"}</strong>
+          </div>
+          <div>
+            <small>Intake form</small>
+            <strong>{a.intake ? a.intake : "Not filled in"}</strong>
           </div>
           <div>
             <small>Guardian consent</small>

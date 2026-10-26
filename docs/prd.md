@@ -24,7 +24,14 @@ Status as of 2026-10-26. Lane: A admin, P parent, H pharmacist, X shared. Full t
 | W-98, W-99 | P2 | PDF redesign | A | Parked |
 | W-02, W-30, W-31, W-32 | P0 | Parent records, inbox, upcoming visits | P | Open |
 | W-13, W-14, W-40, W-41 | P0 | Pharmacist schedule, calendar, confirmations, honest follow-ups | H | Open |
-| W-110 to W-113 | P1 | Landing route, idle timeout, photo upload, next-dose reminder | P | Proposed |
+| W-110 | P1 | Entry sources: `#from/school`, `maps`, `hotline`, `ai`; shown to parent and pharmacist | P | Done (demo-only) |
+| W-111 to W-113 | P1 | Idle timeout, photo upload, next-dose reminder | P | Proposed |
+| W-120 | P1 | Optional intake note on booking, shown to the pharmacist | P | Done (free text only) |
+| W-121 | P1 | Contact preferences (text, email); Outreach skips opted-out families | P/A | Done (opt-outs are faked) |
+| W-122 | P1 | Public pharmacy page: accurate name, address and services, so Maps, hotline and AI search send people to correct information | H | Proposed, from the founder call 2026-10-26 |
+| W-123 | P2 | Full intake form (structured, per pharmacy) | H | Proposed |
+| W-124 | P2 | Consent and solicitation rules for texts, email and the coming voice agent; needs the founder or counsel, no legal text from us | A | Waiting on MedMe |
+| W-125 | P3 | Canada (Nova Scotia, BC, Quebec) provincial listings and hotlines | X | Out of scope for the prototype |
 | W-115, W-116 | P1 | Local sync, parallel lanes, v2 PDFs | X | Done |
 
 ## 1. Purpose

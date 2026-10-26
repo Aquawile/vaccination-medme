@@ -13,6 +13,7 @@ import {
 import { defaults, vaccines } from "../demo/config"
 import { useDemo } from "../state"
 import RecordPanel from "../components/RecordPanel"
+import entrySources from "../data/entrySources.json"
 import Records from "./parent/Records"
 import Messages, { unreadCount } from "./parent/Messages"
 import Booking from "./Booking"
@@ -378,6 +379,9 @@ export default function Parent() {
                 <b>3</b>Receive a summary after the visit
               </span>
             </div>
+            {data.entrySource !== "school" && (
+              <Alert>{entrySources.find((s) => s.id === data.entrySource)?.line} The steps are the same: check what is missing, book at a pharmacy, get your record.</Alert>
+            )}
             <Alert>
               This is a fictional Oregon campaign, dated{" "}
               {dateLabel(defaults.referenceDate)}. Sample requirements are not

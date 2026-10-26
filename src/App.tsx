@@ -1,9 +1,10 @@
-import { lazy, Suspense, useState } from "react"
+import { lazy, Suspense, useEffect, useState } from "react"
 import { Button, Icon } from "./components/ui"
 import { accountRoles } from "./demo/config"
 import { DemoProvider } from "./state"
 import Auth from "./screens/Auth"
 import Dev from "./screens/Dev"
+import { useDemo } from "./state"
 import { useHash } from "./hooks/useHash"
 const Parent = lazy(() => import("./screens/Parent"))
 const Pharmacist = lazy(() => import("./screens/Pharmacist"))
@@ -13,6 +14,17 @@ const buildEnv = (import.meta as unknown as { env: Record<string, string | undef
 const buildStamp = buildEnv.VITE_BUILD_BRANCH
   ? `Build: ${buildEnv.VITE_BUILD_BRANCH} @ ${(buildEnv.VITE_BUILD_COMMIT ?? "").slice(0, 7)}`
   : ""
+/** Visiting #from/maps (or school, hotline, ai) records where the parent arrived from. */
+function SourceCapture() {
+  const { update } = useDemo()
+  const [hash] = useHash()
+  useEffect(() => {
+    const m = hash.match(/^from\/(school|maps|hotline|ai)$/)
+    if (m) update((d) => ({ ...d, entrySource: m[1] }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hash])
+  return null
+}
 export default function App() {
   const [email, setEmail] = useState(
     () => localStorage.getItem("school-demo-session") || "",
@@ -21,6 +33,7 @@ export default function App() {
   const [hash] = useHash()
   return (
     <DemoProvider>
+      <SourceCapture />
       {!role ? (
         <Auth onLogin={setEmail} />
       ) : (
