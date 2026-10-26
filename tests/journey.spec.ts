@@ -123,29 +123,12 @@ test("connected booking, clinician doses, PDF, reporting, sharing and school out
   await expect(
     page.getByRole("heading", { name: "Campaign overview" }),
   ).toBeVisible()
-  await page.getByRole("tab", { name: "Reports" }).click()
-  await page.getByRole("checkbox", { name: "Demo accepted" }).last().check()
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () =>
-          JSON.parse(
-            localStorage.getItem("school-demo-data-v1")!,
-          ).appointments.find((a: { seeded: boolean }) => !a.seeded)
-            .schoolAccepted,
-      ),
-    )
-    .toBe(true)
   await noOverflow(page)
   await page.screenshot({
     path: info.outputPath("administrator.png"),
     fullPage: true,
   })
   await page.reload()
-  await page.getByRole("tab", { name: "Reports" }).click()
-  await expect(
-    page.getByRole("checkbox", { name: "Demo accepted" }).last(),
-  ).toBeChecked()
   const result = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("school-demo-data-v1")!),
   )

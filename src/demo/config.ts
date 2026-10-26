@@ -89,6 +89,8 @@ export const initialData = {
     subject: string
     body: string
   }[],
+  // DEMO-FAKE: the school's state, set once in Settings
+  schoolState: "OR",
   // DEMO-FAKE: school drives requested by the school nurse (UC-School-01 to 04)
   drives: [] as {
     id: string

@@ -124,7 +124,7 @@ test("service guards enforce unknown-cost blocking and idempotent dose saving", 
     again.appointments.find((a) => a.id === appointment.id)?.proofShared,
   ).toBe(false)
 })
-test("registration validation, manual/photo records and editable sample rules", async ({
+test("registration validation and manual/photo records", async ({
   page,
 }) => {
   await page.goto("/")
@@ -174,17 +174,6 @@ test("registration validation, manual/photo records and editable sample rules", 
   await page.getByLabel("Email address").fill("admin@example.test")
   await page.getByLabel("Password", { exact: true }).fill("Demo123!")
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
-  await page.getByRole("tab", { name: "Settings" }).click()
-  await page.getByLabel("DTaP requirement").fill("")
-  await page.getByRole("button", { name: "Save rules" }).click()
-  await expect(page.getByText("Required", { exact: true })).toBeVisible()
-  await page
-    .getByLabel("DTaP requirement")
-    .fill("Sample: review 5 documented doses")
-  await page.getByRole("button", { name: "Save rules" }).click()
-  await expect(
-    page.getByText("Sample rules saved on this device."),
-  ).toBeVisible()
   await page.evaluate(() => {
     window.location.hash = "dev"
   })

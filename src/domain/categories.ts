@@ -65,3 +65,15 @@ export function getSchoolCategory(student: Student, results: VaccineResult[]): S
   if (results.some((r) => r.status === "not-yet-due")) return "in-process"
   return "complete"
 }
+
+/** Plain definitions of how this app sorts students. They describe our sorting, not the law. */
+export const categoryHelp: Record<SchoolCategory, { means: string; next: string }> = {
+  complete: { means: "Every required dose on the school's list is recorded.", next: "Nothing to do." },
+  "in-process": { means: "No dose is overdue. The doses still missing are not yet due.", next: "Counts as in good standing. Check back after the next due date." },
+  incomplete: { means: "At least one required dose is overdue and no exemption covers it.", next: "Send a notice. These families are the main follow-up list." },
+  insufficient: { means: "A record exists but has an error: a missing date, a dose dated before birth, a duplicate date, or no parent signature.", next: "Ask the family for a corrected record. Send a notice." },
+  "nonmedical-exemption": { means: "A nonmedical exemption document is on file for the missing doses.", next: "Keep the document on file. No notice needed." },
+  "medical-exemption": { means: "A medical exemption document is on file for the missing doses.", next: "Keep the document on file. No notice needed." },
+  "no-record": { means: "No record could be found for this student at all.", next: "Ask the family for their record. Send a notice." },
+  "no-rules": { means: "No rules are on file for this school's state, so nothing is judged complete or missing.", next: "Check the state health department's page linked in Settings." },
+}

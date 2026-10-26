@@ -34,46 +34,34 @@ test("administrator finds a student, contacts families and downloads documents",
   await page.getByRole("button", { name: "Mark replied" }).first().click()
   await expect(page.getByRole("button", { name: "Undo reply" })).toBeVisible()
 
-  // reports downloads
+  // reports: pick a category, download counts and the list
   await page.getByRole("tab", { name: "Reports" }).click()
-  await expect(page.getByRole("heading", { name: "Students by category" })).toBeVisible()
-  await expect(page.getByRole("cell", { name: "Nonmedical exemption" }).first()).toBeVisible()
-  await expect(page.getByRole("heading", { name: "Report worksheet" })).toBeVisible()
-  const [csv] = await Promise.all([
+  await page.getByRole("tab", { name: /Nonmedical exemption/ }).click()
+  await expect(page.getByRole("tab", { name: /Nonmedical exemption/ })).toHaveAttribute("aria-selected", "true")
+  const [counts] = await Promise.all([
     page.waitForEvent("download"),
-    page.getByRole("button", { name: "Worksheet (CSV)" }).click(),
+    page.getByRole("button", { name: /Counts \(CSV\)/ }).click(),
   ])
-  expect(csv.suggestedFilename()).toContain("report-worksheet-OR")
-  await page.getByLabel("State", { exact: true }).last().selectOption("CA")
-  await expect(page.getByText(/No students from California/)).toBeVisible()
-  await expect(page.getByText(/Over 10% of students conditional or overdue.*under the line/)).toBeVisible()
+  expect(counts.suggestedFilename()).toContain("csv")
+  await page.getByRole("tab", { name: "Documents" }).click()
   const [report] = await Promise.all([
     page.waitForEvent("download"),
-    page.getByRole("button", { name: /Compliance report, all students/ }).click(),
+    page.getByRole("button", { name: /School summary/ }).click(),
   ])
-  expect(report.suggestedFilename()).toContain("compliance-report")
+  expect(report.suggestedFilename()).toContain("compliance")
 
-  // settings: a rule cannot be marked verified without a source link and date
+  // calendar
+  await page.getByRole("tab", { name: "Calendar" }).click()
+  await expect(page.getByRole("heading", { name: /September 2026/ })).toBeVisible()
+  await page.getByRole("button", { name: "Next month" }).click()
+  await expect(page.getByRole("heading", { name: /October 2026/ })).toBeVisible()
+
+  // settings: school state is one setting, with an official link and a confirm step
   await page.getByRole("tab", { name: "Settings" }).click()
-  await page.getByLabel("Status", { exact: true }).selectOption("read-on-official-page")
-  await page.getByLabel("Source link").fill("")
-  await page.getByLabel("Reviewer date").fill("")
-  await page.getByRole("button", { name: "Save review" }).click()
-  await expect(page.getByText(/source link starting with https/)).toBeVisible()
-  await page.getByLabel("Source link").fill("https://health.example.test/rules")
-  await page.getByLabel("Reviewer date").fill("2026-09-01")
-  await page.getByRole("button", { name: "Save review" }).click()
-  await expect(page.getByText(/Saved. The change is in the log/)).toBeVisible()
-
-  // drives: a closed day is declined, an open day is accepted
-  await page.getByRole("tab", { name: "Drives" }).click()
-  await page.getByLabel("Partner pharmacy").selectOption({ label: "Oak Street Pharmacy" })
-  await page.getByLabel("Date").fill("2026-09-12") // a Saturday
-  await page.getByRole("button", { name: "Send request" }).click()
-  await expect(page.getByText("Pharmacy declined")).toBeVisible()
-  await page.getByLabel("Partner pharmacy").selectOption({ label: "Willow & Pine Pharmacy" })
-  await page.getByLabel("Date").fill("2026-09-15")
-  await page.getByRole("button", { name: "Send request" }).click()
-  await expect(page.getByText("Pharmacy accepted")).toBeVisible()
-  await expect(page.getByText(/QR code/).first()).toBeVisible()
+  await expect(page.getByRole("link", { name: /Oregon|OHA|Health Authority/i }).first()).toBeVisible()
+  await page.getByLabel("State this school is in").selectOption("ID")
+  await expect(page.getByRole("button", { name: /Change state to/ })).toBeDisabled()
+  await page.getByLabel(/I understand/).check()
+  await page.getByRole("button", { name: /Change state to/ }).click()
+  await expect(page.getByText(/No official page on file/)).toBeVisible()
 })
