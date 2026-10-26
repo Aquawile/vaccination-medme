@@ -4,6 +4,7 @@ import { states } from "../../demo/config"
 import { allStateRules } from "../../domain/rules.data"
 import { stateName } from "../../data/states"
 import { useDemo } from "../../state"
+import RuleReview from "./RuleReview"
 
 export default function Rules({ active }: { active: boolean }) {
   const { data, update, event } = useDemo()
@@ -21,6 +22,7 @@ export default function Rules({ active }: { active: boolean }) {
   }
   return (
     <>
+      <RuleReview />
       <Card className="rule-list" style={{ marginBottom: "var(--space-6)" }}>
         <div className="section-heading">
           <div>
@@ -38,8 +40,8 @@ export default function Rules({ active }: { active: boolean }) {
                   <td><strong>{stateName(r.state)}</strong></td>
                   <td>{r.notes}</td>
                   <td>
-                    <Badge kind="warning">{r.status === "unverified" ? "Unverified" : r.status}</Badge>
-                    <p>{r.sourceUrl ? r.sourceUrl : "Source link still needed"}</p>
+                    <Badge kind={(data.ruleReviews[r.state]?.status ?? r.status) === "read-on-official-page" ? "success" : "warning"}>{(data.ruleReviews[r.state]?.status ?? r.status) === "unverified" ? "Unverified" : (data.ruleReviews[r.state]?.status ?? r.status)}</Badge>
+                    <p>{(data.ruleReviews[r.state]?.sourceUrl ?? r.sourceUrl) || "Source link still needed"}</p>
                   </td>
                 </tr>
               ))}

@@ -89,6 +89,11 @@ export const initialData = {
     subject: string
     body: string
   }[],
+  // DEMO-FAKE: family ids who answered a notice (W-102)
+  noticeReplies: [] as string[],
+  // DEMO-FAKE: reviews of state rules saved on this device (W-26)
+  ruleReviews: {} as Record<string, { status: string; sourceUrl: string; lastReviewed: string }>,
+  ruleLog: [] as { time: string; state: string; text: string }[],
   events: [] as {
     id: string
     text: string

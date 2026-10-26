@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Heading, Icon, Select, Tabs } from "../components/ui"
+import { stateName } from "../data/states"
 import { defaults } from "../demo/config"
 import { useHash } from "../hooks/useHash"
 import Outreach from "./admin/Outreach"
@@ -26,7 +27,10 @@ export default function Admin() {
   const [filter, setFilter] = useState<StudentFilter>(emptyFilter)
   const [selected, setSelected] = useState<string[]>([])
   const [audience, setAudience] = useState("")
-  const summaries = useRoster()
+  const everyone = useRoster()
+  const [stateFilter, setStateFilter] = useState("all")
+  const summaries = useMemo(() => (stateFilter === "all" ? everyone : everyone.filter((s) => s.student.state === stateFilter)), [everyone, stateFilter])
+  const stateCodes = [...new Set(everyone.map((s) => s.student.state))].sort()
   const studentId = hash.startsWith("student/") ? hash.slice(8) : ""
   const current = studentId ? "students" : tab
   const go = (id: string) => {
@@ -78,6 +82,10 @@ export default function Admin() {
             <Heading>{title}</Heading>
           </div>
           <StudentSearch summaries={summaries} onOpen={openProfile} />
+          <Select label="State" value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}>
+            <option value="all">All states</option>
+            {stateCodes.map((c) => <option key={c} value={c}>{stateName(c)}</option>)}
+          </Select>
           <Select label="Campaign" value={campaign} onChange={(e) => setCampaign(e.target.value)}>
             <option value="fall">{defaults.campaign}</option>
             <option value="spring">Fern Valley · Spring 2027</option>
@@ -100,7 +108,7 @@ export default function Admin() {
             />
           ))}
         {current === "outreach" && <Outreach summaries={summaries} initialAudience={audience} selected={selected} />}
-        {current === "reports" && <Reports campaign={campaign} summaries={summaries} />}
+        {current === "reports" && <Reports campaign={campaign} summaries={summaries} everyone={everyone} />}
         {current === "settings" && <Rules active={campaign === "fall"} />}
       </main>
     </div>
