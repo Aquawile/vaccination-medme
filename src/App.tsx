@@ -8,6 +8,11 @@ import { useHash } from "./hooks/useHash"
 const Parent = lazy(() => import("./screens/Parent"))
 const Pharmacist = lazy(() => import("./screens/Pharmacist"))
 const Admin = lazy(() => import("./screens/Admin"))
+// Set by the hosting build (see vercel.json). Shows which branch and commit a deployed copy came from.
+const buildEnv = (import.meta as unknown as { env: Record<string, string | undefined> }).env
+const buildStamp = buildEnv.VITE_BUILD_BRANCH
+  ? `Build: ${buildEnv.VITE_BUILD_BRANCH} @ ${(buildEnv.VITE_BUILD_COMMIT ?? "").slice(0, 7)}`
+  : ""
 export default function App() {
   const [email, setEmail] = useState(
     () => localStorage.getItem("school-demo-session") || "",
@@ -78,6 +83,7 @@ export default function App() {
           <footer className="workspace-footer">
             <Icon name="shield" size={16} /> Fictional records · Stored on this
             device · No live clinical services
+            {buildStamp && <span className="build-stamp"> · {buildStamp}</span>}
           </footer>
         </div>
       )}
