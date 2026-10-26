@@ -44,7 +44,7 @@ export default function Worksheet({ summaries }: { summaries: StudentSummary[] }
         </div>
         <Badge kind="warning">Unverified rules</Badge>
       </div>
-      <div className="action-row">
+      <div className="controls">
         <Select label="State" value={state} onChange={(e) => { setState(e.target.value); setCopied(false) }}>
           {stateOptions.map((s) => <option key={s} value={s}>{stateName(s)}</option>)}
         </Select>
@@ -57,7 +57,7 @@ export default function Worksheet({ summaries }: { summaries: StudentSummary[] }
         <p className="empty-state">No students from {stateName(state)} in this demo roster. Rules and dates for this state are still shown below.</p>
       ) : (
         <div className="table-scroll">
-          <table>
+          <table className="numeric">
             <thead><tr><th>Category</th>{grades.map((g) => <th key={g}>Grade {g}</th>)}<th>Total</th></tr></thead>
             <tbody>
               {rows.map((r) => (

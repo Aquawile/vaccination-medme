@@ -45,7 +45,7 @@ export default function Drives({ summaries, onNotify }: { summaries: StudentSumm
           <Badge>{families} families at {school.split(" ")[0]} need a notice</Badge>
         </div>
         <form onSubmit={create} noValidate>
-          <div className="action-row">
+          <div className="controls">
             <Select label="School" value={school} onChange={(e) => setSchool(e.target.value)}>
               {defaults.schools.map((s) => <option key={s}>{s}</option>)}
             </Select>
@@ -53,7 +53,7 @@ export default function Drives({ summaries, onNotify }: { summaries: StudentSumm
               {allDrivePharmacies.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </Select>
           </div>
-          <div className="action-row">
+          <div className="controls">
             <Field label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             <Field label="Start time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
             <Select label="Hours open" value={hours} onChange={(e) => setHours(e.target.value)}>
