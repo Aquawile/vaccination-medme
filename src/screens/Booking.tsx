@@ -1,3 +1,5 @@
+import RequirementSummary from "../components/RequirementSummary"
+import OfficialSource from "../components/OfficialSource"
 import { useState } from "react"
 import {
   Alert,
@@ -148,6 +150,7 @@ export default function Booking({
       </div>
       {step === 1 && (
         <>
+          <RequirementSummary />
           <Field
             label="Search fictional locations"
             placeholder="Search pharmacy, clinic or street"
@@ -252,6 +255,16 @@ export default function Booking({
               </Button>
             </Card>
           )}
+          <Card>
+            <Heading level={2}>Other ways to get there</Heading>
+            <p className="muted">If none of these locations works, you can also:</p>
+            <ul className="link-list">
+              <li>Ask your school nurse about a school vaccination clinic day.</li>
+              <li>Ask your child's own doctor or clinic.</li>
+              <li>Call the state or local health department.</li>
+            </ul>
+            <OfficialSource topic="where school vaccines can be given" />
+          </Card>
           <p className="under-note">
             No maps, live distance calculations or real provider eligibility
             checks.
@@ -503,6 +516,11 @@ export default function Booking({
                 }))
               }
             />
+            <Select label="Your relationship to the child" value={draft.relationship} onChange={(e) => update((d) => ({ ...d, draft: { ...d.draft, relationship: e.target.value } }))}>
+              <option>Parent</option>
+              <option>Legal guardian</option>
+            </Select>
+            <OfficialSource topic="who may consent for a child" />
             <Field
               label="Anything the pharmacist should know (optional intake)"
               hint="Allergies, medicines, past reactions. The pharmacist reviews this at the visit. Demo only."

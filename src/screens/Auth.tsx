@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react"
-import { authenticate } from "../demo/services"
+import { authenticate, DEMO_CODE, signInWithCode } from "../demo/services"
 import {
   Alert,
   Button,
@@ -21,6 +21,8 @@ export default function Auth({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
   const [submitted, setSubmitted] = useState(false)
+  const [codeStep, setCodeStep] = useState<"" | "register" | "code">("")
+  const [code, setCode] = useState("")
   const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -32,6 +34,10 @@ export default function Auth({
       (register && confirm !== password)
     )
       return
+    if (register) {
+      setCodeStep("register")
+      return
+    }
     setBusy(true)
     try {
       onLogin(
@@ -39,6 +45,20 @@ export default function Auth({
       )
     } catch (e) {
       setError((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+  async function verify(e: FormEvent) {
+    e.preventDefault()
+    setError("")
+    setBusy(true)
+    try {
+      const mail = email.trim().toLowerCase()
+      if (code.trim() !== DEMO_CODE) throw new Error("That code is not right. Check it and try again.")
+      onLogin(codeStep === "register" ? await authenticate(mail, password, true) : await signInWithCode(mail, code))
+    } catch (err) {
+      setError((err as Error).message)
     } finally {
       setBusy(false)
     }
@@ -94,6 +114,16 @@ export default function Auth({
               ? "A few details, and you’re ready to get started."
               : "Sign in to pick up where you left off."}
           </p>
+          {codeStep ? (
+            <form onSubmit={verify} noValidate>
+              <p className="auth-description">We sent a 6-digit code to <strong>{email}</strong>. Enter it to continue.</p>
+              <Alert>Demo only: no email is sent. Your code is <strong>{DEMO_CODE}</strong>.</Alert>
+              <Field label="6-digit code" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} />
+              {error && <Alert kind="error">{error}</Alert>}
+              <Button type="submit" disabled={busy || code.trim().length < 6} className="full">{busy ? "Checking…" : "Verify and continue"}</Button>
+              <Button type="button" variant="text" onClick={() => { setCodeStep(""); setCode(""); setError("") }}>Back</Button>
+            </form>
+          ) : (
           <form onSubmit={submit} noValidate>
             <Field
               label="Email address"
@@ -163,7 +193,13 @@ export default function Auth({
                   : "Sign in"}{" "}
               {!busy && <Icon name="arrow" size={18} />}
             </Button>
+            {!register && (
+              <Button type="button" variant="text" className="full" onClick={() => { setSubmitted(true); if (validEmail) { setCodeStep("code"); setError("") } }}>
+                Email me a sign-in code instead
+              </Button>
+            )}
           </form>
+          )}
           <div className="auth-switch">
             {register ? "Already have an account?" : "New here?"}{" "}
             <Button

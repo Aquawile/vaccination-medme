@@ -142,6 +142,8 @@ test("registration validation and manual/photo records", async ({
   await page
     .getByRole("button", { name: "Create account", exact: true })
     .click()
+  await page.getByLabel("6-digit code").fill("482913")
+  await page.getByRole("button", { name: "Verify and continue" }).click()
   await page
     .getByRole("button", { name: "Review child details", exact: true })
     .click()

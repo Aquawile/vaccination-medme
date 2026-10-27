@@ -13,3 +13,4 @@
 - W-30, W-31: Parent has a Records page (history with vaccine filter and source) and a Messages inbox (visit confirmations with unread count). The pharmacist sees whether the parent received it.
 - W-110, W-120, W-121: Entry sources (school, Google Maps, health line, AI search) shown to parent and pharmacist. Optional intake note when booking. Parents can turn off texts or email; Outreach skips families who opted out.
 - W-126: Clinics tab (school vaccination clinics with a partner pharmacy) is back, and accepted clinics show on the Calendar. Traceability updated for the admin use cases.
+- W-127: Sign in or create an account with a 6-digit code (demo). The link can carry the school. Consent record with relationship. School-list check on every parent screen. Other ways to get vaccinated. Reschedule frees the old time. Proof shows a share link and who signed. Wherever a state rule matters, the app links to the state's own page and writes no law.

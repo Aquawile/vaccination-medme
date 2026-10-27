@@ -2,7 +2,8 @@ import { useState } from "react"
 import { Alert, Button, Card, Field, Heading, Select } from "./ui"
 import { useDemo } from "../state"
 import { simulatedRequest } from "../demo/services"
-import { defaults } from "../demo/config"
+import { defaults, vaccines } from "../demo/config"
+import OfficialSource from "./OfficialSource"
 import { dateLabel } from "../demo/journey"
 export default function RecordPanel() {
   const { data, update, event } = useDemo()
@@ -63,6 +64,11 @@ export default function RecordPanel() {
             <option>IPV</option>
             <option>Other / unsure</option>
           </Select>
+          <p className="muted field-note">
+            {vaccines.find((v) => v.name === vaccine)
+              ? `School lists: ${vaccines.find((v) => v.name === vaccine)!.dose} of ${vaccine} (sample, unverified).`
+              : "Not on the school's list. A pharmacist will review it."}
+          </p>
           <Field
             label="Date listed on record"
             type="date"
@@ -71,6 +77,7 @@ export default function RecordPanel() {
             onChange={(e) => setDate(e.target.value)}
           />
         </div>
+        <OfficialSource topic="which records a school accepts" />
         <Field
           label="Record source or notes"
           value={manual}

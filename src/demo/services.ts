@@ -149,7 +149,7 @@ export function createBooking(data: DemoData, draft: Draft): DemoData {
       draft.payment === "self"
         ? "Confirmed sample self-pay"
         : "Confirmed sample insurance response",
-    consent: draft.guardian.trim(),
+    consent: `${draft.guardian.trim()} · ${draft.relationship} · consented ${defaults.referenceDate}`,
     source: data.entrySource,
     intake: draft.intake.trim(),
     recordSource: [
@@ -223,8 +223,28 @@ export function saveDose(
     ],
   }
 }
+/** Move a booked visit to another open time. The old time is freed because it is no longer held by this visit. */
+export function rescheduleBooking(data: DemoData, id: string, date: string, time: string): DemoData {
+  const a = data.appointments.find((x) => x.id === id)
+  if (!a || a.cancelled || a.referral || a.doses.length) throw new Error("This visit can no longer be changed.")
+  if (!bookingDates.includes(date) || !bookingTimes.includes(time)) throw new Error("Choose an available date and time.")
+  if (vaccines.some((v) => a.vaccines.includes(v.id) && date < v.earliestDate))
+    throw new Error("That date is before the sample earliest date. This check is illustrative, not clinical guidance.")
+  if (data.appointments.some((x) => x.id !== id && !x.cancelled && !x.referral && x.providerId === a.providerId && x.date === date && x.time === time))
+    throw new Error("That time was just taken. Choose another.")
+  return { ...data, appointments: data.appointments.map((x) => (x.id === id ? { ...x, date, time } : x)) }
+}
 export function persistData(data: DemoData) {
   localStorage.setItem(DATA_KEY, JSON.stringify(data))
+}
+// DEMO-FAKE: a real build emails a one-time code that expires. Here it is fixed and shown on screen.
+export const DEMO_CODE = "482913"
+export async function signInWithCode(email: string, code: string) {
+  await new Promise((resolve) => setTimeout(resolve, 400))
+  if (!accountRoles[email]) throw new Error("This email has not been assigned access. Contact your demo administrator.")
+  if (code.trim() !== DEMO_CODE) throw new Error("That code is not right. Check it and try again.")
+  localStorage.setItem("school-demo-session", email)
+  return email
 }
 // DEMO-FAKE: passwords are intentionally stored locally for this prototype only.
 export async function authenticate(

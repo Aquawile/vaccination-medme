@@ -4,6 +4,7 @@ import { createProofPdf, downloadBlob, proofLines } from "../demo/documents"
 import { dateLabel, type Appointment } from "../demo/journey"
 import { vaccines } from "../demo/config"
 import { useDemo } from "../state"
+import OfficialSource from "./OfficialSource"
 export default function Proof({ appointment }: { appointment: Appointment }) {
   const { update, event } = useDemo()
   const [message, setMessage] = useState("")
@@ -134,6 +135,13 @@ export default function Proof({ appointment }: { appointment: Appointment }) {
           {busy ? "Opening share…" : "Share demo summary"}
         </Button>
       </div>
+      <div className="share-link">
+        <small>Share link (demo)</small>
+        <code>https://school-demo.example/proof/{a.id}</code>
+        <p className="muted">A real link would open a read-only summary for the school. This one goes nowhere.</p>
+      </div>
+      <p className="muted">Recorded by {[...new Set(a.doses.map((d) => d.signature))].join(", ")}.</p>
+      <OfficialSource topic="what a school accepts as proof" />
       {message && <Alert>{message}</Alert>}
       <p className="inline-note">
         Not valid medical proof. No real school or registry receives this data.

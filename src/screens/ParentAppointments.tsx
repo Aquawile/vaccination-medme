@@ -1,5 +1,5 @@
 import { useRef, useState } from "react"
-import { Alert, Badge, Button, Card, Heading, Icon } from "../components/ui"
+import { Alert, Badge, Button, Card, Heading, Icon, Select } from "../components/ui"
 import {
   appointmentStatus,
   dateLabel,
@@ -8,12 +8,18 @@ import {
   type Appointment,
 } from "../demo/journey"
 import { vaccines } from "../demo/config"
+import { bookingDates, bookingTimes } from "../demo/journey"
+import { rescheduleBooking } from "../demo/services"
 import { useDemo } from "../state"
 import Proof from "../components/Proof"
 import { downloadBlob } from "../demo/documents"
 export default function ParentAppointments({ onBook }: { onBook: () => void }) {
   const { data, update, event } = useDemo()
   const [cancelId, setCancelId] = useState("")
+  const [moveId, setMoveId] = useState("")
+  const [moveDate, setMoveDate] = useState("")
+  const [moveTime, setMoveTime] = useState("")
+  const [moveError, setMoveError] = useState("")
   const dialog = useRef<HTMLDialogElement>(null)
   const appointments = data.appointments
     .filter((a) => !a.seeded)
@@ -116,6 +122,19 @@ export default function ParentAppointments({ onBook }: { onBook: () => void }) {
                         clinician before making a new booking.
                       </Alert>
                     )}
+                    {moveId === a.id && (
+                      <div className="secure-change">
+                        <div className="controls">
+                          <Select label="New date" value={moveDate} onChange={(e) => setMoveDate(e.target.value)}>{bookingDates.map((d) => <option key={d} value={d}>{dateLabel(d)}</option>)}</Select>
+                          <Select label="New time" value={moveTime} onChange={(e) => setMoveTime(e.target.value)}>{bookingTimes.map((t) => <option key={t}>{t}</option>)}</Select>
+                        </div>
+                        {moveError && <Alert kind="error">{moveError}</Alert>}
+                        <div className="action-row">
+                          <Button onClick={() => { try { rescheduleBooking(data, a.id, moveDate, moveTime); update((d) => rescheduleBooking(d, a.id, moveDate, moveTime)); event("Demo appointment rescheduled", "reschedule"); setMoveId("") } catch (e) { setMoveError((e as Error).message) } }}>Save new time</Button>
+                          <Button variant="text" onClick={() => setMoveId("")}>Keep current time</Button>
+                        </div>
+                      </div>
+                    )}
                     <div className="action-row">
                       {!a.cancelled && !a.referral && a.doses.length === 0 && (
                         <>
@@ -124,6 +143,9 @@ export default function ParentAppointments({ onBook }: { onBook: () => void }) {
                             onClick={() => calendar(a)}
                           >
                             Add demo to calendar
+                          </Button>
+                          <Button variant="secondary" onClick={() => { setMoveId(a.id); setMoveDate(a.date); setMoveTime(a.time); setMoveError("") }}>
+                            Change date or time
                           </Button>
                           <Button
                             variant="text"
