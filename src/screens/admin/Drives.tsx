@@ -36,6 +36,7 @@ export default function Drives({ summaries, onNotify }: { summaries: StudentSumm
 
   return (
     <>
+      <p className="muted page-intro">A school vaccination clinic is a day when a partner pharmacy vaccinates students at or near the school. Families usually sign written consent first, and the visit is recorded in the registry afterward. Hours and capacity here are samples.</p>
       <Card>
         <div className="section-heading">
           <div>

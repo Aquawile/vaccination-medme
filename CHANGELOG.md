@@ -12,3 +12,4 @@
 - W-119: Calendar has month and week views, a compact day panel and sample notices and dates. Settings is official links only; changing the school's state needs a reason, the school's name and the admin password, and is logged. Today and Reports now say how they differ.
 - W-30, W-31: Parent has a Records page (history with vaccine filter and source) and a Messages inbox (visit confirmations with unread count). The pharmacist sees whether the parent received it.
 - W-110, W-120, W-121: Entry sources (school, Google Maps, health line, AI search) shown to parent and pharmacist. Optional intake note when booking. Parents can turn off texts or email; Outreach skips families who opted out.
+- W-126: Clinics tab (school vaccination clinics with a partner pharmacy) is back, and accepted clinics show on the Calendar. Traceability updated for the admin use cases.

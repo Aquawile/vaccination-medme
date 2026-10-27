@@ -3,6 +3,7 @@ import { Heading, Icon, Select, Tabs } from "../components/ui"
 import { defaults } from "../demo/config"
 import { useDemo } from "../state"
 import { useHash } from "../hooks/useHash"
+import Drives from "./admin/Drives"
 import Calendar from "./admin/Calendar"
 import Outreach from "./admin/Outreach"
 import Overview from "./admin/Overview"
@@ -16,11 +17,12 @@ const tabs = [
   { id: "overview", label: "Today" },
   { id: "students", label: "Students" },
   { id: "outreach", label: "Outreach" },
+  { id: "clinics", label: "Clinics" },
   { id: "calendar", label: "Calendar" },
   { id: "reports", label: "Reports" },
   { id: "settings", label: "Settings" },
 ]
-const icons: Record<string, string> = { overview: "grid", students: "user", outreach: "document", calendar: "calendar", reports: "calendar", settings: "lock" }
+const icons: Record<string, string> = { overview: "grid", students: "user", outreach: "document", clinics: "user", calendar: "calendar", reports: "calendar", settings: "lock" }
 
 export default function Admin() {
   const [hash, setHash] = useHash()
@@ -105,6 +107,7 @@ export default function Admin() {
             />
           ))}
         {current === "outreach" && <Outreach summaries={summaries} initialAudience={audience} selected={selected} />}
+        {current === "clinics" && <Drives summaries={summaries} onNotify={() => contact("needs-visit")} />}
         {current === "calendar" && <Calendar summaries={summaries} state={schoolState} onOpen={openProfile} />}
         {current === "reports" && <Reports summaries={summaries} state={schoolState} onOpen={openProfile} />}
         {current === "settings" && <SchoolSettings />}

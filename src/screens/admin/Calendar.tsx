@@ -6,6 +6,7 @@ import { defaults } from "../../demo/config"
 import { dateLabel } from "../../demo/journey"
 import { addDays, buildEvents, countsByDay, monthGrid, weekOf, type CalEvent, type CalType } from "../../domain/calendar"
 import type { StudentSummary } from "../../domain/cohorts"
+import { allDrivePharmacies } from "../../domain/drives"
 import { allKeyDates } from "../../domain/keyDates"
 import { useDemo } from "../../state"
 
@@ -25,7 +26,10 @@ export default function Calendar({ summaries, state, onOpen }: { summaries: Stud
   const [on, setOn] = useState<Record<CalType, boolean>>({ visit: true, notice: true, deadline: true })
   const [q, setQ] = useState("")
   const [page, setPage] = useState(0)
-  const all = useMemo(() => buildEvents(summaries, data.outreach, allKeyDates, state, mock), [summaries, data.outreach, state])
+  const clinics: CalEvent[] = data.drives.filter((d) => d.status === "accepted").map((d) => ({
+    date: d.date, type: "visit", title: `Clinic at ${d.school}`, detail: `${allDrivePharmacies.find((p) => p.id === d.pharmacyId)?.name ?? "Pharmacy"}, ${d.startTime}, ${d.hours} hours`,
+  }))
+  const all = useMemo(() => buildEvents(summaries, data.outreach, allKeyDates, state, [...mock, ...clinics]), [summaries, data.outreach, state, clinics.length]) // eslint-disable-line react-hooks/exhaustive-deps
   const events = useMemo(() => all.filter((e) => on[e.type]), [all, on])
   const counts = useMemo(() => countsByDay(events), [events])
   const year = Number(day.slice(0, 4)), month = Number(day.slice(5, 7)) - 1
