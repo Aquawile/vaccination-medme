@@ -14,6 +14,7 @@ import { defaults, vaccines } from "../demo/config"
 import { useDemo } from "../state"
 import RecordPanel from "../components/RecordPanel"
 import entrySources from "../data/entrySources.json"
+import RequirementSummary from "../components/RequirementSummary"
 import Records from "./parent/Records"
 import Messages, { unreadCount } from "./parent/Messages"
 import Booking from "./Booking"
@@ -206,6 +207,7 @@ export function ChildRequirements({ onBook }: { onBook: () => void }) {
           {data.record.state !== "sample" && (
             <RecordState state={data.record.state} />
           )}
+          <RequirementSummary />
           <Alert>
             <strong>Sample requirements, not clinical guidance</strong>
             <p>
@@ -379,6 +381,10 @@ export default function Parent() {
                 <b>3</b>Receive a summary after the visit
               </span>
             </div>
+            {data.entrySchool && (
+              <Alert>This link is for {defaults.schools.find((s) => s.toLowerCase().replace(/\s+/g, "-") === data.entrySchool) ?? "a school we do not recognize"}.</Alert>
+            )}
+            <RequirementSummary />
             {data.entrySource !== "school" && (
               <Alert>{entrySources.find((s) => s.id === data.entrySource)?.line} The steps are the same: check what is missing, book at a pharmacy, get your record.</Alert>
             )}

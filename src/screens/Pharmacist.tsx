@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent } from "react"
+import OfficialSource from "../components/OfficialSource"
 import entrySources from "../data/entrySources.json"
 import {
   Alert,
@@ -351,6 +352,7 @@ function AppointmentDetails({ appointment: a }: { appointment: Appointment }) {
       </Card>
       <Card>
         <Heading level={2}>Review checklist</Heading>
+        <OfficialSource topic="consent and who may vaccinate a child" />
         <p className="muted">
           Confirm each item before signing an entry. Review the actual
           documentation in a real clinical workflow.

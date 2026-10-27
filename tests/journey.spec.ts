@@ -59,6 +59,11 @@ test("connected booking, clinician doses, PDF, reporting, sharing and school out
   await expect(
     page.getByRole("heading", { name: "Your appointments", exact: true }),
   ).toBeVisible()
+  // reschedule moves the visit and frees the old time
+  await page.getByRole("button", { name: "Change date or time" }).click()
+  await page.getByLabel("New time").selectOption("15:30")
+  await page.getByRole("button", { name: "Save new time" }).click()
+  await expect(page.getByText(/15:30/).first()).toBeVisible()
   await expect
     .poll(() =>
       page.evaluate(

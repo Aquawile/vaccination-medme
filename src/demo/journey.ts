@@ -158,6 +158,7 @@ export type Draft = {
   guardian: string
   consent: boolean
   intake: string
+  relationship: string
 }
 export const emptyDraft: Draft = {
   locationId: "",
@@ -169,6 +170,7 @@ export const emptyDraft: Draft = {
   guardian: "",
   consent: false,
   intake: "",
+  relationship: "Parent",
 }
 export const seedAppointment: Appointment = {
   id: "DEMO-001",

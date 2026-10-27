@@ -93,6 +93,8 @@ export const initialData = {
   schoolState: "OR",
   // DEMO-FAKE: where the parent arrived from (school, maps, hotline, ai)
   entrySource: "school",
+  // DEMO-FAKE: the school id carried in the link, for example #from/school/cedar-grove-elementary
+  entrySchool: "",
   // DEMO-FAKE: the parent's contact preferences
   contactPrefs: { sms: true, email: true },
   // DEMO-FAKE: history of school-state changes

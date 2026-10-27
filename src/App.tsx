@@ -19,8 +19,8 @@ function SourceCapture() {
   const { update } = useDemo()
   const [hash] = useHash()
   useEffect(() => {
-    const m = hash.match(/^from\/(school|maps|hotline|ai)$/)
-    if (m) update((d) => ({ ...d, entrySource: m[1] }))
+    const m = hash.match(/^from\/(school|maps|hotline|ai)(?:\/([a-z0-9-]+))?$/)
+    if (m) update((d) => ({ ...d, entrySource: m[1], entrySchool: m[2] ?? "" }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hash])
   return null
