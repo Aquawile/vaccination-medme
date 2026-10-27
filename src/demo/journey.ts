@@ -36,6 +36,8 @@ export type Appointment = {
   reportStatus: "not sent" | "reported" | "failed" | "exported"
   parentConfirmation?: "pending" | "sent" | "confirmed"
   parentReceived?: boolean
+  recordPhoto?: string
+  photoReview?: "pending" | "accepted" | "unreadable"
   source?: string
   intake?: string
   followUpDate?: string
@@ -146,6 +148,7 @@ export type RecordInfo = {
   source: string
   retrieved: string
   attachment: string
+  photo?: string
   manual: string
 }
 export type Draft = {
@@ -221,6 +224,12 @@ export function ageAt(birthDate: string, date = defaults.referenceDate) {
     Number(birthDate.slice(0, 4)) -
     (date.slice(5) < birthDate.slice(5) ? 1 : 0)
   )
+}
+export type Published = { vaccines: string[]; minAge: number; maxAge: number }
+/** A location as the pharmacy has published it (see Pharmacy settings). Falls back to the sample values. */
+export function effectiveLocation(loc: typeof locations[number], published: Record<string, Published>) {
+  const p = published[loc.id]
+  return p ? { ...loc, vaccines: p.vaccines, minAge: p.minAge, maxAge: p.maxAge } : loc
 }
 export function eligibility(
   location: typeof locations[number],

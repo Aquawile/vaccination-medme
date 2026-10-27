@@ -119,6 +119,8 @@ test("connected booking, clinician doses, PDF, reporting, sharing and school out
   await logout(page)
   await login(page, "parent")
   await page.getByRole("button", { name: /^Your appointments/ }).click()
+  await page.getByRole("button", { name: "Remind me" }).first().click()
+  await expect(page.getByRole("button", { name: "Reminder set" })).toBeVisible()
   await page.getByRole("button", { name: "Share demo summary" }).click()
   await expect(
     page.getByText("Demo summary copied to clipboard.", { exact: false }),

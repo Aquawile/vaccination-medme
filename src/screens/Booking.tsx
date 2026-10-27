@@ -19,6 +19,7 @@ import {
   eligibility,
   insuranceScenarios,
   locations,
+  effectiveLocation,
   money,
 } from "../demo/journey"
 import { createBooking, quoteCost, simulatedRequest } from "../demo/services"
@@ -45,7 +46,8 @@ export default function Booking({
     setError("")
     setCheckedQuote("")
   }
-  const location = locations.find((p) => p.id === draft.locationId)
+  const effLocations = locations.map((l) => effectiveLocation(l, data.published))
+  const location = effLocations.find((p) => p.id === draft.locationId)
   const provider = location?.providers.find((p) => p.id === draft.providerId)
   const cost = quoteCost(draft, data.selection, data.scenario.insurance)
   const quoteKey = JSON.stringify([
@@ -158,7 +160,7 @@ export default function Booking({
             onChange={(e) => setSearch(e.target.value)}
           />
           <div className="location-list">
-            {locations
+            {effLocations
               .filter((p) =>
                 `${p.name} ${p.address}`
                   .toLowerCase()
@@ -239,7 +241,7 @@ export default function Booking({
                 )
               })}
           </div>
-          {!locations.some((p) =>
+          {!effLocations.some((p) =>
             `${p.name} ${p.address}`
               .toLowerCase()
               .includes(search.toLowerCase()),

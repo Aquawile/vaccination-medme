@@ -21,6 +21,14 @@ export default function Messages() {
         <Check checked={data.contactPrefs.sms} onChange={(e) => update((d) => ({ ...d, contactPrefs: { ...d.contactPrefs, sms: e.target.checked } }))}>Text messages</Check>
         <Check checked={data.contactPrefs.email} onChange={(e) => update((d) => ({ ...d, contactPrefs: { ...d.contactPrefs, email: e.target.checked } }))}>Email</Check>
       </Card>
+      {data.reminders.length > 0 && (
+        <Card>
+          <Heading level={2}>Reminders you set</Heading>
+          <ul className="link-list">
+            {data.reminders.map((r) => <li key={r.id}>{r.child}: {r.vaccine}, earliest date by the sample interval table {dateLabel(r.dueDate)}. {data.contactPrefs.sms || data.contactPrefs.email ? `Sent by ${[data.contactPrefs.sms && "text", data.contactPrefs.email && "email"].filter(Boolean).join(" and ")} (demo).` : "Texts and email are off, so nothing will be sent."}</li>)}
+          </ul>
+        </Card>
+      )}
       {list.length === 0 ? <Card><p className="empty-inline">No messages yet. A confirmation appears here after a pharmacist records a visit.</p></Card> : list.map((a) => (
         <Card key={a.id}>
           <div className="section-heading">

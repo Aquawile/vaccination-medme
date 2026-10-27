@@ -5,8 +5,9 @@ import { dateLabel, type Appointment } from "../demo/journey"
 import { vaccines } from "../demo/config"
 import { useDemo } from "../state"
 import OfficialSource from "./OfficialSource"
+import { nextDoseDate } from "../domain/nextDose"
 export default function Proof({ appointment }: { appointment: Appointment }) {
-  const { update, event } = useDemo()
+  const { data, update, event } = useDemo()
   const [message, setMessage] = useState("")
   const [busy, setBusy] = useState(false)
   const a = appointment
@@ -134,6 +135,21 @@ export default function Proof({ appointment }: { appointment: Appointment }) {
         <Button variant="secondary" onClick={share} disabled={busy}>
           {busy ? "Opening share…" : "Share demo summary"}
         </Button>
+      </div>
+      <div className="share-link">
+        <small>Next-dose reminder</small>
+        {a.doses.map((d) => {
+          const due = nextDoseDate(d.vaccine, d.date)
+          const name = vaccines.find((v) => v.id === d.vaccine)?.name
+          const set = data.reminders.some((r) => r.id === d.id)
+          return due ? (
+            <div key={d.id} className="action-row" style={{ margin: 0, alignItems: "center" }}>
+              <span>{name}: earliest date by the sample interval table is {dateLabel(due)}.</span>
+              <Button variant="secondary" disabled={set} onClick={() => { update((s) => ({ ...s, reminders: [...s.reminders, { id: d.id, vaccine: name ?? d.vaccine, dueDate: due, child: a.child.name }] })); event(`Next-dose reminder set for ${name}`, "reminder") }}>{set ? "Reminder set" : "Remind me"}</Button>
+            </div>
+          ) : null
+        })}
+        <p className="muted">Sample interval table, unverified. This is not a recommendation. Your child's pharmacist or doctor decides whether another dose is needed.</p>
       </div>
       <div className="share-link">
         <small>Share link (demo)</small>

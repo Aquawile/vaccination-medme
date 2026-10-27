@@ -10,8 +10,10 @@ import {
 } from "../components/ui"
 export default function Auth({
   onLogin,
+  notice,
 }: {
   onLogin: (email: string) => void
+  notice?: string
 }) {
   const [register, setRegister] = useState(false)
   const [email, setEmail] = useState("")
@@ -114,6 +116,7 @@ export default function Auth({
               ? "A few details, and you’re ready to get started."
               : "Sign in to pick up where you left off."}
           </p>
+          {notice && <Alert>{notice}</Alert>}
           {codeStep ? (
             <form onSubmit={verify} noValidate>
               <p className="auth-description">We sent a 6-digit code to <strong>{email}</strong>. Enter it to continue.</p>

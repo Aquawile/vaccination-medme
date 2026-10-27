@@ -25,17 +25,34 @@ function SourceCapture() {
   }, [hash])
   return null
 }
+const IDLE_MS = 30 * 60 * 1000
 export default function App() {
   const [email, setEmail] = useState(
     () => localStorage.getItem("school-demo-session") || "",
   )
   const role = accountRoles[email]
+  const [notice, setNotice] = useState("")
+  // UC-Entry-03: sign out after 30 minutes without activity.
+  useEffect(() => {
+    if (!role) return
+    let timer = window.setTimeout(out, IDLE_MS)
+    function out() {
+      localStorage.removeItem("school-demo-session")
+      window.location.hash = ""
+      setNotice("You were signed out after 30 minutes of inactivity.")
+      setEmail("")
+    }
+    const reset = () => { window.clearTimeout(timer); timer = window.setTimeout(out, IDLE_MS) }
+    const events = ["pointerdown", "keydown", "scroll"] as const
+    events.forEach((e) => window.addEventListener(e, reset))
+    return () => { window.clearTimeout(timer); events.forEach((e) => window.removeEventListener(e, reset)) }
+  }, [role])
   const [hash] = useHash()
   return (
     <DemoProvider>
       <SourceCapture />
       {!role ? (
-        <Auth onLogin={setEmail} />
+        <Auth onLogin={(e) => { setNotice(""); setEmail(e) }} notice={notice} />
       ) : (
         <div className="workspace">
           <header className="workspace-header">

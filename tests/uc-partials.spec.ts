@@ -34,3 +34,24 @@ test("booking shows other routes and where the state's own rules are; nothing is
   await expect(page.getByText(/MedMe does not summarize them/).first()).toBeVisible()
   await expect(page.getByText(/School lists: Dose 5 of DTaP/)).toBeVisible()
 })
+
+test("a session ends after 30 minutes without activity", async ({ page }) => {
+  await page.clock.install()
+  await parent(page)
+  await expect(page.getByRole("button", { name: /School notice/ })).toBeVisible()
+  await page.clock.fastForward("31:00")
+  await expect(page.getByText("You were signed out after 30 minutes of inactivity.")).toBeVisible()
+})
+
+test("a pharmacy publishes what it offers and warns when it changes the sample", async ({ page }) => {
+  await page.goto("/")
+  await page.getByLabel("Email address").fill("pharmacist@example.test")
+  await page.getByLabel("Password", { exact: true }).fill("Demo123!")
+  await page.getByRole("button", { name: "Sign in", exact: true }).click()
+  await page.getByRole("button", { name: "Pharmacy settings" }).click()
+  await page.getByLabel("Oldest age").fill("12")
+  await expect(page.getByText(/Check your state's own page before you publish/)).toBeVisible()
+  await page.getByRole("button", { name: "Publish", exact: true }).click()
+  await expect(page.getByText(/Families now see/)).toBeVisible()
+  await expect(page.getByRole("button", { name: "Visits" })).toBeVisible()
+})
