@@ -9,6 +9,7 @@ import {
   journeyDefaults,
   eligibility,
   locations,
+  effectiveLocation,
   insuranceScenarios,
   bookingDates,
   bookingTimes,
@@ -66,7 +67,7 @@ export function quoteCost(
   return plan && plan.price !== null ? plan.price * selected.length : null
 }
 export function createBooking(data: DemoData, draft: Draft): DemoData {
-  const location = locations.find((p) => p.id === draft.locationId)
+  const location = locations.map((l) => effectiveLocation(l, data.published)).find((p) => p.id === draft.locationId)
   const cost = quoteCost(draft, data.selection, data.scenario.insurance)
   if (
     !data.childSaved ||
@@ -151,6 +152,8 @@ export function createBooking(data: DemoData, draft: Draft): DemoData {
         : "Confirmed sample insurance response",
     consent: `${draft.guardian.trim()} · ${draft.relationship} · consented ${defaults.referenceDate}`,
     source: data.entrySource,
+    recordPhoto: data.record.photo,
+    photoReview: data.record.photo ? ("pending" as const) : undefined,
     intake: draft.intake.trim(),
     recordSource: [
       data.record.source,

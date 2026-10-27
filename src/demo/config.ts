@@ -93,6 +93,10 @@ export const initialData = {
   schoolState: "OR",
   // DEMO-FAKE: where the parent arrived from (school, maps, hotline, ai)
   entrySource: "school",
+  // DEMO-FAKE: what each pharmacy has published (vaccines and ages); empty means the sample defaults
+  published: {} as Record<string, { vaccines: string[]; minAge: number; maxAge: number }>,
+  // DEMO-FAKE: next-dose reminders a parent asked for
+  reminders: [] as { id: string; vaccine: string; dueDate: string; child: string }[],
   // DEMO-FAKE: the school id carried in the link, for example #from/school/cedar-grove-elementary
   entrySchool: "",
   // DEMO-FAKE: the parent's contact preferences

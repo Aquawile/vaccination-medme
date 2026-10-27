@@ -400,3 +400,5 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
 .requirement-summary { display: flex; justify-content: space-between; gap: var(--space-4); align-items: flex-start; padding: var(--space-3) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--white); margin: var(--space-4) 0; font-size: 13px; } .requirement-summary div { display: grid; gap: 2px; } .requirement-summary span { color: var(--text-secondary); }
 .field-note { grid-column: 1 / -1; margin: 0; font-size: 12px; }
 .share-link { display: grid; gap: 4px; margin: var(--space-3) 0; } .share-link code { padding: var(--space-2) var(--space-3); background: var(--lavender-soft); border-radius: var(--radius-control); font-size: 12px; word-break: break-all; }
+.publish-vaccines { border: 0; padding: 0; margin: var(--space-4) 0; display: grid; gap: var(--space-2); } .publish-vaccines legend { font-weight: 600; font-size: 14px; margin-bottom: var(--space-2); }
+.record-photo { max-width: 220px; max-height: 160px; border: 1px solid var(--border); border-radius: var(--radius-control); object-fit: contain; background: var(--white); }

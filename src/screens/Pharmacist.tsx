@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent } from "react"
+import PublishSettings from "./pharmacist/PublishSettings"
 import OfficialSource from "../components/OfficialSource"
 import entrySources from "../data/entrySources.json"
 import {
@@ -31,6 +32,7 @@ export default function Pharmacist() {
   const [selected, setSelected] = useState(
     data.appointments.find((a) => !a.seeded && !a.cancelled)?.id || "DEMO-001",
   )
+  const [panel, setPanel] = useState<"visits" | "settings">("visits")
   const [filter, setFilter] = useState("all")
   const [query, setQuery] = useState("")
   const appointments = data.appointments
@@ -52,6 +54,11 @@ export default function Pharmacist() {
           administered dose once.
         </p>
       </div>
+      <div className="seg" role="group" aria-label="Pharmacist workspace" style={{ marginBottom: "var(--space-4)" }}>
+        <button className={panel === "visits" ? "active" : ""} aria-pressed={panel === "visits"} onClick={() => setPanel("visits")}>Visits</button>
+        <button className={panel === "settings" ? "active" : ""} aria-pressed={panel === "settings"} onClick={() => setPanel("settings")}>Pharmacy settings</button>
+      </div>
+      {panel === "settings" ? <PublishSettings /> : (
       <div className="schedule-layout">
         <Card className="schedule">
           <div className="section-heading">
@@ -123,6 +130,7 @@ export default function Pharmacist() {
           </Card>
         )}
       </div>
+      )}
     </main>
   )
 }
@@ -267,6 +275,19 @@ function AppointmentDetails({ appointment: a }: { appointment: Appointment }) {
           <div>
             <small>Intake form</small>
             <strong>{a.intake ? a.intake : "Not filled in"}</strong>
+          </div>
+          <div>
+            <small>Record photo from the parent</small>
+            {a.recordPhoto ? (
+              <>
+                <img className="record-photo" src={a.recordPhoto} alt="Record photo uploaded by the parent" />
+                <strong>{a.photoReview === "accepted" ? "Reviewed: readable" : a.photoReview === "unreadable" ? "Reviewed: ask for a clearer photo or paper copy" : "Waiting for your review"}</strong>
+                <span className="action-row" style={{ margin: 0 }}>
+                  <Button variant="secondary" onClick={() => patch({ photoReview: "accepted" })}>Readable</Button>
+                  <Button variant="secondary" onClick={() => patch({ photoReview: "unreadable" })}>Not readable</Button>
+                </span>
+              </>
+            ) : <strong>No photo</strong>}
           </div>
           <div>
             <small>Guardian consent</small>

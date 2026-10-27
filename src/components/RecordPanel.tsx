@@ -128,24 +128,33 @@ export default function RecordPanel() {
               setMessage("Choose a PNG or JPEG image no larger than 5 MB.")
               return
             }
-            update((d) => ({
-              ...d,
-              record: {
-                ...d.record,
-                state: "awaiting",
-                source: "Photo attachment — awaiting review",
-                attachment: file.name,
-                retrieved: dateLabel(defaults.referenceDate),
-              },
-            }))
-            event("Record photo metadata saved for review", "record")
-            setMessage(
-              "Photo filename saved locally. The image is not uploaded, read, interpreted or verified; keep the original to show the clinician.",
-            )
+            const reader = new FileReader()
+            reader.onload = () => {
+              // DEMO-FAKE: the image stays in this browser. Large images keep only the filename.
+              const photo = file.size <= 400 * 1024 ? String(reader.result) : undefined
+              update((d) => ({
+                ...d,
+                record: {
+                  ...d.record,
+                  state: "awaiting",
+                  source: "Photo attachment — awaiting review",
+                  attachment: file.name,
+                  photo,
+                  retrieved: dateLabel(defaults.referenceDate),
+                },
+              }))
+              event("Record photo saved for pharmacist review", "record")
+              setMessage(
+                photo
+                  ? "Photo filename saved locally. The pharmacist will look at the image at your visit. It is not read or verified by the app."
+                  : "Photo filename saved locally. This image is too large to keep in the demo (over 400 KB), so only the filename is kept. Show the original to the pharmacist.",
+              )
+            }
+            reader.readAsDataURL(file)
           }}
         />
         <p className="inline-note">
-          Only the filename is retained in this demo, not image contents.
+          A pharmacist reviews the image at your visit. The app does not read it.
         </p>
       </details>
       {data.record.manual && (
