@@ -93,6 +93,12 @@ export const initialData = {
   schoolState: "OR",
   // DEMO-FAKE: where the parent arrived from (school, maps, hotline, ai)
   entrySource: "school",
+  // DEMO-FAKE: check-in, completed and no-show marks the pharmacy made on booked visits, by visit id
+  visitMarks: {} as Record<string, string>,
+  // DEMO-FAKE: messages the pharmacy sent (nothing is delivered)
+  pharmacyMessages: [] as { id: string; date: string; kind: string; subject: string; body: string; visitIds: string[]; appointmentIds: string[]; filled: Record<string, { subject: string; body: string }> }[],
+  // DEMO-FAKE: vaccines the pharmacy says it is short on right now
+  shortSupply: [] as string[],
   // DEMO-FAKE: what each pharmacy has published (vaccines and ages); empty means the sample defaults
   published: {} as Record<string, { vaccines: string[]; minAge: number; maxAge: number }>,
   // DEMO-FAKE: next-dose reminders a parent asked for

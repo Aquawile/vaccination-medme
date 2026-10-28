@@ -209,6 +209,7 @@ test("reporting failure exports without reporting; referral retains saved doses"
   await page.getByLabel("Email address").fill("pharmacist@example.test")
   await page.getByLabel("Password", { exact: true }).fill("Demo123!")
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
+  await page.getByRole("tab", { name: "Visits" }).click()
   for (const item of reviewItems)
     await page.getByRole("checkbox", { name: item }).check()
   await page.getByLabel("Lot number").fill("SAMPLE-FAILURE")

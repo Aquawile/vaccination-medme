@@ -41,6 +41,13 @@ export default function PublishSettings() {
           <Check key={v.id} checked={offered.includes(v.id)} onChange={(e) => { setOffered(e.target.checked ? [...offered, v.id] : offered.filter((x) => x !== v.id)); setSaved("") }}>{v.name} ({v.detail})</Check>
         ))}
       </fieldset>
+      <fieldset className="publish-vaccines">
+        <legend>Short on supply right now</legend>
+        {vaccines.map((v) => (
+          <Check key={v.id} checked={data.shortSupply.includes(v.id)} onChange={(e) => update((d) => ({ ...d, shortSupply: e.target.checked ? [...d.shortSupply, v.id] : d.shortSupply.filter((x) => x !== v.id) }))}>{v.name}</Check>
+        ))}
+        <small className="muted">Fills the {"{short}"} field when you message families.</small>
+      </fieldset>
       {changed && <Alert kind="warning">You changed the sample vaccines or ages. Which vaccines and ages a pharmacist may give depends on the state. Check your state's own page before you publish.</Alert>}
       <OfficialSource topic="which vaccines and ages a pharmacist may give" />
       {saved && <Alert kind="success">{saved}</Alert>}
