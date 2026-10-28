@@ -579,3 +579,41 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
 @media (min-width: 1101px) and (max-width: 1279px) {
   .workspace:has(.parent-nav) .vaccine-list { grid-template-columns: 1fr; }
 }
+
+/* W-132: functional parent / pharmacy dashboard modules from supplied screenshots.
+   These rules intentionally exclude the school administrator workspace. */
+@media (min-width: 1101px) {
+  .family-overview { display: grid; gap: var(--space-4); margin-bottom: var(--space-4); }
+  .family-overview .card { border-radius: var(--radius-control); }
+  .family-profile { display: flex; gap: var(--space-4); align-items: center; }
+  .family-profile .avatar { width: 46px; height: 46px; flex: none; background: var(--lavender-soft); color: var(--deep-teal); }
+  .family-profile h2, .family-appointment-summary h2 { font-size: 17px; }
+  .family-profile p { margin-top: 2px; }
+  .family-profile > .badge { margin-left: auto; }
+  .family-dashboard-grid { display: grid; grid-template-columns: minmax(0,1.7fr) minmax(290px,1fr); gap: var(--space-4); align-items: stretch; }
+  .family-records, .family-next-step { min-width: 0; }
+  .family-records .section-heading { margin-bottom: var(--space-3); }
+  .family-status-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(95px,auto) 62px; align-items: center; gap: var(--space-3); border-top: 1px solid var(--border); padding: var(--space-2) 0; font-size: 13px; }
+  .family-status-row .badge { justify-self: start; }
+  .family-next-step .card-heading { margin-bottom: var(--space-3); }
+  .family-next-step > p { font-size: 13px; line-height: 1.5; margin: var(--space-2) 0 var(--space-4); }
+  .family-next-step > .full { justify-content: space-between; }
+  .family-appointment-summary { display: flex; align-items: center; gap: var(--space-4); }
+  .family-appointment-summary > div { flex: 1; }
+  .family-appointment-summary p { margin-top: 3px; }
+  .family-notice-details, .pharmacy-calendar-details { margin: 0 0 var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--white); }
+  .family-notice-details > summary, .pharmacy-calendar-details > summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--deep-teal); padding: var(--space-3) var(--space-4); }
+  .family-notice-details[open] > summary, .pharmacy-calendar-details[open] > summary { border-bottom: 1px solid var(--border); }
+  .family-notice-details > .school-notice { border: none; border-radius: 0 0 var(--radius-control) var(--radius-control); }
+  .pharmacy-day-workspace { display: grid; gap: var(--space-3); }
+  .pharmacy-day-intro { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+  .pharmacy-day-intro h2 { font-size: 17px; }
+  .pharmacy-day-intro p { font-size: 12px; margin: var(--space-1) 0 0; }
+  .pharmacy-workspace .pharmacy-day-workspace .stat-row { margin: 0; }
+  .pharmacy-workspace .pharmacy-day-workspace .stat-row .stat { background: var(--white); border-radius: var(--radius-control); }
+  .pharmacy-calendar-details { margin-top: var(--space-4); overflow: hidden; }
+}
+@media (min-width: 1101px) and (max-width: 1280px) {
+  .family-dashboard-grid { grid-template-columns: minmax(0, 1.4fr) minmax(260px,1fr); }
+  .family-status-row { gap: var(--space-2); }
+}
