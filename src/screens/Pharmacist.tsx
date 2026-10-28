@@ -576,10 +576,14 @@ export default function Pharmacist() {
                     </span>
                   </Alert>
                 )}
-                <PharmacyCalendar visits={visits} day={day} onDay={setDay} onPick={setOpenId} showAll={showAll} onShowAll={setShowAll} />
-                <div style={{ marginTop: "var(--space-4)" }}>
+                <div className="pharmacy-day-workspace">
+                  <div className="pharmacy-day-intro"><div><Heading level={2}>Today's workflow</Heading><p className="muted">Review visits, check patients in and record completed doses.</p></div><Badge>Demo schedule</Badge></div>
                   <DayList visits={visits} day={day} showAll={showAll} onShowAll={setShowAll} onOpen={setOpenId} onNotify={notify} />
                 </div>
+                <details className="pharmacy-calendar-details">
+                  <summary>Open calendar · change day or view colleagues</summary>
+                  <PharmacyCalendar visits={visits} day={day} onDay={setDay} onPick={setOpenId} showAll={showAll} onShowAll={setShowAll} />
+                </details>
               </>
             )
           )}
