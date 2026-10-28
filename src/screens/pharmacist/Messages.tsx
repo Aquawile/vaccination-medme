@@ -26,7 +26,6 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
   const [groupSearch, setGroupSearch] = useState("")
   const [groupScope, setGroupScope] = useState<"all"|"upcoming"|"day"|"checked-in"|"no-show">("all")
   const [preview, setPreview] = useState(false)
-  const [tName, setTName] = useState("")
   const [open, setOpen] = useState("")
   const bodyRef = useRef<HTMLTextAreaElement>(null)
   const rule = data.reminderRule
@@ -49,11 +48,6 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
     setSent(`Recorded for ${sendingTo.length} ${sendingTo.length === 1 ? "family" : "families"}. Simulated: nothing was delivered.${key === "noshow" ? " Visits booked in the app were cancelled and their times freed." : ""}`)
     setReviewed(false); setIds([]); setSingleId("")
   }
-  function saveTemplate() {
-    const id = `custom-${Date.now()}`
-    update((d) => ({ ...d, customTemplates: [...d.customTemplates, { id, label: tName.trim(), subject, body }] }))
-    setKey(id); setTName(""); setSent("Template saved locally. No message was sent.")
-  }
   return (
     <>
       <Card className="pharmacy-message-status">
@@ -64,10 +58,10 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
         <details className="peek"><summary>Illustrative reminder dates</summary><div className="table-scroll"><table><thead><tr><th>Family</th><th>Visit</th><th>Reminder scheduled</th></tr></thead><tbody>{upcoming.slice(0,20).map(({v,on})=><tr key={v.id}><td>{v.name}</td><td>{dateLabel(v.date)} {v.time}</td><td>{dateLabel(on)}</td></tr>)}</tbody></table></div></details>
       </Card>
       <Card className="pharmacy-message-composer" style={{ marginTop: "var(--space-5)" }}>
-        <Heading level={2}>Messages and templates</Heading>
-        <p className="muted">Save a template without sending. Choose individual families or select a filtered group below; one-family messages have their own tab.</p>
+        <Heading level={2}>Send messages</Heading>
+        <p className="muted">Choose a saved template, select recipients, review the text, and record a simulated send. Create and edit reusable templates in Settings.</p>
         <div className="seg pharmacy-message-tabs" role="group" aria-label="Compose mode">
-          <button className={mode === "group" ? "active" : ""} onClick={() => {setMode("group");setReviewed(false)}} aria-pressed={mode === "group"}>Group or template</button>
+          <button className={mode === "group" ? "active" : ""} onClick={() => {setMode("group");setReviewed(false)}} aria-pressed={mode === "group"}>Group message</button>
           <button className={mode === "single" ? "active" : ""} onClick={() => {setMode("single");setReviewed(false)}} aria-pressed={mode === "single"}>One family</button>
         </div>
         <div className="pharmacy-composer-meta">
@@ -93,7 +87,6 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
         <div className="pharmacy-compose-toggle"><strong>{preview ? "Recipient preview" : "Edit message"}</strong><Button variant="secondary" onClick={()=>setPreview(!preview)}>{preview ? "Edit message" : "Preview for recipient"}</Button></div>
         {preview ? <div className="pharmacy-inline-preview">{sendingTo.length ? <><strong>{fill(subject,sendingTo[0])}</strong><p>{fill(body,sendingTo[0])}</p><small className="muted">Showing {sendingTo[0].name}</small></> : <p className="muted">Choose a recipient to preview personalized content.</p>}</div> :
           <div className="pharmacy-full-compose"><div className="field"><label htmlFor="pm-sub">Subject</label><input id="pm-sub" value={subject} onChange={(e)=>setSubject(e.target.value)} /></div><div className="field"><label htmlFor="pm-body">Message</label><textarea id="pm-body" ref={bodyRef} rows={9} value={body} onChange={(e)=>setBody(e.target.value)} /></div><div className="chip-row">{mergeFields.map((x)=><button key={x} type="button" className="filter-chip" onClick={()=>insert(x)}>{x}</button>)}</div></div>}
-        <div className="pharmacy-template-save"><div className="field"><label htmlFor="pm-tname">New template name</label><input id="pm-tname" value={tName} onChange={(e)=>setTName(e.target.value)} placeholder="Name this template" /></div><Button variant="secondary" disabled={!tName.trim() || !subject.trim() || !body.trim()} onClick={saveTemplate}>Save template only</Button></div>
         <div className="pharmacy-send-section"><p className="muted">To: {sendingTo.length ? sendingTo.map((v)=>v.name).slice(0,6).join(", ") : "No families selected"}. Timing: immediate simulated record; automatic schedules are in Settings.</p>
           <Check checked={reviewed} onChange={(e)=>setReviewed(e.target.checked)}>I reviewed the recipients and message.</Check>
           <div className="action-row"><Button disabled={!reviewed || sendingTo.length === 0 || !body.trim() || !subject.trim()} onClick={submit}>Record message for {sendingTo.length} families</Button></div>
