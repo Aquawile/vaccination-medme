@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react"
+import { accountRoles } from "../demo/config"
 import { authenticate, DEMO_CODE, signInWithCode } from "../demo/services"
 import {
   Alert,
@@ -25,6 +26,10 @@ export default function Auth({
   const [submitted, setSubmitted] = useState(false)
   const [codeStep, setCodeStep] = useState<"" | "register" | "code">("")
   const [code, setCode] = useState("")
+  // Temporary demo-only role shortcuts. Never display on the production main branch.
+  const demoBranch = import.meta.env.VITE_BUILD_BRANCH as string | undefined
+  const showQuickAccess = import.meta.env.DEV || demoBranch === "staging" || Boolean(demoBranch?.startsWith("hotfix/"))
+  const quickLogin = (email: string) => { if (!showQuickAccess || !accountRoles[email]) return; localStorage.setItem("school-demo-session",email);onLogin(email) }
   const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -202,6 +207,17 @@ export default function Auth({
               </Button>
             )}
           </form>
+          )}
+          {showQuickAccess && !register && !codeStep && (
+            <section className="demo-quick-access" aria-label="Temporary developer demo access">
+              <strong>Quick demo access</strong>
+              <p className="muted">Temporary development shortcut · fictional records only. No password required in this demo.</p>
+              <div className="demo-quick-actions">
+                <Button type="button" variant="secondary" onClick={() => quickLogin("parent@example.test")}>Parent view</Button>
+                <Button type="button" variant="secondary" onClick={() => quickLogin("pharmacist@example.test")}>Pharmacist view</Button>
+                <Button type="button" variant="secondary" onClick={() => quickLogin("admin@example.test")}>School Admin view</Button>
+              </div>
+            </section>
           )}
           <div className="auth-switch">
             {register ? "Already have an account?" : "New here?"}{" "}
