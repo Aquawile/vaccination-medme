@@ -758,3 +758,20 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
 .pharmacy-workspace .pharmacy-auto-add {grid-template-columns:minmax(140px,1fr) minmax(170px,1fr) minmax(170px,1fr) auto}
 @media(max-width:1150px){.pharmacy-workspace .pharmacy-auto-add {grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.pharmacy-workspace .pharmacy-auto-add {grid-template-columns:1fr}}
+
+/* Pharmacy settings and scalable bulk recipient selection. */
+.pharmacy-workspace .pharmacy-settings-sections { display:grid;gap:18px;align-content:start; }
+.pharmacy-workspace .pharmacy-settings-section { margin:0; padding:22px 24px; }
+.pharmacy-workspace .pharmacy-settings-section > h2 { padding-bottom:12px;border-bottom:1px solid #e2e9ea;margin-bottom:15px;color:#12394a; }
+.pharmacy-workspace .pharmacy-settings-section .publish-vaccines { margin:14px 0; }
+.pharmacy-workspace .pharmacy-group-picker { margin:14px 0;padding:16px;border:1px solid #dfe8e9;border-radius:8px;background:#f7fafb; }
+.pharmacy-workspace .pharmacy-group-tools { display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end; }
+.pharmacy-workspace .pharmacy-group-actions { display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0; }
+.pharmacy-workspace .pharmacy-group-list {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:270px;overflow:auto;padding:3px;}
+.pharmacy-workspace .pharmacy-group-choice {display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e2e9e9;border-radius:6px;background:white;cursor:pointer;}
+.pharmacy-workspace .pharmacy-group-choice:has(input:checked){border-color:#6a929d;background:#ecf5f5;}
+.pharmacy-workspace .pharmacy-group-choice input {flex:none;}
+.pharmacy-workspace .pharmacy-group-choice span {min-width:0;}
+.pharmacy-workspace .pharmacy-group-choice strong {display:block;color:#12394a;font-size:13px;}
+.pharmacy-workspace .pharmacy-group-choice small {display:block;color:#667b83;font-size:11px;}
+@media(max-width:900px){.pharmacy-workspace .pharmacy-group-tools,.pharmacy-workspace .pharmacy-group-list{grid-template-columns:1fr}}
