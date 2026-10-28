@@ -11,7 +11,7 @@ import { useSendMessage } from "./useSendMessage"
 // DEMO-FAKE: stands in for the mailbox the message was sent from. A real build links to the actual sent message.
 const GMAIL_SENT = "https://mail.google.com/mail/u/0/#sent"
 
-export default function Messages({ visits, initial }: { visits: Visit[]; initial: { template: string; ids: string[] } | null }) {
+export default function Messages({ visits, initial, onSettings }: { visits: Visit[]; initial: { template: string; ids: string[] } | null; onSettings: () => void }) {
   const { data, update } = useDemo()
   const send = useSendMessage()
   const all: Record<string, Template> = useMemo(() => ({ ...builtInTemplates, ...Object.fromEntries(data.customTemplates.map((t) => [t.id, t])) }), [data.customTemplates])
@@ -55,7 +55,7 @@ export default function Messages({ visits, initial }: { visits: Visit[]; initial
   return (
     <>
       <Card className="pharmacy-message-status">
-        <div className="section-heading"><div><Heading level={2}>Reminder queue</Heading><p className="muted">Automation is configured once in Settings, not per appointment.</p></div><Button variant="secondary" onClick={() => document.querySelector<HTMLButtonElement>('[data-pharmacy-settings]')?.click()}>Open settings</Button></div>
+        <div className="section-heading"><div><Heading level={2}>Reminder queue</Heading><p className="muted">Automation is configured once in Settings, not per appointment.</p></div><Button variant="secondary" onClick={() => onSettings()}>Open settings</Button></div>
         <div className="pharmacy-reminder-metrics"><div><strong>{due.length}</strong><span>Due</span></div><div><strong>{upcoming.length - due.length}</strong><span>Upcoming</span></div><div><strong>{rule.auto ? "On" : "Off"}</strong><span>Automatic sending</span></div></div>
         <p className="muted">Rule: {rule.days} day{rule.days === 1 ? "" : "s"} before a visit · {all[rule.template]?.label ?? "Saved template"}. Demo only: no email or text is delivered.</p>
         {!rule.auto && <div className="action-row"><Button disabled={due.length === 0} onClick={sendDue}>Record {due.length} due reminders</Button></div>}
