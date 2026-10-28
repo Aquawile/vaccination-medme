@@ -4,6 +4,8 @@ import officialLinks from "../../data/officialLinks.json"
 import { stateName, usStates } from "../../data/states"
 import { defaults } from "../../demo/config"
 import { useDemo } from "../../state"
+import { templates } from "./Outreach"
+import { dateLabel } from "../../demo/journey"
 
 const reasons = ["Entered wrong at setup", "School moved to a new campus", "District reassigned the school"]
 
@@ -11,6 +13,16 @@ const reasons = ["Entered wrong at setup", "School moved to a new campus", "Dist
 export default function SchoolSettings() {
   const { data, update, event } = useDemo()
   const [open, setOpen] = useState(false)
+  const [editId,setEditId]=useState("")
+  const [templateLabel,setTemplateLabel]=useState("")
+  const [templateSubject,setTemplateSubject]=useState("")
+  const [templateBody,setTemplateBody]=useState("")
+  const [ruleTemplate,setRuleTemplate]=useState("missing")
+  const [ruleAudience,setRuleAudience]=useState("needs-visit")
+  const [ruleDate,setRuleDate]=useState("")
+  const [editingRule,setEditingRule]=useState("")
+  const schoolTemplates={...templates,...Object.fromEntries(data.schoolTemplates.map(t=>[t.id,t]))}
+  const editTemplate=(id:string)=>{const t=schoolTemplates[id];setEditId(id);setTemplateLabel(t.label);setTemplateSubject(t.subject);setTemplateBody(t.body)}
   const [next, setNext] = useState("")
   const [reason, setReason] = useState("")
   const [name, setName] = useState("")
@@ -72,6 +84,27 @@ export default function SchoolSettings() {
             </ul>
           </>
         )}
+      </Card>
+      <Card className="school-template-settings">
+        <Heading level={2}>School message templates</Heading>
+        <p className="muted">Edit existing templates here. Saving a template makes it available in Outreach; it does not send or schedule messages.</p>
+        <div className="school-template-directory">{Object.entries(schoolTemplates).filter(([id])=>id!=="custom").map(([id,t])=><div className="school-template-entry" key={id}><div><strong>{t.label}</strong><small className="muted">{t.subject}</small></div><Button variant="secondary" onClick={()=>editTemplate(id)}>Edit</Button></div>)}</div>
+        <Heading level={3}>{editId ? "Edit template" : "New template"}</Heading>
+        <div className="field"><label htmlFor="school-tpl-name">Template name</label><input id="school-tpl-name" value={templateLabel} onChange={e=>setTemplateLabel(e.target.value)} /></div>
+        <div className="field"><label htmlFor="school-tpl-subject">Subject</label><input id="school-tpl-subject" value={templateSubject} onChange={e=>setTemplateSubject(e.target.value)} /></div>
+        <div className="field"><label htmlFor="school-tpl-body">Message body</label><textarea id="school-tpl-body" rows={7} value={templateBody} onChange={e=>setTemplateBody(e.target.value)} /></div>
+        <div className="action-row"><Button disabled={!templateLabel.trim()||!templateSubject.trim()||!templateBody.trim()} onClick={()=>{const id=editId||"school-custom-"+Date.now();update(d=>({...d,schoolTemplates:d.schoolTemplates.some(t=>t.id===id)?d.schoolTemplates.map(t=>t.id===id?{...t,label:templateLabel,subject:templateSubject,body:templateBody}:t):[...d.schoolTemplates,{id,label:templateLabel,subject:templateSubject,body:templateBody}]}));setEditId("");setTemplateLabel("");setTemplateSubject("");setTemplateBody("")}}>{editId?"Save changes":"Save new template"}</Button><Button variant="text" onClick={()=>{setEditId("");setTemplateLabel("");setTemplateSubject("");setTemplateBody("")}}>Clear editor</Button></div>
+      </Card>
+      <Card className="school-rule-settings">
+        <Heading level={2}>Scheduled school messages</Heading>
+        <p className="muted">Choose a template, recipient cohort and send date. Scheduling is a saved demonstration only; nothing automatically sends.</p>
+        <div className="school-rule-form">
+          <Select label="Template" value={ruleTemplate} onChange={e=>setRuleTemplate(e.target.value)}>{Object.entries(schoolTemplates).filter(([id])=>id!=="custom").map(([id,t])=><option key={id} value={id}>{t.label}</option>)}</Select>
+          <Select label="Recipients" value={ruleAudience} onChange={e=>setRuleAudience(e.target.value)}><option value="needs-visit">Missing doses, no visit</option><option value="booked">Visit booked</option><option value="no-record">Unknown records</option><option value="missing">Missing doses</option></Select>
+          <Field label="Send date (demo)" type="date" value={ruleDate} onChange={e=>setRuleDate(e.target.value)} />
+          <Button disabled={!ruleDate} variant="secondary" onClick={()=>{update(d=>({...d,schoolAutomationRules:editingRule?d.schoolAutomationRules.map(r=>r.id===editingRule?{...r,template:ruleTemplate,audience:ruleAudience,sendDate:ruleDate}:r):[...d.schoolAutomationRules,{id:"school-auto-"+Date.now(),template:ruleTemplate,audience:ruleAudience,sendDate:ruleDate,enabled:true}]}));setRuleDate("");setEditingRule("")}}>{editingRule?"Save rule changes":"Save demo rule"}</Button>
+        </div>
+        {data.schoolAutomationRules.map(r=><div className="school-rule-item" key={r.id}><strong>{schoolTemplates[r.template]?.label??r.template}</strong><span>{r.audience} · {dateLabel(r.sendDate)}</span><div className="school-rule-actions"><Check checked={r.enabled} onChange={e=>update(d=>({...d,schoolAutomationRules:d.schoolAutomationRules.map(x=>x.id===r.id?{...x,enabled:e.target.checked}:x)}))}>Enabled</Check><Button variant="secondary" onClick={()=>{setEditingRule(r.id);setRuleTemplate(r.template);setRuleAudience(r.audience);setRuleDate(r.sendDate)}}>Edit</Button><Button variant="text" onClick={()=>update(d=>({...d,schoolAutomationRules:d.schoolAutomationRules.filter(x=>x.id!==r.id)}))}>Remove</Button></div></div>)}
       </Card>
       <Card style={{ marginTop: "var(--space-5)" }}>
         <Heading level={2}>Official sources</Heading>
