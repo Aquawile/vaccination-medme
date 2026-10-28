@@ -85,12 +85,12 @@ export function StudentDirectory({
         </div>
         <Icon name="user" size={18} />
       </div>
-      <div className="chips" role="group" aria-label="Views">
+      <div className="chips school-student-views" role="group" aria-label="Views">
         {views.map((v) => (
           <button key={v.id} className="chip" aria-pressed={filter.queue === v.id} onClick={() => set({ queue: v.id, status: "" })}>{v.label}</button>
         ))}
       </div>
-      <div className="filter-bar">
+      <div className="filter-bar school-student-filters">
         <Field label="Search by name or ID" value={filter.q} onChange={(e) => set({ q: e.target.value })} placeholder="Search a name" />
         <Select label="School" value={filter.school} onChange={(e) => set({ school: e.target.value })}>
           <option value="">All schools</option>
@@ -129,7 +129,7 @@ export function StudentDirectory({
           <Button variant="text" onClick={() => setSelected([])}>Clear selection</Button>
         </div>
       )}
-      <div className="directory-bar">
+      <div className="directory-bar school-student-directory-bar">
         <span aria-live="polite"><strong>{rows.length}</strong> of {summaries.length} students</span>
         <span className="action-row" style={{ margin: 0 }}>
           <Select label="Sort by" value={sort} onChange={(e) => setSort(e.target.value)}>
