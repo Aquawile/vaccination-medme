@@ -986,3 +986,39 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
 .admin-main .admin-outreach-compose{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
 @media(max-width:1000px){.admin-main .school-student-filters,.admin-main .school-rule-form{grid-template-columns:1fr 1fr}.admin-main .admin-outreach-compose{grid-template-columns:1fr}}
 @media(max-width:600px){.admin-main .school-student-filters,.admin-main .school-rule-form{grid-template-columns:1fr}.admin-main .school-rule-item{align-items:flex-start;flex-direction:column}}
+
+/* Match the parent navigation rail to the existing school/pharmacist rail.
+   Keep the existing parent tabs, counts, and navigation behavior unchanged. */
+@media (min-width:1101px){
+  .workspace:has(> .parent-nav) > .parent-nav{
+    box-sizing:border-box;
+    padding:16px 12px;
+    gap:5px;
+    background:var(--deep-teal);
+    border:0;
+  }
+  .workspace:has(> .parent-nav) > .parent-nav .button{
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    text-align:left;
+    gap:12px;
+    width:100%;
+    min-height:42px;
+    padding:10px 13px;
+    font-size:13px;
+    font-weight:600;
+    border:0;
+    border-radius:7px;
+    background:transparent;
+    color:var(--white);
+    box-shadow:none;
+  }
+  .workspace:has(> .parent-nav) > .parent-nav .button:hover,
+  .workspace:has(> .parent-nav) > .parent-nav .button.nav-active{
+    background:var(--navy)!important;
+    color:var(--white);
+    box-shadow:inset 3px 0 0 var(--jade);
+  }
+  .workspace:has(> .parent-nav) > .parent-nav .button .badge{margin-left:auto}
+}
