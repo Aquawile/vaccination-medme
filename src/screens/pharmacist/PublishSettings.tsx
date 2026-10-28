@@ -29,7 +29,12 @@ export default function PublishSettings() {
   const [templateSubject, setTemplateSubject] = useState("")
   const [templateBody, setTemplateBody] = useState("")
   const [editingTemplate, setEditingTemplate] = useState("")
+  const [templateSearch, setTemplateSearch] = useState("")
+  const [templateFilter, setTemplateFilter] = useState<"all"|"custom"|"builtin">("all")
   const templates = { ...builtInTemplates, ...Object.fromEntries(data.customTemplates.map((t) => [t.id, t])) }
+  const templateLibrary = Object.entries(templates).filter(([id,t])=> (templateFilter==="all" || (templateFilter==="custom" ? id.startsWith("custom-") : !id.startsWith("custom-"))) && (t.label+" "+t.subject+" "+t.body).toLowerCase().includes(templateSearch.trim().toLowerCase()))
+  const editSavedTemplate = (t: {id:string;label:string;subject:string;body:string}) => {setEditingTemplate(t.id);setTemplateName(t.label);setTemplateSubject(t.subject);setTemplateBody(t.body)}
+  const resetTemplateEditor = () => {setEditingTemplate("");setTemplateName("");setTemplateSubject("");setTemplateBody("")}
   const legalRule = autoCadence.startsWith("deadline-")
   const validDays = Number.isInteger(Number(autoDays)) && Number(autoDays) >= (autoCadence==="repeat"?1:0) && Number(autoDays)<=365
   const validDeadline = !legalRule || (/^\d{4}-\d{2}-\d{2}$/.test(deadlineDate) && /^https:\/\//i.test(deadlineSource.trim()))
@@ -73,42 +78,50 @@ export default function PublishSettings() {
       </fieldset>
     </Card>
     <Card className="pharmacy-settings-section">
-      <Heading level={2}>Messaging preferences</Heading>
-      <p className="muted">Global notification defaults. Individual template automation is managed in Automatic message rules below.</p>
-      <fieldset className="publish-vaccines">
-        <legend>Legacy default reminders</legend>
-        <div className="controls">
-          <Select label="Reminder timing" value={String(data.reminderRule.days)} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, days: Number(e.target.value) } }))}>
-            {[1, 2, 3, 5, 7, 14].map((n) => <option key={n} value={n}>{n} day{n > 1 ? "s" : ""} before the visit</option>)}
-          </Select>
-          <Select label="Default message" value={data.reminderRule.template} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, template: e.target.value } }))}>
-            <option value="reminder">Appointment reminder</option>
-            <option value="followup">Next visit follow-up</option>
-          </Select>
-        </div>
-        <Check checked={data.reminderRule.auto} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, auto: e.target.checked } }))}>Send visit reminders automatically ({data.reminderRule.days} days before)</Check>
-        <Check checked={data.reminderRule.autoNoShow} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, autoNoShow: e.target.checked } }))}>Send the missed-visit notice as soon as I mark a no-show</Check>
-        <small className="muted">You still mark who came. Timing, template and automation stay saved here across appointments. Demo only: nothing is delivered.</small>
-      </fieldset>
-    </Card>
-    <Card className="pharmacy-settings-section">
       <Heading level={2}>Message templates</Heading>
-      <p className="muted">Create reusable wording here. Saving a template does not send it. Choose saved templates in Messages or automatic rules below.</p>
-      <div className="field"><label htmlFor="pst-name">Template name</label><input id="pst-name" value={templateName} onChange={(e)=>setTemplateName(e.target.value)} placeholder="e.g. Return visit follow-up" /></div>
-      <div className="field"><label htmlFor="pst-sub">Email subject</label><input id="pst-sub" value={templateSubject} onChange={(e)=>setTemplateSubject(e.target.value)} /></div>
-      <div className="field"><label htmlFor="pst-body">Message body</label><textarea id="pst-body" rows={6} value={templateBody} onChange={(e)=>setTemplateBody(e.target.value)} placeholder="Use {student}, {date}, {time} for personalized fields." /></div>
-      <div className="action-row">
-        <Button disabled={!templateName.trim()||!templateSubject.trim()||!templateBody.trim()} onClick={()=>{update((d)=>({...d,customTemplates:editingTemplate ? d.customTemplates.map((t)=>t.id===editingTemplate?{...t,label:templateName,subject:templateSubject,body:templateBody}:t):[...d.customTemplates,{id:"custom-"+Date.now(),label:templateName,subject:templateSubject,body:templateBody}]}));setEditingTemplate("");setTemplateName("");setTemplateSubject("");setTemplateBody("")}}>{editingTemplate?"Update template":"Save new template"}</Button>
-        {editingTemplate && <Button variant="text" onClick={()=>{setEditingTemplate("");setTemplateName("");setTemplateSubject("");setTemplateBody("")}}>Cancel</Button>}
+      <p className="muted">Browse every available template here. Edit saved templates, or make an editable copy of a built-in template. Saving does not send or automate anything.</p>
+      <div className="pharmacy-template-search">
+        <div className="field"><label htmlFor="pst-search">Find a template</label><input id="pst-search" value={templateSearch} onChange={(e)=>setTemplateSearch(e.target.value)} placeholder="Search name, subject, or message" /></div>
+        <Select label="Show" value={templateFilter} onChange={(e)=>setTemplateFilter(e.target.value as typeof templateFilter)}><option value="all">All templates</option><option value="custom">My templates</option><option value="builtin">Built-in templates</option></Select>
       </div>
-      {data.customTemplates.length>0 && <div className="pharmacy-template-library">{data.customTemplates.map((t)=><div key={t.id} className="pharmacy-rule-line"><strong>{t.label}</strong><span>{t.subject}</span><Button variant="secondary" onClick={()=>{setEditingTemplate(t.id);setTemplateName(t.label);setTemplateSubject(t.subject);setTemplateBody(t.body)}}>Edit</Button><Button variant="text" onClick={()=>update((d)=>({...d,customTemplates:d.customTemplates.filter((x)=>x.id!==t.id),automationRules:d.automationRules.map((r)=>r.template===t.id?{...r,enabled:false}:r)}))}>Delete</Button></div>)}</div>}
+      <p className="muted">{templateLibrary.length} matching templates · {data.customTemplates.length} saved by you</p>
+      <div className="pharmacy-template-library">
+        {templateLibrary.length===0 && <p className="muted">No templates match this search.</p>}
+        {templateLibrary.map(([id,t])=>{
+          const custom = id.startsWith("custom-")
+          const activeRules = data.automationRules.filter((r)=>r.template===id && r.enabled).length + (data.reminderRule.auto && data.reminderRule.template===id?1:0)
+          return <div key={id} className="pharmacy-template-item">
+            <div><strong>{t.label}</strong><small className="muted">{custom?"My saved template":"Built-in template"} · {activeRules ? activeRules+" active automation rule(s)" : "Manual use only"}</small><p>{t.subject}</p><p className="muted pharmacy-template-excerpt">{t.body}</p></div>
+            <div className="pharmacy-template-item-actions">
+              <Button variant="secondary" onClick={()=>custom ? editSavedTemplate({id,label:t.label,subject:t.subject,body:t.body}) : (resetTemplateEditor(),setTemplateName(t.label+" (copy)"),setTemplateSubject(t.subject),setTemplateBody(t.body))}>{custom?"Edit":"Make editable copy"}</Button>
+              {custom && <Button variant="text" onClick={()=>update((d)=>({...d,customTemplates:d.customTemplates.filter((x)=>x.id!==id),automationRules:d.automationRules.map((r)=>r.template===id?{...r,enabled:false}:r)}))}>Delete</Button>}
+            </div>
+          </div>
+        })}
+      </div>
+      <div className="pharmacy-template-editor">
+        <Heading level={3}>{editingTemplate?"Edit saved template":"Create a template"}</Heading>
+        <div className="field"><label htmlFor="pst-name">Template name</label><input id="pst-name" value={templateName} onChange={(e)=>setTemplateName(e.target.value)} placeholder="e.g. Return visit follow-up" /></div>
+        <div className="field"><label htmlFor="pst-sub">Email subject</label><input id="pst-sub" value={templateSubject} onChange={(e)=>setTemplateSubject(e.target.value)} /></div>
+        <div className="field"><label htmlFor="pst-body">Message body</label><textarea id="pst-body" rows={7} value={templateBody} onChange={(e)=>setTemplateBody(e.target.value)} placeholder="Use {student}, {date}, {time} for personalized fields." /></div>
+        <div className="action-row">
+          <Button disabled={!templateName.trim()||!templateSubject.trim()||!templateBody.trim()} onClick={()=>{update((d)=>({...d,customTemplates:editingTemplate?d.customTemplates.map((t)=>t.id===editingTemplate?{...t,label:templateName.trim(),subject:templateSubject,body:templateBody}:t):[...d.customTemplates,{id:"custom-"+Date.now(),label:templateName.trim(),subject:templateSubject,body:templateBody}]}));resetTemplateEditor()}}>{editingTemplate?"Save changes":"Save as new template"}</Button>
+          {(editingTemplate || templateName || templateSubject || templateBody) && <Button variant="text" onClick={resetTemplateEditor}>Clear editor</Button>}
+        </div>
+        <p className="muted">Templates are saved locally in this demo. Sending is done in Messages; automatic scheduling is configured separately below.</p>
+      </div>
     </Card>
     <Card className="pharmacy-automation-settings pharmacy-settings-section">
         <Heading level={2}>Automatic message rules</Heading>
+        <div className="pharmacy-automation-legacy">
+          <Check checked={data.reminderRule.autoNoShow} onChange={(e)=>update((d)=>({...d,reminderRule:{...d.reminderRule,autoNoShow:e.target.checked}}))}>Record a simulated no-show notice immediately when a visit is marked no-show</Check>
+          {data.reminderRule.auto && <div className="pharmacy-rule-line"><span>Previously configured default reminder · {data.reminderRule.days} days before visit</span><Check checked={data.reminderRule.auto} onChange={(e)=>update((d)=>({...d,reminderRule:{...d.reminderRule,auto:e.target.checked}}))}>Enabled</Check></div>}
+          <small className="muted">No-show notifications are simulated, never delivered. Other scheduled messages are configured per template below.</small>
+        </div>
         <p className="muted">Save each template with its own timing, then edit or toggle it in the list below. State deadline dates must be entered from a verified official source; these are illustrative scheduling preferences, not a legal determination or actual delivery.</p>
         <div className="pharmacy-auto-add">
           <Select label="Template" value={autoTemplate} onChange={(e)=>setAutoTemplate(e.target.value)}>
-            {Object.entries(templates).filter(([k])=>k!=="custom"&&k!=="noshow").map(([k,t])=><option key={k} value={k}>{t.label}</option>)}
+            {Object.entries(templates).filter(([k])=>k!=="custom").map(([k,t])=><option key={k} value={k}>{t.label}</option>)}
           </Select>
           <Select label="When should it run?" value={autoCadence} onChange={(e)=>setAutoCadence(e.target.value as typeof autoCadence)}>
             <option value="before">Before each appointment</option>
