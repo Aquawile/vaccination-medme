@@ -55,7 +55,7 @@ export default function DayList({ visits: allVisits, day, showAll, onShowAll, on
           </div>
           <div className="cal-tools">
             {noShows.length > 0 && <Button variant="secondary" onClick={() => onNotify("noshow", noShows)}>Message {noShows.length} no-show{noShows.length > 1 ? "s" : ""}</Button>}
-            <Button variant="secondary" onClick={() => onNotify("reminder", visits.filter((v) => v.date === day && statusOf(v, data.visitMarks, done.has(v.id)) === "booked").map((v) => v.id))}>Send reminders for this day</Button>
+            <Button variant="secondary" onClick={() => onNotify("reminder", visits.filter((v) => within(v) && statusOf(v, data.visitMarks, done.has(v.id)) === "booked").map((v) => v.id))}>Prepare reminders for this {period === "day" ? "day" : period}</Button>
           </div>
         </div>
         <div className="today-body">
