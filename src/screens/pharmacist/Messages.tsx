@@ -1,89 +1,142 @@
-import { useMemo, useRef, useState } from "react"
+import { Fragment, useMemo, useRef, useState } from "react"
 import { Alert, Button, Card, Check, Heading, Select } from "../../components/ui"
 import { defaults } from "../../demo/config"
 import { dateLabel } from "../../demo/journey"
-import { fillVisit, type Visit } from "../../domain/pharmacyVisits"
+import { builtInTemplates, mergeFields, reminderDate, type Template } from "../../domain/pharmacyTemplates"
+import { fakeReply, fillVisit, type Visit } from "../../domain/pharmacyVisits"
 import { useDemo } from "../../state"
 import { vName } from "./usePharmacyVisits"
+import { useSendMessage } from "./useSendMessage"
 
-// DEMO-FAKE: nothing is delivered. "Send" records the message so the flow can be shown. Messages cover scheduling only, never medical advice.
-const templates: Record<string, { label: string; subject: string; body: string }> = {
-  reminder: { label: "Visit reminder", subject: "Reminder: {student}'s visit on {date} at {time}", body: "Hello {parent},\n\nThis is a reminder that {student} has a vaccination visit at {pharmacy} on {date} at {time} for {vaccines}.\n\nIf you need to change the time, you can do it in the app.\n\nThank you,\n{pharmacy}" },
-  noshow: { label: "Missed visit, cancelled", subject: "We missed {student} on {date}", body: "Hello {parent},\n\n{student} did not arrive for the visit on {date} at {time}, so we have cancelled it to free the time for others. You can book a new time in the app whenever you like.\n\nThank you,\n{pharmacy}" },
-  short: { label: "Short on a vaccine", subject: "A change to {student}'s visit on {date}", body: "Hello {parent},\n\nWe are short on: {short}. Your visit on {date} at {time} may need a new time. We will confirm, or you can pick another time in the app.\n\nThank you,\n{pharmacy}" },
-  custom: { label: "Custom message", subject: "", body: "" },
-}
-const fields = ["{parent}", "{student}", "{date}", "{time}", "{vaccines}", "{short}", "{pharmacy}"]
+// DEMO-FAKE: stands in for the mailbox the message was sent from. A real build links to the actual sent message.
+const GMAIL_SENT = "https://mail.google.com/mail/u/0/#sent"
 
 export default function Messages({ visits, initial }: { visits: Visit[]; initial: { template: string; ids: string[] } | null }) {
-  const { data, update, event } = useDemo()
-  const [template, setTemplate] = useState(initial?.template ?? "reminder")
+  const { data, update } = useDemo()
+  const send = useSendMessage()
+  const all: Record<string, Template> = useMemo(() => ({ ...builtInTemplates, ...Object.fromEntries(data.customTemplates.map((t) => [t.id, t])) }), [data.customTemplates])
+  const [key, setKey] = useState(initial?.template ?? "reminder")
   const [ids, setIds] = useState<string[]>(initial?.ids ?? [])
-  const [subject, setSubject] = useState(templates[initial?.template ?? "reminder"].subject)
-  const [body, setBody] = useState(templates[initial?.template ?? "reminder"].body)
+  const [subject, setSubject] = useState(all[key]?.subject ?? "")
+  const [body, setBody] = useState(all[key]?.body ?? "")
   const [reviewed, setReviewed] = useState(false)
   const [sent, setSent] = useState("")
+  const [find, setFind] = useState("")
+  const [tName, setTName] = useState("")
+  const [open, setOpen] = useState("")
   const bodyRef = useRef<HTMLTextAreaElement>(null)
-  const recipients = useMemo(() => visits.filter((v) => ids.includes(v.id)), [visits, ids])
+  const rule = data.reminderRule
   const short = data.shortSupply.map(vName).join(", ")
-  const first = recipients[0]
   const fill = (t: string, v: Visit) => fillVisit(t, v, { pharmacy: defaults.pharmacy, vaccineName: vName, short })
-  const days = [...new Set(visits.map((v) => v.date))].slice(0, 14)
-  const pickTemplate = (t: string) => { setTemplate(t); setSubject(templates[t].subject); setBody(templates[t].body); setSent("") }
-  const insert = (f: string) => {
-    const el = bodyRef.current
-    const at = el ? el.selectionStart : body.length
-    setBody(body.slice(0, at) + f + body.slice(at)); setSent("")
+  const recipients = visits.filter((v) => ids.includes(v.id))
+  const first = recipients[0]
+  const matches = find.trim().length > 0 ? visits.filter((v) => v.name.toLowerCase().includes(find.trim().toLowerCase()) && !ids.includes(v.id)).slice(0, 6) : []
+  const pick = (k: string) => { setKey(k); setSubject(all[k].subject); setBody(all[k].body); setSent("") }
+  const insert = (f: string) => { const at = bodyRef.current ? bodyRef.current.selectionStart : body.length; setBody(body.slice(0, at) + f + body.slice(at)); setSent("") }
+  const setRule = (patch: Partial<typeof rule>) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, ...patch } }))
+  const remindedIds = new Set(data.pharmacyMessages.filter((m) => m.kind === all[rule.template]?.label).flatMap((m) => m.visitIds))
+  const upcoming = visits.filter((v) => v.date >= defaults.referenceDate).slice(0, 40).map((v) => ({ v, on: reminderDate(v.date, rule.days) }))
+  const due = upcoming.filter((u) => u.on <= defaults.referenceDate && !remindedIds.has(u.v.id))
+
+  function submit() {
+    send(key, { label: all[key]?.label ?? "Custom message", subject, body }, recipients)
+    setSent(`Recorded for ${recipients.length} ${recipients.length === 1 ? "family" : "families"}. Simulated: nothing was delivered.${key === "noshow" ? " Visits booked in the app were cancelled and their times freed." : ""}`)
+    setReviewed(false); setIds([])
   }
-  function send() {
-    const m = { id: `PM-${data.pharmacyMessages.length + 1}`, date: defaults.referenceDate, kind: templates[template].label, subject, body, visitIds: recipients.map((r) => r.id), appointmentIds: recipients.filter((r) => r.appointmentId).map((r) => r.appointmentId!), filled: Object.fromEntries(recipients.filter((r) => r.appointmentId).map((r) => [r.appointmentId!, { subject: fill(subject, r), body: fill(body, r) }])) }
-    update((d) => {
-      const cancel = template === "noshow"
-      return { ...d, pharmacyMessages: [m, ...d.pharmacyMessages], appointments: cancel ? d.appointments.map((a) => (m.appointmentIds.includes(a.id) && !a.doses.length ? { ...a, cancelled: true } : a)) : d.appointments }
-    })
-    event(`Pharmacy message recorded for ${recipients.length} families (simulated)`, "pharmacy-message")
-    setSent(`Recorded for ${recipients.length} families. Simulated: nothing was delivered.${template === "noshow" ? " Visits booked in the app were cancelled and their times freed." : ""}`)
-    setReviewed(false)
+  function sendDue() {
+    const t = all[rule.template]
+    send(rule.template, t, due.map((u) => u.v))
+    setSent(`Reminders recorded for ${due.length} families. Simulated: nothing was delivered.`)
+  }
+  function saveTemplate() {
+    const id = `custom-${data.customTemplates.length + 1}`
+    update((d) => ({ ...d, customTemplates: [...d.customTemplates, { id, label: tName.trim(), subject, body }] }))
+    setKey(id); setTName("")
   }
   return (
     <>
       <Card>
+        <Heading level={2}>Automatic reminders</Heading>
+        <p className="muted">Each visit gets a reminder this many days before it. Names, dates, times and vaccines fill in from the booking. You still mark who came; set sending to automatic in Settings.</p>
+        <div className="controls">
+          <Select label="Days before the visit" value={String(rule.days)} onChange={(e) => setRule({ days: Number(e.target.value) })}>
+            {[1, 2, 3, 5, 7, 14].map((n) => <option key={n} value={n}>{n} day{n > 1 ? "s" : ""} before</option>)}
+          </Select>
+          <Select label="Reminder message" value={rule.template} onChange={(e) => setRule({ template: e.target.value })}>
+            {Object.entries(all).filter(([k]) => k !== "custom" && k !== "noshow").map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
+          </Select>
+        </div>
+        <details className="peek"><summary>See the message</summary><pre className="preview">{all[rule.template]?.subject}{"\n\n"}{all[rule.template]?.body}</pre></details>
+        <p className="muted"><strong>{due.length}</strong> reminders are due now and {upcoming.length - due.length} more are scheduled. {rule.auto ? "They send automatically." : "They wait for you to send them."}</p>
+        <div className="action-row"><Button disabled={due.length === 0} onClick={sendDue}>Send {due.length} due reminders</Button></div>
+        {upcoming.length > 0 && (
+          <details className="peek"><summary>Scheduled reminders</summary>
+            <div className="table-scroll"><table>
+              <thead><tr><th>Child</th><th>Visit</th><th>Reminder goes</th><th>Status</th><th /></tr></thead>
+              <tbody>{upcoming.slice(0, 12).map(({ v, on }) => (
+                <tr key={v.id}><td>{v.name}</td><td>{dateLabel(v.date)} {v.time}</td><td>{dateLabel(on)}</td><td>{remindedIds.has(v.id) ? "Sent" : on <= defaults.referenceDate ? "Due" : "Scheduled"}</td><td><Button variant="text" onClick={() => { setIds([v.id]); setKey(rule.template); setSubject(all[rule.template].subject); setBody(all[rule.template].body) }}>Edit and send</Button></td></tr>
+              ))}</tbody>
+            </table></div>
+          </details>
+        )}
+      </Card>
+      <Card style={{ marginTop: "var(--space-5)" }}>
         <Heading level={2}>Message families</Heading>
         <p className="muted">Scheduling messages only. Fields fill in for each family. A person reviews every message before it is recorded as sent.</p>
         <div className="controls">
-          <Select label="Template" value={template} onChange={(e) => pickTemplate(e.target.value)}>
-            {Object.entries(templates).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
+          <Select label="Template" value={key} onChange={(e) => pick(e.target.value)}>
+            {Object.entries(all).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
           </Select>
-          <Select label="Add all visits on" value="" onChange={(e) => { if (e.target.value) { setIds([...new Set([...ids, ...visits.filter((v) => v.date === e.target.value).map((v) => v.id)])]); setSent("") } }}>
-            <option value="">Choose a day</option>
-            {days.map((d) => <option key={d} value={d}>{dateLabel(d)}</option>)}
-          </Select>
+          <div className="field">
+            <label htmlFor="pm-find">Add a family</label>
+            <input id="pm-find" value={find} onChange={(e) => setFind(e.target.value)} placeholder="Child's name" />
+          </div>
         </div>
-        <p className="muted"><strong>{recipients.length}</strong> families{recipients.length > 0 && <> · e.g. {recipients.slice(0, 3).map((r) => r.name).join(", ")}{recipients.length > 3 ? ` and ${recipients.length - 3} more` : ""}</>} {ids.length > 0 && <Button variant="text" onClick={() => setIds([])}>Clear</Button>}</p>
+        {matches.length > 0 && <div className="chip-row" role="group" aria-label="Matching families">{matches.map((v) => <button key={v.id} className="filter-chip" onClick={() => { setIds([...ids, v.id]); setFind(""); setSent("") }}>{v.name} · {dateLabel(v.date)}</button>)}</div>}
+        <p className="muted"><strong>{recipients.length}</strong> {recipients.length === 1 ? "family" : "families"}{recipients.length > 0 && <>: {recipients.slice(0, 3).map((r) => r.name).join(", ")}{recipients.length > 3 ? ` and ${recipients.length - 3} more` : ""}</>} {ids.length > 0 && <Button variant="text" onClick={() => setIds([])}>Clear</Button>}</p>
         <div className="compose">
           <div>
             <div className="field"><label htmlFor="pm-sub">Subject</label><input id="pm-sub" value={subject} onChange={(e) => { setSubject(e.target.value); setSent("") }} /></div>
             <div className="field"><label htmlFor="pm-body">Message</label><textarea id="pm-body" ref={bodyRef} value={body} onChange={(e) => { setBody(e.target.value); setSent("") }} /></div>
             <div className="chip-row" role="group" aria-label="Insert a field">
-              {fields.map((f) => <button key={f} type="button" className="filter-chip" onClick={() => insert(f)}>{f}</button>)}
+              {mergeFields.map((f) => <button key={f} type="button" className="filter-chip" onClick={() => insert(f)}>{f}</button>)}
             </div>
             <small className="muted">Short on supply right now: {short || "nothing marked"}. Change this in Settings.</small>
+            <div className="controls" style={{ marginTop: "var(--space-3)" }}>
+              <div className="field"><label htmlFor="pm-tname">Save as my template</label><input id="pm-tname" value={tName} onChange={(e) => setTName(e.target.value)} placeholder="Template name" /></div>
+              <Button variant="secondary" disabled={!tName.trim() || !body.trim()} onClick={saveTemplate}>Save template</Button>
+            </div>
           </div>
-          <div>
-            <div className="eyebrow">PREVIEW{first ? ` FOR ${first.name.toUpperCase()}` : ""}</div>
+          <details className="peek" open={!!first}><summary>Preview{first ? ` for ${first.name}` : ""}</summary>
             <div className="preview">{first ? <><strong>{fill(subject, first)}</strong>{"\n\n"}{fill(body, first)}</> : "Choose who to message to see the preview."}</div>
-          </div>
+          </details>
         </div>
         <Check checked={reviewed} onChange={(e) => setReviewed(e.target.checked)}>I reviewed this message and approve sending it.</Check>
-        <div className="action-row"><Button disabled={!reviewed || recipients.length === 0 || !body.trim()} onClick={send}>Send to {recipients.length} families</Button></div>
+        <div className="action-row"><Button disabled={!reviewed || recipients.length === 0 || !body.trim()} onClick={submit}>Send to {recipients.length} {recipients.length === 1 ? "family" : "families"}</Button></div>
         {sent && <Alert kind="success">{sent}</Alert>}
       </Card>
       <Card style={{ marginTop: "var(--space-5)" }}>
-        <Heading level={2}>Sent</Heading>
+        <Heading level={2}>Sent and replies</Heading>
         {data.pharmacyMessages.length === 0 ? <p className="muted">Nothing sent yet.</p> : (
           <div className="table-scroll"><table>
-            <thead><tr><th>ID</th><th>Date</th><th>Type</th><th>Families</th><th>Subject</th></tr></thead>
-            <tbody>{data.pharmacyMessages.map((m) => <tr key={m.id}><td>{m.id}</td><td>{dateLabel(m.date)}</td><td>{m.kind}</td><td>{m.visitIds.length}</td><td>{m.subject}</td></tr>)}</tbody>
+            <thead><tr><th>Date</th><th>Type</th><th>Subject</th><th>Families</th><th>Replies</th></tr></thead>
+            <tbody>{data.pharmacyMessages.map((m) => {
+              const replies = m.visitIds.filter((id) => fakeReply(id).state === "Replied").length
+              return (
+                <Fragment key={m.id}>
+                  <tr><td>{dateLabel(m.date)}</td><td>{m.kind}{m.auto ? " (auto)" : ""}</td><td>{m.subject}</td><td>{m.visitIds.length}</td><td><button className="link-button" aria-expanded={open === m.id} onClick={() => setOpen(open === m.id ? "" : m.id)}>{replies} of {m.visitIds.length}</button></td></tr>
+                  {open === m.id && (
+                    <tr><td colSpan={5}>
+                      <ul className="reply-list">{m.visitIds.map((id) => {
+                        const v = visits.find((x) => x.id === id), r = fakeReply(id)
+                        return <li key={id}><strong>{v?.name ?? id}</strong> <span className="muted">{r.state}</span>{r.text && <q>{r.text}</q>}</li>
+                      })}</ul>
+                      <a href={GMAIL_SENT} target="_blank" rel="noreferrer">Open in Gmail</a> <span className="muted">Demo link. A real build opens the message in the mailbox it was sent from.</span>
+                    </td></tr>
+                  )}
+                </Fragment>
+              )
+            })}</tbody>
           </table></div>
         )}
       </Card>
