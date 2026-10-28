@@ -12,7 +12,7 @@ export default function Messages() {
   const { data, update, event } = useDemo()
   const list = confirmed(data.appointments)
   return (
-    <main className="screen">
+    <main className="parent-main parent-messages-screen">
       <Heading level={1}>Messages</Heading>
       <p className="muted">Visit confirmations from your pharmacy. Marking one received tells the pharmacy you saw it.</p>
       <Card>
