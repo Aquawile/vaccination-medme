@@ -2,7 +2,7 @@ import { useMemo, useState } from "react"
 import { Alert, Badge, Button, Card, Field } from "../../components/ui"
 import { weekOf } from "../../domain/calendar"
 import { dateLabel } from "../../demo/journey"
-import { dayStats, overlapping, statusOf, YOU, type Visit } from "../../domain/pharmacyVisits"
+import { overlapping, statusOf, YOU, type Visit } from "../../domain/pharmacyVisits"
 import { builtInTemplates } from "../../domain/pharmacyTemplates"
 import { useDemo } from "../../state"
 import { useSendMessage } from "./useSendMessage"
@@ -25,11 +25,7 @@ export default function DayList({ visits: allVisits, day, showAll, onShowAll, on
   const [page, setPage] = useState(0)
   const done = useMemo(() => new Set(data.appointments.filter((a) => a.doses.length >= a.vaccines.length && a.doses.length > 0).map((a) => a.id)), [data.appointments])
   const periodVisits = visits.filter(within)
-  const stats = dayStats(periodVisits, data.visitMarks, day, done)
-  stats.total = periodVisits.length
-  stats.checkedIn = periodVisits.filter((v) => statusOf(v,data.visitMarks,done.has(v.id)) === "checked-in").length
-  stats.completed = periodVisits.filter((v) => statusOf(v,data.visitMarks,done.has(v.id)) === "completed").length
-  stats.noShow = periodVisits.filter((v) => statusOf(v,data.visitMarks,done.has(v.id)) === "no-show").length
+  const stats = { total: periodVisits.length, checkedIn: periodVisits.filter((v) => statusOf(v,data.visitMarks,done.has(v.id)) === "checked-in").length, completed: periodVisits.filter((v) => statusOf(v,data.visitMarks,done.has(v.id)) === "completed").length, noShow: periodVisits.filter((v) => statusOf(v,data.visitMarks,done.has(v.id)) === "no-show").length }
   const list = visits.filter((v) => within(v) && `${v.name} ${v.grade}`.toLowerCase().includes(q.trim().toLowerCase()))
   const lastPage = Math.max(0, Math.ceil(list.length / PAGE) - 1)
   const visiblePage = Math.min(page, lastPage)
@@ -43,10 +39,10 @@ export default function DayList({ visits: allVisits, day, showAll, onShowAll, on
   const noShows = visits.filter((v) => within(v) && statusOf(v, data.visitMarks, done.has(v.id)) === "no-show").map((v) => v.id)
   return (
     <>
-      {!showAll && hidden > 0 && <Alert>{hidden} other appointment{hidden > 1 ? "s" : ""} at this location today belong{hidden > 1 ? "" : "s"} to other pharmacists, so they are not listed here. <Button variant="text" onClick={() => onShowAll(true)}>Show everyone</Button></Alert>}
+      {!showAll && hidden > 0 && <Alert>{hidden} other appointment{hidden > 1 ? "s" : ""} during this period belong{hidden > 1 ? "" : "s"} to other pharmacists, so they are not listed here. <Button variant="text" onClick={() => onShowAll(true)}>Show everyone</Button></Alert>}
       <div className="pharmacy-period-tools"><strong>{period === "day" ? `Appointments · ${dateLabel(day)}` : period === "week" ? `Week of ${dateLabel(start)}` : `Month of ${dateLabel(start)}`}</strong><div className="seg" role="group" aria-label="Workflow period">{(["day","week","month"] as const).map((p) => <button key={p} className={period===p?"active":""} aria-pressed={period===p} onClick={() => {setPeriod(p);setPage(0)}}>{p==="day"?"Day":p==="week"?"Week":"Month"}</button>)}</div></div>
       <div className="stat-row">
-        <div className="stat"><strong>{stats.total}</strong><span>Booked</span></div>
+        <div className="stat"><strong>{stats.total}</strong><span>Appointments</span></div>
         <div className="stat"><strong>{stats.checkedIn}</strong><span>Checked in</span></div>
         <div className="stat"><strong>{stats.completed}</strong><span>Completed</span></div>
         <div className="stat"><strong>{stats.noShow}</strong><span>No-show</span></div>
@@ -54,7 +50,7 @@ export default function DayList({ visits: allVisits, day, showAll, onShowAll, on
       <Card className="cal-card">
         <div className="cal-bar">
           <div className="cal-nav">
-            <h2 className="cal-title">{dateLabel(day)}</h2>
+            <h2 className="cal-title">{period === "day" ? dateLabel(day) : period === "week" ? "Selected week" : "Selected month"}</h2>
             <span className="muted">{list.length} visits</span>
           </div>
           <div className="cal-tools">
