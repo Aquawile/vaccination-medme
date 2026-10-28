@@ -914,3 +914,36 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
  .workspace:has(> .parent-nav) .parent-records-screen .history-row{grid-template-columns:24px minmax(0,1fr)}
  .workspace:has(> .parent-nav) .parent-records-screen .history-row .badge{grid-column:2;justify-self:start}
 }
+
+/* Parent rail matches the pharmacist's 198px grid rail with no separate scroller. */
+@media (min-width:1101px) {
+ .workspace:has(> .parent-nav){grid-template-columns:198px minmax(0,1fr);align-items:stretch}
+ .workspace:has(> .parent-nav) > .parent-nav{
+   grid-column:1;grid-row:2 / 4;align-self:stretch;
+   position:static !important;inset:auto !important;
+   width:198px;min-width:198px;height:auto;max-height:none;
+   padding:16px 12px;gap:5px;overflow:visible;
+   border-right:0;background:var(--deep-teal);
+ }
+ .workspace:has(> .parent-nav) > .parent-nav .button{
+   min-height:42px;padding:10px 13px;font-size:13px;
+   border-radius:7px;width:100%;flex-shrink:0;
+ }
+ .workspace:has(> .parent-nav) > .parent-main,
+ .workspace:has(> .parent-nav) > .screen{
+   grid-column:2;grid-row:2;
+   box-sizing:border-box;min-width:0;max-width:none;width:100%;
+   margin:0;padding:24px clamp(20px,2.5vw,40px) 40px;
+ }
+ .workspace:has(> .parent-nav) > .workspace-footer{grid-column:2;grid-row:3}
+}
+.workspace:has(> .parent-nav) .parent-messages-screen{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.workspace:has(> .parent-nav) .parent-messages-screen > .card{min-width:0;max-width:100%;margin-bottom:16px}
+.workspace:has(> .parent-nav) .parent-messages-screen .section-heading{gap:12px;flex-wrap:wrap}
+.workspace:has(> .parent-nav) .parent-messages-screen .preview{white-space:pre-wrap;overflow-wrap:anywhere}
+.workspace:has(> .parent-nav) .parent-record-help{display:grid;gap:10px;margin:18px 0}
+.workspace:has(> .parent-nav) .parent-record-help p{margin:0;line-height:1.5;font-size:13px}
+.workspace:has(> .parent-nav) .parent-record-help a{color:#06485a;text-decoration:underline;overflow-wrap:anywhere}
+@media(max-width:1100px){
+ .workspace:has(> .parent-nav) > .parent-messages-screen{box-sizing:border-box;min-width:0;max-width:100%;width:100%;padding:22px 20px;margin:0}
+}
