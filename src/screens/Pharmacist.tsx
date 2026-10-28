@@ -572,16 +572,17 @@ export default function Pharmacist() {
                   <Alert>
                     <strong>Booked in the app</strong>
                     <span className="action-row" style={{ margin: "var(--space-2) 0 0" }}>
-                      {inApp.map((v) => <Button key={v.id} variant="secondary" onClick={() => { setDay(v.date); setOpenId(v.appointmentId!) }}>{v.name}, {dateLabel(v.date)} {v.time}</Button>)}
+                      {inApp.slice(0, 4).map((v) => <Button key={v.id} variant="secondary" onClick={() => { setDay(v.date); setOpenId(v.appointmentId!) }}>{v.name}, {dateLabel(v.date)} {v.time}</Button>)}
+                      {inApp.length > 4 && <span className="muted">+{inApp.length - 4} more in the appointment list below</span>}
                     </span>
                   </Alert>
                 )}
                 <div className="pharmacy-day-workspace">
-                  <div className="pharmacy-day-intro"><div><Heading level={2}>Today's workflow</Heading><p className="muted">Review visits, check patients in and record completed doses.</p></div><Badge>Demo schedule</Badge></div>
+                  <div className="pharmacy-day-intro"><div><Heading level={2}>Appointments & check-in</Heading><p className="muted">Review visits, check patients in and record completed doses.</p></div><Badge>Demo schedule</Badge></div>
                   <DayList visits={visits} day={day} showAll={showAll} onShowAll={setShowAll} onOpen={setOpenId} onNotify={notify} />
                 </div>
                 <details className="pharmacy-calendar-details" open>
-                  <summary>Open calendar · change day or view colleagues</summary>
+                  <summary>Calendar · choose dates and view other pharmacists</summary>
                   <PharmacyCalendar visits={visits} day={day} onDay={setDay} onPick={setOpenId} showAll={showAll} onShowAll={setShowAll} />
                 </details>
               </>

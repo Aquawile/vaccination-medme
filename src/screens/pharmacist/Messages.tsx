@@ -21,7 +21,9 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
   const [body, setBody] = useState(all[key]?.body ?? "")
   const [reviewed, setReviewed] = useState(false)
   const [sent, setSent] = useState("")
-  const [find, setFind] = useState("")
+  const [mode, setMode] = useState<"group" | "single">("group")
+  const [singleId, setSingleId] = useState("")
+  const [preview, setPreview] = useState(false)
   const [tName, setTName] = useState("")
   const [open, setOpen] = useState("")
   const bodyRef = useRef<HTMLTextAreaElement>(null)
@@ -29,74 +31,51 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
   const short = data.shortSupply.map(vName).join(", ")
   const fill = (t: string, v: Visit) => fillVisit(t, v, { pharmacy: defaults.pharmacy, vaccineName: vName, short })
   const recipients = visits.filter((v) => ids.includes(v.id))
-  const first = recipients[0]
-  const matches = find.trim().length > 0 ? visits.filter((v) => v.name.toLowerCase().includes(find.trim().toLowerCase()) && !ids.includes(v.id)).slice(0, 6) : []
+  const selected = visits.find((v) => v.id === singleId)
+  const sendingTo = mode === "single" ? (selected ? [selected] : []) : recipients
   const pick = (k: string) => { setKey(k); setSubject(all[k].subject); setBody(all[k].body); setSent("") }
   const insert = (f: string) => { const at = bodyRef.current ? bodyRef.current.selectionStart : body.length; setBody(body.slice(0, at) + f + body.slice(at)); setSent("") }
-  const remindedIds = new Set(data.pharmacyMessages.filter((m) => m.kind === all[rule.template]?.label).flatMap((m) => m.visitIds))
-  const upcoming = visits.filter((v) => v.date >= defaults.referenceDate).slice(0, 40).map((v) => ({ v, on: reminderDate(v.date, rule.days) }))
-  const due = upcoming.filter((u) => u.on <= defaults.referenceDate && !remindedIds.has(u.v.id))
+  const upcoming = visits.filter((v) => v.date >= defaults.referenceDate).map((v) => ({ v, on: reminderDate(v.date, rule.days) }))
 
   function submit() {
-    send(key, { label: all[key]?.label ?? "Custom message", subject, body }, recipients)
-    setSent(`Recorded for ${recipients.length} ${recipients.length === 1 ? "family" : "families"}. Simulated: nothing was delivered.${key === "noshow" ? " Visits booked in the app were cancelled and their times freed." : ""}`)
-    setReviewed(false); setIds([])
-  }
-  function sendDue() {
-    const t = all[rule.template]
-    send(rule.template, t, due.map((u) => u.v))
-    setSent(`Reminders recorded for ${due.length} families. Simulated: nothing was delivered.`)
+    send(key, { label: all[key]?.label ?? "Custom message", subject, body }, sendingTo)
+    setSent(`Recorded for ${sendingTo.length} ${sendingTo.length === 1 ? "family" : "families"}. Simulated: nothing was delivered.${key === "noshow" ? " Visits booked in the app were cancelled and their times freed." : ""}`)
+    setReviewed(false); setIds([]); setSingleId("")
   }
   function saveTemplate() {
-    const id = `custom-${data.customTemplates.length + 1}`
+    const id = `custom-${Date.now()}`
     update((d) => ({ ...d, customTemplates: [...d.customTemplates, { id, label: tName.trim(), subject, body }] }))
-    setKey(id); setTName("")
+    setKey(id); setTName(""); setSent("Template saved locally. No message was sent.")
   }
   return (
     <>
       <Card className="pharmacy-message-status">
-        <div className="section-heading"><div><Heading level={2}>Reminder queue</Heading><p className="muted">Automation is configured once in Settings, not per appointment.</p></div><Button variant="secondary" onClick={() => onSettings()}>Open settings</Button></div>
-        <div className="pharmacy-reminder-metrics"><div><strong>{due.length}</strong><span>Due</span></div><div><strong>{upcoming.length - due.length}</strong><span>Upcoming</span></div><div><strong>{rule.auto ? "On" : "Off"}</strong><span>Automatic sending</span></div></div>
-        <p className="muted">Rule: {rule.days} day{rule.days === 1 ? "" : "s"} before a visit · {all[rule.template]?.label ?? "Saved template"}. Demo only: no email or text is delivered.</p>
-        {!rule.auto && <div className="action-row"><Button disabled={due.length === 0} onClick={sendDue}>Record {due.length} due reminders</Button></div>}
-        <details className="peek"><summary>Review scheduled reminders</summary>
-          <div className="table-scroll"><table><thead><tr><th>Child</th><th>Visit</th><th>Reminder</th><th>Status</th></tr></thead><tbody>{upcoming.slice(0, 20).map(({ v, on }) => <tr key={v.id}><td>{v.name}</td><td>{dateLabel(v.date)} {v.time}</td><td>{dateLabel(on)}</td><td>{remindedIds.has(v.id) ? "Recorded" : on <= defaults.referenceDate ? "Due" : "Scheduled"}</td></tr>)}</tbody></table></div>
-          {upcoming.length > 20 && <p className="muted">Showing 20 of {upcoming.length}. Use the calendar to review other dates.</p>}
-        </details>
+        <div className="section-heading"><div><Heading level={2}>Scheduled communications</Heading><p className="muted">Review the automation rules saved in Settings and the dates they would run. Demo only: no email is delivered.</p></div><Button variant="secondary" onClick={onSettings}>Configure automatic messages</Button></div>
+        {([...data.automationRules, ...(rule.auto ? [{ id: "default-reminder", template: rule.template, days: rule.days, enabled: true }] : [])].filter((r) => r.enabled)).length === 0
+          ? <p className="muted">No automatic messages are enabled.</p>
+          : [...data.automationRules, ...(rule.auto ? [{ id: "default-reminder", template: rule.template, days: rule.days, enabled: true }] : [])].filter((r)=>r.enabled).map((r)=><div className="pharmacy-rule-line" key={r.id}><strong>{all[r.template]?.label ?? "Saved template"}</strong><span>{("cadence" in r && r.cadence === "repeat") ? "Every "+r.days+" days (preview only)" : r.days+" days before visits"}</span><span>Enabled</span></div>)}
+        <details className="peek"><summary>Illustrative reminder dates</summary><div className="table-scroll"><table><thead><tr><th>Family</th><th>Visit</th><th>Reminder scheduled</th></tr></thead><tbody>{upcoming.slice(0,20).map(({v,on})=><tr key={v.id}><td>{v.name}</td><td>{dateLabel(v.date)} {v.time}</td><td>{dateLabel(on)}</td></tr>)}</tbody></table></div></details>
       </Card>
-      <Card style={{ marginTop: "var(--space-5)" }}>
-        <Heading level={2}>Message families</Heading>
-        <p className="muted">Scheduling messages only. Fields fill in for each family. A person reviews every message before it is recorded as sent.</p>
-        <div className="controls">
-          <Select label="Template" value={key} onChange={(e) => pick(e.target.value)}>
-            {Object.entries(all).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
-          </Select>
-          <div className="field">
-            <label htmlFor="pm-find">Add a family</label>
-            <input id="pm-find" value={find} onChange={(e) => setFind(e.target.value)} placeholder="Child's name" />
-          </div>
+      <Card className="pharmacy-message-composer" style={{ marginTop: "var(--space-5)" }}>
+        <Heading level={2}>Messages and templates</Heading>
+        <p className="muted">Saving a template never sends a message. Group recipients come from appointment actions; use One family to pick a person.</p>
+        <div className="seg pharmacy-message-tabs" role="group" aria-label="Compose mode">
+          <button className={mode === "group" ? "active" : ""} onClick={() => {setMode("group");setReviewed(false)}} aria-pressed={mode === "group"}>Group or template</button>
+          <button className={mode === "single" ? "active" : ""} onClick={() => {setMode("single");setReviewed(false)}} aria-pressed={mode === "single"}>One family</button>
         </div>
-        {matches.length > 0 && <div className="chip-row" role="group" aria-label="Matching families">{matches.map((v) => <button key={v.id} className="filter-chip" onClick={() => { setIds([...ids, v.id]); setFind(""); setSent("") }}>{v.name} · {dateLabel(v.date)}</button>)}</div>}
-        <p className="muted"><strong>{recipients.length}</strong> {recipients.length === 1 ? "family" : "families"}{recipients.length > 0 && <>: {recipients.slice(0, 3).map((r) => r.name).join(", ")}{recipients.length > 3 ? ` and ${recipients.length - 3} more` : ""}</>} {ids.length > 0 && <Button variant="text" onClick={() => setIds([])}>Clear</Button>}</p>
-        <div className="compose">
-          <div>
-            <div className="field"><label htmlFor="pm-sub">Subject</label><input id="pm-sub" value={subject} onChange={(e) => { setSubject(e.target.value); setSent("") }} /></div>
-            <div className="field"><label htmlFor="pm-body">Message</label><textarea id="pm-body" ref={bodyRef} value={body} onChange={(e) => { setBody(e.target.value); setSent("") }} /></div>
-            <div className="chip-row" role="group" aria-label="Insert a field">
-              {mergeFields.map((f) => <button key={f} type="button" className="filter-chip" onClick={() => insert(f)}>{f}</button>)}
-            </div>
-            <small className="muted">Short on supply right now: {short || "nothing marked"}. Change this in Settings.</small>
-            <div className="controls" style={{ marginTop: "var(--space-3)" }}>
-              <div className="field"><label htmlFor="pm-tname">Save as my template</label><input id="pm-tname" value={tName} onChange={(e) => setTName(e.target.value)} placeholder="Template name" /></div>
-              <Button variant="secondary" disabled={!tName.trim() || !body.trim()} onClick={saveTemplate}>Save template</Button>
-            </div>
-          </div>
-          <details className="peek" open={!!first}><summary>Preview{first ? ` for ${first.name}` : ""}</summary>
-            <div className="preview">{first ? <><strong>{fill(subject, first)}</strong>{"\n\n"}{fill(body, first)}</> : "Choose who to message to see the preview."}</div>
-          </details>
+        <div className="pharmacy-composer-meta">
+          <Select label="Template" value={key} onChange={(e) => pick(e.target.value)}>{Object.entries(all).map(([k,t])=><option key={k} value={k}>{t.label}</option>)}</Select>
+          {mode === "single" ? <Select label="Recipient" value={singleId} onChange={(e)=>setSingleId(e.target.value)}><option value="">Choose one family</option>{visits.map((v)=><option key={v.id} value={v.id}>{v.name} · {dateLabel(v.date)} {v.time}</option>)}</Select> :
+            <div className="pharmacy-recipient-summary"><strong>{recipients.length} families selected</strong><p className="muted">{recipients.length ? recipients.slice(0,5).map((v)=>v.name).join(", ") : "Open a group from the appointment list to send to those families."}</p></div>}
         </div>
-        <Check checked={reviewed} onChange={(e) => setReviewed(e.target.checked)}>I reviewed this message and approve sending it.</Check>
-        <div className="action-row"><Button disabled={!reviewed || recipients.length === 0 || !body.trim()} onClick={submit}>Send to {recipients.length} {recipients.length === 1 ? "family" : "families"}</Button></div>
+        <div className="pharmacy-compose-toggle"><strong>{preview ? "Recipient preview" : "Edit message"}</strong><Button variant="secondary" onClick={()=>setPreview(!preview)}>{preview ? "Edit message" : "Preview for recipient"}</Button></div>
+        {preview ? <div className="pharmacy-inline-preview">{sendingTo.length ? <><strong>{fill(subject,sendingTo[0])}</strong><p>{fill(body,sendingTo[0])}</p><small className="muted">Showing {sendingTo[0].name}</small></> : <p className="muted">Choose a recipient to preview personalized content.</p>}</div> :
+          <div className="pharmacy-full-compose"><div className="field"><label htmlFor="pm-sub">Subject</label><input id="pm-sub" value={subject} onChange={(e)=>setSubject(e.target.value)} /></div><div className="field"><label htmlFor="pm-body">Message</label><textarea id="pm-body" ref={bodyRef} rows={9} value={body} onChange={(e)=>setBody(e.target.value)} /></div><div className="chip-row">{mergeFields.map((x)=><button key={x} type="button" className="filter-chip" onClick={()=>insert(x)}>{x}</button>)}</div></div>}
+        <div className="pharmacy-template-save"><div className="field"><label htmlFor="pm-tname">New template name</label><input id="pm-tname" value={tName} onChange={(e)=>setTName(e.target.value)} placeholder="Name this template" /></div><Button variant="secondary" disabled={!tName.trim() || !subject.trim() || !body.trim()} onClick={saveTemplate}>Save template only</Button></div>
+        <div className="pharmacy-send-section"><p className="muted">To: {sendingTo.length ? sendingTo.map((v)=>v.name).slice(0,6).join(", ") : "No families selected"}. Timing: immediate simulated record; automatic schedules are in Settings.</p>
+          <Check checked={reviewed} onChange={(e)=>setReviewed(e.target.checked)}>I reviewed the recipients and message.</Check>
+          <div className="action-row"><Button disabled={!reviewed || sendingTo.length === 0 || !body.trim() || !subject.trim()} onClick={submit}>Record message for {sendingTo.length} families</Button></div>
+        </div>
         {sent && <Alert kind="success">{sent}</Alert>}
       </Card>
       <Card style={{ marginTop: "var(--space-5)" }}>
