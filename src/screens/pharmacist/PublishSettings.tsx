@@ -97,7 +97,6 @@ export default function PublishSettings() {
             <Button variant="secondary" onClick={()=>{setEditingRule(r.id);setAutoTemplate(r.template);setAutoDays(String(r.days));setAutoCadence(r.cadence)}}>Edit</Button>
             <Button variant="text" onClick={()=>update((d)=>({...d,automationRules:d.automationRules.filter((x)=>x.id!==r.id)}))}>Remove</Button>
           </div>)}
-      </Card>
       {editingRule && <Button variant="text" onClick={()=>setEditingRule("")}>Cancel editing</Button>}
     </Card>
     <Card className="pharmacy-settings-section">
