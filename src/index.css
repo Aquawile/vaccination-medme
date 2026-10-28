@@ -636,3 +636,83 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
  .pharmacy-workspace .visit-table { table-layout: auto; }
  .pharmacy-workspace .visit-table tr:hover td { background: var(--lavender-soft); }
 }
+
+/* W-132 — reference-derived healthcare operations visual system.
+   Strictly scoped to parent and pharmacy workspaces; school admin unchanged.
+   Screenshot reference: teal #06485A, lime #C5D42A, white tables, soft status fills. */
+@media (min-width: 761px) {
+  .pharmacy-workspace { background: #f5f7f8; }
+  .pharmacy-workspace > .admin-sidebar {
+    background: linear-gradient(165deg,#07546b 0%,#034459 82%);
+    box-shadow: 2px 0 12px rgba(3,56,74,.08);
+  }
+  .pharmacy-workspace > .admin-sidebar .sidebar-item {
+    border-radius: 5px;
+    font-size: 13px;
+    letter-spacing: -.01em;
+    transition: background .16s ease;
+  }
+  .pharmacy-workspace > .admin-sidebar .sidebar-item[aria-current="page"] {
+    background: rgba(255,255,255,.16) !important;
+    box-shadow: inset 3px 0 #C5D42A;
+    font-weight: 700;
+  }
+  .pharmacy-workspace > .admin-main { max-width: none; }
+  .pharmacy-workspace .page-heading h1 { color: #102f41; letter-spacing: -.035em; }
+  .pharmacy-workspace .cal-card, .pharmacy-workspace .today-body,
+  .pharmacy-workspace .pharmacy-message-status { background: #fff; }
+  .pharmacy-workspace .pharmacy-planner { border: 1px solid #dce4e7; box-shadow: 0 1px 5px rgba(15,52,65,.045); }
+  .pharmacy-workspace .pharmacy-planner .cal-bar {
+    padding: 16px 20px;
+    gap: 12px;
+    background: #fff;
+    border-bottom: 1px solid #dce4e7;
+  }
+  .pharmacy-workspace .pharmacy-planner .cal-title { color: #102f41; font-size: 17px; font-weight: 700; }
+  .pharmacy-workspace .pharmacy-planner .cal-nav .button { border-color: #d7e0e5; background: #fff; color: #12394A; }
+  .pharmacy-workspace .pharmacy-planner .seg { border-color: #d5e0e3; background: #f3f7f7; padding: 3px; gap: 3px; border-radius: 8px; }
+  .pharmacy-workspace .pharmacy-planner .seg button { border: 0; border-radius: 5px; background: transparent; text-transform: capitalize; }
+  .pharmacy-workspace .pharmacy-planner .seg button.active { background: #06485A; color: #fff; box-shadow: 0 1px 3px #06485a24; }
+  .pharmacy-workspace .pharmacy-planner .cal-head { background: #f0f5f6; padding: 10px 5px; color: #375767; font-size: 11px; text-transform: uppercase; letter-spacing: .065em; }
+  .pharmacy-workspace .pharmacy-planner .cal-day { border-color: #e0e8ea; min-height: 100px; padding: 8px; cursor: pointer; }
+  .pharmacy-workspace .pharmacy-planner .cal-day.tall { min-height: 100px; }
+  .pharmacy-workspace .pharmacy-planner .cal-day:hover, .pharmacy-workspace .pharmacy-planner .cal-day.selected { background: #edf5f6; }
+  .pharmacy-workspace .pharmacy-planner .cal-day.selected { box-shadow: inset 0 0 0 2px #06485A; }
+  .pharmacy-workspace .pharmacy-planner .cal-num { width: 27px; height: 27px; font-size: 12px; font-weight: 700; color: #18394b; }
+  .pharmacy-workspace .pharmacy-planner .cal-day.today .cal-num { background: #C5D42A; color: #103d4b; }
+  .pharmacy-workspace .pharmacy-planner .ev { border-radius: 4px; padding: 4px 6px; font-size: 11px; font-weight: 600; }
+  .pharmacy-workspace .pharmacy-planner .ev.mine { background: #07546b; color: #fff; border-left: 3px solid #C5D42A; }
+  .pharmacy-workspace .pharmacy-planner .ev.other { background: #eaf1f3; color: #264b5c; box-shadow: inset 0 0 0 1px #dce5e8; border-left: 3px solid #aec7d1; }
+  .pharmacy-workspace .pharmacy-planner .ev.checked-in { background: #e6f5df; color: #206b40; border-left-color: #389d60; }
+  .pharmacy-workspace .pharmacy-planner .ev.no-show { background: #fff1ef; color: #a33832; border-left-color: #e26c65; border-style: solid; }
+  .pharmacy-workspace .pharmacy-planner .ev.completed { background: #ecf4e7; color: #316c3c; opacity: .8; }
+  .pharmacy-workspace .pharmacy-planner .tg-head button { background: #f2f6f7; padding: 12px 8px; }
+  .pharmacy-workspace .pharmacy-planner .tg-head button.selected { background: #e7f3f4; box-shadow: inset 0 -3px #C5D42A; }
+  .pharmacy-workspace .pharmacy-planner .tg-head button.today strong { background: #C5D42A; color: #103d4b; }
+  .pharmacy-workspace .pharmacy-planner .tg-col { background: repeating-linear-gradient(to bottom,#fff 0,#fff 55px,#eef2f4 55px,#eef2f4 56px); }
+  .pharmacy-workspace .pharmacy-planner .tg-line { border-color: #edf1f3; }
+  .pharmacy-workspace .pharmacy-planner .cal-legend { background: #f8fafb; color: #58707d; }
+  .pharmacy-workspace .pharmacy-calendar-details { border: none; background: transparent; }
+  .pharmacy-workspace .pharmacy-calendar-details > summary {
+    background: #eaf2f3; border: 1px solid #dce6e8; color: #06485A;
+    border-radius: 5px; padding: 11px 15px;
+  }
+  .pharmacy-workspace .pharmacy-calendar-details[open] > summary { margin-bottom: 12px; }
+  .pharmacy-workspace .visit-table thead { background: #eff4f5; }
+  .pharmacy-workspace .visit-table th { color: #365363; font-size: 11px; font-weight: 700; }
+  .pharmacy-workspace .visit-table td { border-bottom: 1px solid #e5ecee; }
+  .pharmacy-workspace .visit-table tbody tr:hover td { background: #eff6f5; }
+  .pharmacy-workspace .stat-row .stat { border-top: 3px solid #C5D42A; }
+  .pharmacy-workspace .stat-row .stat strong { color: #10384a; font-variant-numeric: tabular-nums; }
+  .pharmacy-workspace .pharmacy-day-intro h2 { color: #12394A; }
+  .pharmacy-workspace .pharmacy-reminder-metrics > div { border-left: 3px solid #C5D42A; }
+  .workspace:has(.parent-nav) .family-overview .card { border: 1px solid #dce5e8; box-shadow: 0 1px 5px #1438460b; background: #fff; }
+  .workspace:has(.parent-nav) .family-records .family-status-row { border-color: #e2e9eb; }
+  .workspace:has(.parent-nav) .family-next-step { border-top: 3px solid #C5D42A; }
+  .workspace:has(.parent-nav) .family-appointment-summary { border-left: 3px solid #C5D42A; }
+}
+@media (max-width: 760px) {
+  .pharmacy-workspace .pharmacy-planner .cal-bar { flex-wrap: wrap; }
+  .pharmacy-workspace .pharmacy-planner .cal-grid { min-width: 620px; }
+  .pharmacy-workspace .pharmacy-planner .cal-body { overflow-x: auto; }
+}
