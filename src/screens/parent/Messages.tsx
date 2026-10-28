@@ -21,6 +21,12 @@ export default function Messages() {
         <Check checked={data.contactPrefs.sms} onChange={(e) => update((d) => ({ ...d, contactPrefs: { ...d.contactPrefs, sms: e.target.checked } }))}>Text messages</Check>
         <Check checked={data.contactPrefs.email} onChange={(e) => update((d) => ({ ...d, contactPrefs: { ...d.contactPrefs, email: e.target.checked } }))}>Email</Check>
       </Card>
+      {data.pharmacyMessages.flatMap((m) => Object.entries(m.filled).filter(([id]) => data.appointments.some((a) => a.id === id)).map(([id, f]) => (
+        <Card key={`${m.id}-${id}`}>
+          <div className="section-heading"><Heading level={2}>{f.subject}</Heading><Badge>From your pharmacy</Badge></div>
+          <p className="preview">{f.body}</p>
+        </Card>
+      )))}
       {data.reminders.length > 0 && (
         <Card>
           <Heading level={2}>Reminders you set</Heading>

@@ -1,10 +1,15 @@
 import { useRef, useState, type FormEvent } from "react"
+import Calendar from "./admin/Calendar"
+import Today from "./pharmacist/Today"
+import PharmacyMessages from "./pharmacist/Messages"
+import { usePharmacyVisits } from "./pharmacist/usePharmacyVisits"
 import PublishSettings from "./pharmacist/PublishSettings"
 import OfficialSource from "../components/OfficialSource"
 import entrySources from "../data/entrySources.json"
 import {
   Alert,
   Badge,
+  Tabs,
   Button,
   Card,
   Check,
@@ -27,12 +32,9 @@ import {
 import { saveDose, simulatedRequest } from "../demo/services"
 import { exportDoses } from "../demo/documents"
 import { useDemo } from "../state"
-export default function Pharmacist() {
+import { defaults } from "../demo/config"
+function Visits({ selected, setSelected }: { selected: string; setSelected: (id: string) => void }) {
   const { data, update, event } = useDemo()
-  const [selected, setSelected] = useState(
-    data.appointments.find((a) => !a.seeded && !a.cancelled)?.id || "DEMO-001",
-  )
-  const [panel, setPanel] = useState<"visits" | "settings">("visits")
   const [filter, setFilter] = useState("all")
   const [query, setQuery] = useState("")
   const appointments = data.appointments
@@ -45,20 +47,7 @@ export default function Pharmacist() {
     .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))
   const appointment = data.appointments.find((a) => a.id === selected)
   return (
-    <main className="staff-main">
-      <div className="page-heading">
-        <div className="eyebrow">LOCAL DEMO · CLINICIAN WORKSPACE</div>
-        <Heading>Your appointments</Heading>
-        <p>
-          Booked visits and seeded examples. Review first, then record each
-          administered dose once.
-        </p>
-      </div>
-      <div className="seg" role="group" aria-label="Pharmacist workspace" style={{ marginBottom: "var(--space-4)" }}>
-        <button className={panel === "visits" ? "active" : ""} aria-pressed={panel === "visits"} onClick={() => setPanel("visits")}>Visits</button>
-        <button className={panel === "settings" ? "active" : ""} aria-pressed={panel === "settings"} onClick={() => setPanel("settings")}>Pharmacy settings</button>
-      </div>
-      {panel === "settings" ? <PublishSettings /> : (
+    <div className="staff-main" style={{ padding: 0 }}>
       <div className="schedule-layout">
         <Card className="schedule">
           <div className="section-heading">
@@ -130,8 +119,7 @@ export default function Pharmacist() {
           </Card>
         )}
       </div>
-      )}
-    </main>
+    </div>
   )
 }
 function AppointmentDetails({ appointment: a }: { appointment: Appointment }) {
@@ -618,6 +606,54 @@ function AppointmentDetails({ appointment: a }: { appointment: Appointment }) {
           </div>
         </form>
       </dialog>
+    </div>
+  )
+}
+
+const pharmacyTabs = [
+  { id: "today", label: "Today" },
+  { id: "calendar", label: "Calendar" },
+  { id: "visits", label: "Visits" },
+  { id: "messages", label: "Messages" },
+  { id: "settings", label: "Settings" },
+]
+const pharmacyIcons: Record<string, string> = { today: "grid", calendar: "calendar", visits: "user", messages: "document", settings: "lock" }
+
+export default function Pharmacist() {
+  const { data } = useDemo()
+  const [tab, setTab] = useState("today")
+  const [selected, setSelected] = useState(data.appointments.find((a) => !a.seeded && !a.cancelled)?.id || "DEMO-001")
+  const [compose, setCompose] = useState<{ template: string; ids: string[] } | null>(null)
+  const visits = usePharmacyVisits()
+  const openVisit = (id: string) => { setSelected(id); setTab("visits") }
+  const notify = (template: string, ids: string[]) => { setCompose({ template, ids }); setTab("messages") }
+  return (
+    <div className="admin-layout">
+      <aside className="admin-sidebar">
+        <div className="eyebrow">PHARMACY</div>
+        {pharmacyTabs.map((t) => (
+          <button key={t.id} className="sidebar-item" style={{ border: 0, textAlign: "left", background: tab === t.id ? undefined : "transparent" }} aria-current={tab === t.id ? "page" : undefined} onClick={() => setTab(t.id)}>
+            <Icon name={pharmacyIcons[t.id]} />
+            {t.label}
+          </button>
+        ))}
+      </aside>
+      <main className="admin-main">
+        <div className="admin-title">
+          <div className="page-heading">
+            <div className="eyebrow">{defaults.pharmacy.toUpperCase()}</div>
+            <Heading>{pharmacyTabs.find((t) => t.id === tab)?.label}</Heading>
+          </div>
+        </div>
+        <Tabs tabs={pharmacyTabs} active={tab} onChange={setTab} />
+        <div style={{ marginTop: "var(--space-5)" }}>
+          {tab === "today" && <Today visits={visits} onOpen={openVisit} onNotify={notify} />}
+          {tab === "calendar" && <Calendar variant="pharmacy" visits={visits} summaries={[]} state={data.schoolState} onOpen={() => setTab("today")} />}
+          {tab === "visits" && <Visits selected={selected} setSelected={setSelected} />}
+          {tab === "messages" && <PharmacyMessages key={compose ? compose.template + compose.ids.join() : "new"} visits={visits} initial={compose} />}
+          {tab === "settings" && <PublishSettings />}
+        </div>
+      </main>
     </div>
   )
 }

@@ -7,6 +7,7 @@ import { dateLabel } from "../../demo/journey"
 import { addDays, buildEvents, countsByDay, monthGrid, weekOf, type CalEvent, type CalType } from "../../domain/calendar"
 import type { StudentSummary } from "../../domain/cohorts"
 import { allDrivePharmacies } from "../../domain/drives"
+import type { Visit } from "../../domain/pharmacyVisits"
 import { allKeyDates } from "../../domain/keyDates"
 import { useDemo } from "../../state"
 
@@ -18,18 +19,23 @@ const PAGE = 10
 const mock = calendarMock as CalEvent[]
 
 /** One place for everything with a date. Visits and follow-ups come from MedMe's scheduling system (mocked here). */
-export default function Calendar({ summaries, state, onOpen }: { summaries: StudentSummary[]; state: string; onOpen: (id: string) => void }) {
+export default function Calendar({ summaries, state, onOpen, variant = "school", visits = [] }: { summaries: StudentSummary[]; state: string; onOpen: (id: string) => void; variant?: "school" | "pharmacy"; visits?: Visit[] }) {
   const { data } = useDemo()
   const today = defaults.referenceDate
   const [view, setView] = useState<"month" | "week">("month")
-  const [day, setDay] = useState(today)
+  const [day, setDay] = useState(() => (variant === "pharmacy" ? (visits.map((v) => v.date).filter((d) => d >= today).sort()[0] ?? today) : today))
   const [on, setOn] = useState<Record<CalType, boolean>>({ visit: true, notice: true, deadline: true })
   const [q, setQ] = useState("")
   const [page, setPage] = useState(0)
   const clinics: CalEvent[] = data.drives.filter((d) => d.status === "accepted").map((d) => ({
     date: d.date, type: "visit", title: `Clinic at ${d.school}`, detail: `${allDrivePharmacies.find((p) => p.id === d.pharmacyId)?.name ?? "Pharmacy"}, ${d.startTime}, ${d.hours} hours`,
   }))
-  const all = useMemo(() => buildEvents(summaries, data.outreach, allKeyDates, state, [...mock, ...clinics]), [summaries, data.outreach, state, clinics.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  const pharmacy = variant === "pharmacy"
+  const pharmacyEvents: CalEvent[] = useMemo(() => [
+    ...visits.map((v): CalEvent => ({ date: v.date, type: "visit", title: v.name, detail: `${v.time} · ${v.vaccines.length ? v.vaccines.join(", ") : "As booked"}${data.visitMarks[v.id] ? ` · ${data.visitMarks[v.id]}` : ""}` })),
+    ...data.pharmacyMessages.map((m): CalEvent => ({ date: m.date, type: "notice", title: m.kind, detail: `Sent to ${m.visitIds.length} families` })),
+  ], [visits, data.visitMarks, data.pharmacyMessages])
+  const all = useMemo(() => (pharmacy ? pharmacyEvents : buildEvents(summaries, data.outreach, allKeyDates, state, [...mock, ...clinics])), [pharmacy, pharmacyEvents, summaries, data.outreach, state, clinics.length]) // eslint-disable-line react-hooks/exhaustive-deps
   const events = useMemo(() => all.filter((e) => on[e.type]), [all, on])
   const counts = useMemo(() => countsByDay(events), [events])
   const year = Number(day.slice(0, 4)), month = Number(day.slice(5, 7)) - 1
@@ -45,7 +51,7 @@ export default function Calendar({ summaries, state, onOpen }: { summaries: Stud
   const monthTotal = events.filter((e) => e.date.startsWith(day.slice(0, 7))).length
   return (
     <>
-      <Alert>Visits, notices and follow-ups come from MedMe's scheduling and follow-up system. This calendar is a mock of that view. Dates marked "Sample" are not legal deadlines; read {stateName(state)}'s own pages in Settings.</Alert>
+      {!pharmacy && <Alert>Visits, notices and follow-ups come from MedMe's scheduling and follow-up system. This calendar is a mock of that view. Dates marked "Sample" are not legal deadlines; read {stateName(state)}'s own pages in Settings.</Alert>}
       <Card className="cal-card">
         <div className="cal-bar">
           <div className="cal-nav">
@@ -60,7 +66,7 @@ export default function Calendar({ summaries, state, onOpen }: { summaries: Stud
               {(["month", "week"] as const).map((v) => <button key={v} aria-pressed={view === v} className={view === v ? "active" : ""} onClick={() => setView(v)}>{v === "month" ? "Month" : "Week"}</button>)}
             </div>
             <div className="seg" role="group" aria-label="Show on calendar">
-              {(Object.keys(label) as CalType[]).map((t) => <button key={t} aria-pressed={on[t]} className={`${on[t] ? "active" : ""} ${t}`} onClick={() => { setOn({ ...on, [t]: !on[t] }); setPage(0) }}><i className={`ev-dot ${t}`} />{label[t]}</button>)}
+              {(Object.keys(label) as CalType[]).filter((t) => !pharmacy || t !== "deadline").map((t) => <button key={t} aria-pressed={on[t]} className={`${on[t] ? "active" : ""} ${t}`} onClick={() => { setOn({ ...on, [t]: !on[t] }); setPage(0) }}><i className={`ev-dot ${t}`} />{label[t]}</button>)}
             </div>
           </div>
         </div>
