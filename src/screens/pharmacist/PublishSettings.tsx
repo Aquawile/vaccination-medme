@@ -144,7 +144,7 @@ export default function PublishSettings() {
             {r.sourceUrl && <a href={r.sourceUrl} target="_blank" rel="noreferrer">Review saved state source</a>}
             <div className="pharmacy-rule-actions"><Check checked={r.enabled} onChange={(e)=>update((d)=>({...d,automationRules:d.automationRules.map((x)=>x.id===r.id?{...x,enabled:e.target.checked}:x)}))}>Enabled</Check>
             <Button variant="secondary" onClick={()=>{setEditingRule(r.id);setAutoTemplate(r.template);setAutoDays(String(r.days));setAutoCadence(r.cadence);setDeadlineDate(r.dueDate??"");setDeadlineState(r.stateCode??"Oregon");setDeadlineSource(r.sourceUrl??"")}}>Edit</Button>
-            <Button variant="text" onClick={()=>update((d)=>({...d,automationRules:d.automationRules.filter((x)=>x.id!==r.id)}))}>Remove</Button>
+            <Button variant="text" onClick={()=>update((d)=>({...d,automationRules:d.automationRules.filter((x)=>x.id!==r.id)}))}>Remove</Button></div>
           </div>)}
       {editingRule && <Button variant="text" onClick={()=>setEditingRule("")}>Cancel editing</Button>}
     </Card>
