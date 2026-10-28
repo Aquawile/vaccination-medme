@@ -14,13 +14,13 @@ const tone = { booked: "", "checked-in": "warning", completed: "success", "no-sh
 /** One day's visits at a glance. Check in, mark no-shows, and message families who did not come. */
 export default function DayList({ visits: allVisits, day, showAll, onShowAll, onOpen, onNotify }: { visits: Visit[]; day: string; showAll: boolean; onShowAll: (v: boolean) => void; onOpen: (appointmentId: string) => void; onNotify: (template: string, ids: string[]) => void }) {
   const { data, update, event } = useDemo()
+  const [period, setPeriod] = useState<"day" | "week" | "month">("day")
   const visits = useMemo(() => allVisits.filter((v) => showAll || v.pharmacist === YOU), [allVisits, showAll])
   const start = period === "day" ? day : period === "week" ? weekOf(day)[0] : `${day.slice(0,7)}-01`
   const end = period === "day" ? day : period === "week" ? weekOf(day)[6] : `${day.slice(0,7)}-31`
   const within = (v: Visit) => v.date >= start && v.date <= end
   const hidden = allVisits.filter((v) => within(v) && v.pharmacist !== YOU).length
   const send = useSendMessage()
-  const [period, setPeriod] = useState<"day" | "week" | "month">("day")
   const [q, setQ] = useState("")
   const [page, setPage] = useState(0)
   const done = useMemo(() => new Set(data.appointments.filter((a) => a.doses.length >= a.vaccines.length && a.doses.length > 0).map((a) => a.id)), [data.appointments])
