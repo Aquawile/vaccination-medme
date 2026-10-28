@@ -29,12 +29,13 @@ export default function PublishSettings() {
   const [templateSubject, setTemplateSubject] = useState("")
   const [templateBody, setTemplateBody] = useState("")
   const [editingTemplate, setEditingTemplate] = useState("")
+  const [editingBuiltIn, setEditingBuiltIn] = useState("")
   const [templateSearch, setTemplateSearch] = useState("")
   const [templateFilter, setTemplateFilter] = useState<"all"|"custom"|"builtin">("all")
   const templates = { ...builtInTemplates, ...Object.fromEntries(data.customTemplates.map((t) => [t.id, t])) }
   const templateLibrary = Object.entries(templates).filter(([id,t])=> (templateFilter==="all" || (templateFilter==="custom" ? id.startsWith("custom-") : !id.startsWith("custom-"))) && (t.label+" "+t.subject+" "+t.body).toLowerCase().includes(templateSearch.trim().toLowerCase()))
-  const editSavedTemplate = (t: {id:string;label:string;subject:string;body:string}) => {setEditingTemplate(t.id);setTemplateName(t.label);setTemplateSubject(t.subject);setTemplateBody(t.body)}
-  const resetTemplateEditor = () => {setEditingTemplate("");setTemplateName("");setTemplateSubject("");setTemplateBody("")}
+  const editSavedTemplate = (t: {id:string;label:string;subject:string;body:string}) => {setEditingTemplate(t.id.startsWith("custom-")?t.id:"");setEditingBuiltIn(t.id.startsWith("custom-")?"":t.id);setTemplateName(t.label);setTemplateSubject(t.subject);setTemplateBody(t.body);document.getElementById("pst-name")?.scrollIntoView({behavior:"smooth",block:"center"})}
+  const resetTemplateEditor = () => {setEditingBuiltIn("");setEditingTemplate("");setTemplateName("");setTemplateSubject("");setTemplateBody("")}
   const legalRule = autoCadence.startsWith("deadline-")
   const validDays = Number.isInteger(Number(autoDays)) && Number(autoDays) >= (autoCadence==="repeat"?1:0) && Number(autoDays)<=365
   const validDeadline = !legalRule || (/^\d{4}-\d{2}-\d{2}$/.test(deadlineDate) && /^https:\/\//i.test(deadlineSource.trim()))
@@ -66,6 +67,9 @@ export default function PublishSettings() {
           <Check key={v.id} checked={offered.includes(v.id)} onChange={(e) => { setOffered(e.target.checked ? [...offered, v.id] : offered.filter((x) => x !== v.id)); setSaved("") }}>{v.name} ({v.detail})</Check>
         ))}
       </fieldset>
+      {changed && <Alert kind="warning">You changed the sample vaccines or ages. Check your state\'s requirements before publishing.</Alert>}
+      {saved && <Alert kind="success">{saved}</Alert>}
+      <div className="action-row"><Button disabled={invalid} onClick={publish}>Publish offerings</Button></div>
     </Card>
     <Card className="pharmacy-settings-section">
       <Heading level={2}>Inventory & supply</Heading>
@@ -93,19 +97,19 @@ export default function PublishSettings() {
           return <div key={id} className="pharmacy-template-item">
             <div><strong>{t.label}</strong><small className="muted">{custom?"My saved template":"Built-in template"} · {activeRules ? activeRules+" active automation rule(s)" : "Manual use only"}</small><p>{t.subject}</p><p className="muted pharmacy-template-excerpt">{t.body}</p></div>
             <div className="pharmacy-template-item-actions">
-              <Button variant="secondary" onClick={()=>custom ? editSavedTemplate({id,label:t.label,subject:t.subject,body:t.body}) : (resetTemplateEditor(),setTemplateName(t.label+" (copy)"),setTemplateSubject(t.subject),setTemplateBody(t.body))}>{custom?"Edit":"Make editable copy"}</Button>
+              <Button variant="secondary" onClick={()=>editSavedTemplate({id,label:t.label,subject:t.subject,body:t.body})}>Edit</Button>
               {custom && <Button variant="text" onClick={()=>update((d)=>({...d,customTemplates:d.customTemplates.filter((x)=>x.id!==id),automationRules:d.automationRules.map((r)=>r.template===id?{...r,enabled:false}:r)}))}>Delete</Button>}
             </div>
           </div>
         })}
       </div>
       <div className="pharmacy-template-editor">
-        <Heading level={3}>{editingTemplate?"Edit saved template":"Create a template"}</Heading>
+        <Heading level={3}>{editingTemplate?"Edit saved template":editingBuiltIn?"Edit built-in template":"Create a template"}</Heading>
         <div className="field"><label htmlFor="pst-name">Template name</label><input id="pst-name" value={templateName} onChange={(e)=>setTemplateName(e.target.value)} placeholder="e.g. Return visit follow-up" /></div>
         <div className="field"><label htmlFor="pst-sub">Email subject</label><input id="pst-sub" value={templateSubject} onChange={(e)=>setTemplateSubject(e.target.value)} /></div>
         <div className="field"><label htmlFor="pst-body">Message body</label><textarea id="pst-body" rows={7} value={templateBody} onChange={(e)=>setTemplateBody(e.target.value)} placeholder="Use {student}, {date}, {time} for personalized fields." /></div>
         <div className="action-row">
-          <Button disabled={!templateName.trim()||!templateSubject.trim()||!templateBody.trim()} onClick={()=>{update((d)=>({...d,customTemplates:editingTemplate?d.customTemplates.map((t)=>t.id===editingTemplate?{...t,label:templateName.trim(),subject:templateSubject,body:templateBody}:t):[...d.customTemplates,{id:"custom-"+Date.now(),label:templateName.trim(),subject:templateSubject,body:templateBody}]}));resetTemplateEditor()}}>{editingTemplate?"Save changes":"Save as new template"}</Button>
+          <Button disabled={!templateName.trim()||!templateSubject.trim()||!templateBody.trim()} onClick={()=>{update((d)=>({...d,customTemplates:editingTemplate?d.customTemplates.map((t)=>t.id===editingTemplate?{...t,label:templateName.trim(),subject:templateSubject,body:templateBody}:t):[...d.customTemplates,{id:"custom-"+Date.now(),label:templateName.trim(),subject:templateSubject,body:templateBody}]}));resetTemplateEditor()}}>{editingTemplate?"Save changes":editingBuiltIn?"Save edited template":"Save as new template"}</Button>
           {(editingTemplate || templateName || templateSubject || templateBody) && <Button variant="text" onClick={resetTemplateEditor}>Clear editor</Button>}
         </div>
         <p className="muted">Templates are saved locally in this demo. Sending is done in Messages; automatic scheduling is configured separately below.</p>
@@ -144,10 +148,10 @@ export default function PublishSettings() {
           }}>{editingRule?"Update rule":"Save new rule"}</Button>
         </div>
         {data.automationRules.length===0 ? <p className="muted">No additional rules saved yet.</p> :
-          data.automationRules.map((r)=><div key={r.id} className="pharmacy-rule-line">
+          data.automationRules.map((r)=><div key={r.id} className="pharmacy-rule-line pharmacy-rule-row">
             <strong>{templates[r.template]?.label??"Saved template"}</strong><span>{r.cadence==="repeat" ? "Every "+r.days+" days (demo schedule)" : r.cadence.startsWith("deadline-") ? r.days+" days "+(r.cadence==="deadline-before"?"before":"after")+" "+(r.stateCode??"state")+" deadline "+(r.dueDate??"not set") : r.days+" days "+(r.cadence==="after"?"after":"before")+" booked visits"}</span>
             {r.sourceUrl && <a href={r.sourceUrl} target="_blank" rel="noreferrer">Review saved state source</a>}
-            <Check checked={r.enabled} onChange={(e)=>update((d)=>({...d,automationRules:d.automationRules.map((x)=>x.id===r.id?{...x,enabled:e.target.checked}:x)}))}>Enabled</Check>
+            <div className="pharmacy-rule-actions"><Check checked={r.enabled} onChange={(e)=>update((d)=>({...d,automationRules:d.automationRules.map((x)=>x.id===r.id?{...x,enabled:e.target.checked}:x)}))}>Enabled</Check>
             <Button variant="secondary" onClick={()=>{setEditingRule(r.id);setAutoTemplate(r.template);setAutoDays(String(r.days));setAutoCadence(r.cadence);setDeadlineDate(r.dueDate??"");setDeadlineState(r.stateCode??"Oregon");setDeadlineSource(r.sourceUrl??"")}}>Edit</Button>
             <Button variant="text" onClick={()=>update((d)=>({...d,automationRules:d.automationRules.filter((x)=>x.id!==r.id)}))}>Remove</Button>
           </div>)}
@@ -157,8 +161,6 @@ export default function PublishSettings() {
       <Heading level={2}>Publishing & compliance</Heading>
       {changed && <Alert kind="warning">You changed the sample vaccines or ages. Which vaccines and ages a pharmacist may give depends on the state. Check your state's own page before you publish.</Alert>}
       <OfficialSource topic="which vaccines and ages a pharmacist may give" />
-      {saved && <Alert kind="success">{saved}</Alert>}
-      <div className="action-row"><Button disabled={invalid} onClick={publish}>Publish offerings</Button></div>
     </Card>
     </div>
   )
