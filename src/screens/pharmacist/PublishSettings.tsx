@@ -18,6 +18,7 @@ export default function PublishSettings() {
   const [saved, setSaved] = useState("")
   const [autoTemplate, setAutoTemplate] = useState("reminder")
   const [autoDays, setAutoDays] = useState("3")
+  const [autoCadence, setAutoCadence] = useState<"before"|"repeat">("before")
   const templates = { ...builtInTemplates, ...Object.fromEntries(data.customTemplates.map((t) => [t.id, t])) }
   const pick = (next: string) => {
     const l = effectiveLocation(locations.find((x) => x.id === next)!, data.published)
@@ -69,19 +70,20 @@ export default function PublishSettings() {
       </fieldset>
       <Card className="pharmacy-automation-settings">
         <Heading level={2}>Automatic message rules</Heading>
-        <p className="muted">Each rule is saved once and schedules its template before booked visits. DEMO-FAKE: nothing is delivered.</p>
+        <p className="muted">Save a template schedule once. Before-visit rules use appointment dates; repeat rules are interval-based demonstrations. Real delivery would require explicit consent, appropriate recipients, and a backend. Nothing is sent.</p>
         <div className="pharmacy-auto-add">
           <Select label="Template" value={autoTemplate} onChange={(e)=>setAutoTemplate(e.target.value)}>
             {Object.entries(templates).filter(([k])=>k!=="custom"&&k!=="noshow").map(([k,t])=><option key={k} value={k}>{t.label}</option>)}
           </Select>
-          <Select label="Timing" value={autoDays} onChange={(e)=>setAutoDays(e.target.value)}>
-            {[0,1,2,3,5,7,14,30].map((n)=><option key={n} value={n}>{n===0?"Appointment day":n+" days before"}</option>)}
+          <Select label="Schedule type" value={autoCadence} onChange={(e)=>setAutoCadence(e.target.value as "before"|"repeat")}><option value="before">Before each appointment</option><option value="repeat">Repeat at intervals</option></Select>
+          <Select label={autoCadence==="before"?"Days before appointment":"Repeat every (days)"} value={autoDays} onChange={(e)=>setAutoDays(e.target.value)}>
+            {[0,1,2,3,5,7,14,30].map((n)=><option key={n} value={n}>{n===0?"Appointment day":autoCadence==="before"?n+" days before": "Every "+n+" days"}</option>)}
           </Select>
-          <Button variant="secondary" onClick={()=>update((d)=>({...d,automationRules:[...d.automationRules,{id:"auto-"+Date.now(),template:autoTemplate,days:Number(autoDays),enabled:true}]}))}>Save rule</Button>
+          <Button variant="secondary" onClick={()=>update((d)=>({...d,automationRules:[...d.automationRules,{id:"auto-"+Date.now(),template:autoTemplate,days:Math.max(1,Number(autoDays)),enabled:true,cadence:autoCadence}]}))}>Save rule</Button>
         </div>
         {data.automationRules.length===0 ? <p className="muted">No additional rules saved yet.</p> :
           data.automationRules.map((r)=><div key={r.id} className="pharmacy-rule-line">
-            <strong>{templates[r.template]?.label??"Saved template"}</strong><span>{r.days===0?"Appointment day":r.days+" days before visits"}</span>
+            <strong>{templates[r.template]?.label??"Saved template"}</strong><span>{r.cadence==="repeat" ? "Every "+r.days+" days (demo schedule)" : r.days+" days before booked visits"}</span>
             <Check checked={r.enabled} onChange={(e)=>update((d)=>({...d,automationRules:d.automationRules.map((x)=>x.id===r.id?{...x,enabled:e.target.checked}:x)}))}>Enabled</Check>
             <Button variant="text" onClick={()=>update((d)=>({...d,automationRules:d.automationRules.filter((x)=>x.id!==r.id)}))}>Remove</Button>
           </div>)}
