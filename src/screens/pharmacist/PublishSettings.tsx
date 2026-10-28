@@ -74,6 +74,7 @@ export default function PublishSettings() {
     </Card>
     <Card className="pharmacy-settings-section">
       <Heading level={2}>Messaging preferences</Heading>
+      <p className="muted">Global notification defaults. Individual template automation is managed in Automatic message rules below.</p>
       <fieldset className="publish-vaccines">
         <legend>Legacy default reminders</legend>
         <div className="controls">
@@ -132,6 +133,7 @@ export default function PublishSettings() {
         {data.automationRules.length===0 ? <p className="muted">No additional rules saved yet.</p> :
           data.automationRules.map((r)=><div key={r.id} className="pharmacy-rule-line">
             <strong>{templates[r.template]?.label??"Saved template"}</strong><span>{r.cadence==="repeat" ? "Every "+r.days+" days (demo schedule)" : r.cadence.startsWith("deadline-") ? r.days+" days "+(r.cadence==="deadline-before"?"before":"after")+" "+(r.stateCode??"state")+" deadline "+(r.dueDate??"not set") : r.days+" days "+(r.cadence==="after"?"after":"before")+" booked visits"}</span>
+            {r.sourceUrl && <a href={r.sourceUrl} target="_blank" rel="noreferrer">Review saved state source</a>}
             <Check checked={r.enabled} onChange={(e)=>update((d)=>({...d,automationRules:d.automationRules.map((x)=>x.id===r.id?{...x,enabled:e.target.checked}:x)}))}>Enabled</Check>
             <Button variant="secondary" onClick={()=>{setEditingRule(r.id);setAutoTemplate(r.template);setAutoDays(String(r.days));setAutoCadence(r.cadence);setDeadlineDate(r.dueDate??"");setDeadlineState(r.stateCode??"Oregon");setDeadlineSource(r.sourceUrl??"")}}>Edit</Button>
             <Button variant="text" onClick={()=>update((d)=>({...d,automationRules:d.automationRules.filter((x)=>x.id!==r.id)}))}>Remove</Button>
