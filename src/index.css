@@ -878,3 +878,39 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
   .workspace:has(> .parent-nav) > .parent-nav{position:relative;inset:auto;width:100%;max-width:100%;z-index:1}
   .workspace:has(> .parent-nav) > .parent-main{width:100%;max-width:100%;min-width:0;margin:0 auto;box-sizing:border-box}
 }
+
+/* Parent: one document scroll; the rail stretches alongside content, not separately. */
+@media (min-width:1101px){
+  .workspace:has(> .parent-nav){align-items:stretch;grid-template-rows:auto minmax(0,1fr) auto}
+  .workspace:has(> .parent-nav) > .parent-nav{
+    position:static !important;top:auto !important;bottom:auto !important;
+    inset:auto !important;grid-row:2 / 4;align-self:stretch;
+    height:auto !important;min-height:0 !important;max-height:none !important;
+    overflow:visible !important;box-sizing:border-box;
+  }
+  .workspace:has(> .parent-nav) > .parent-main{
+    align-self:stretch;min-height:0;overflow:visible;
+    padding-top:clamp(24px,2.5vw,36px);
+  }
+  .workspace:has(> .parent-nav) > .workspace-footer{align-self:end}
+}
+.workspace:has(> .parent-nav) .family-records .family-status-row{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(115px,max-content) 64px;
+  gap:12px;align-items:center;min-width:0;
+}
+.workspace:has(> .parent-nav) .family-records .family-status-row > span:first-child{min-width:0;display:flex;flex-direction:column;gap:3px;overflow-wrap:anywhere}
+.workspace:has(> .parent-nav) .family-records .family-status-row > .badge{justify-self:start;white-space:nowrap}
+.workspace:has(> .parent-nav) .family-records .family-status-row > .button{justify-self:end;min-width:60px}
+.workspace:has(> .parent-nav) .family-records .section-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.workspace:has(> .parent-nav) .parent-records-screen .history-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:14px;align-items:center}
+.workspace:has(> .parent-nav) .parent-records-screen .history-row .badge{justify-self:end;white-space:normal}
+.workspace:has(> .parent-nav) .parent-record-info{min-width:0;display:flex;flex-direction:column;gap:4px}
+.workspace:has(> .parent-nav) .parent-record-explanation{padding:14px 16px;margin:16px 0;border:1px solid #d9e7e9;border-radius:9px;background:#f6faf9;line-height:1.5}
+.workspace:has(> .parent-nav) .parent-record-explanation p{margin:8px 0 0;font-size:13px}
+@media(max-width:760px){
+ .workspace:has(> .parent-nav) .family-records .family-status-row{grid-template-columns:minmax(0,1fr) auto;gap:10px}
+ .workspace:has(> .parent-nav) .family-records .family-status-row > .button{grid-column:2}
+ .workspace:has(> .parent-nav) .family-records .family-status-row > .badge{grid-column:2;grid-row:1}
+ .workspace:has(> .parent-nav) .parent-records-screen .history-row{grid-template-columns:24px minmax(0,1fr)}
+ .workspace:has(> .parent-nav) .parent-records-screen .history-row .badge{grid-column:2;justify-self:start}
+}
