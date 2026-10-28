@@ -426,3 +426,66 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
 .ev.block { position: absolute; left: 3px; right: 3px; width: auto; }
 .peek { margin: var(--space-3) 0; } .peek summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--deep-teal); min-height: 32px; display: flex; align-items: center; }
 .reply-list { list-style: none; margin: 0 0 var(--space-3); padding: 0; display: grid; gap: 6px; font-size: 13px; } .reply-list q { display: block; margin-top: 2px; color: var(--navy); }
+
+
+/* W-132: Desktop workspace density. Retains the Figma-derived MedMe visual tokens.
+   Fit standard laptop viewports without compressing real tables, lists, or records. */
+@media (min-width: 1101px) {
+  .auth-page {
+    height: 100svh;
+    min-height: 0;
+    grid-template-columns: minmax(0, 45%) minmax(0, 1fr);
+    padding: var(--space-3);
+    gap: var(--space-3);
+  }
+  .auth-visual { min-height: 0; }
+  .visual-top { padding: var(--space-4) var(--space-6); }
+  .visual-content { padding: var(--space-2) var(--space-5); }
+  .visual-content h2 { font-size: clamp(24px, 2.35vw, 34px); line-height: 1.2; }
+  .visual-content > p { margin-top: var(--space-3); line-height: 1.55; }
+  .visual-features { margin-top: var(--space-4); }
+  .visual-bottom { padding: var(--space-3); }
+  .illustration { transform: scale(.78); transform-origin: center; height: 225px; margin-bottom: 0; }
+  .auth-top { padding: var(--space-3) var(--space-6); }
+  .auth-form-container { max-width: 390px; padding: var(--space-2) 0; }
+  .welcome-icon { width: 40px; height: 40px; margin-bottom: var(--space-3); }
+  .auth-form-container h1 { font-size: 27px; }
+  .auth-description { margin: var(--space-2) 0 var(--space-4); }
+  .auth-form-container .field { margin-bottom: var(--space-3); }
+  .auth-reassurance { margin-top: var(--space-3); padding-top: var(--space-3); }
+  .auth-footer { padding: var(--space-2) var(--space-6); }
+
+  .workspace-header { min-height: 60px; padding: var(--space-2) var(--space-6); }
+  .parent-nav { gap: var(--space-3); padding: 0 var(--space-4); }
+  .parent-main { max-width: 1080px; width: 100%; padding: var(--space-5) var(--space-6) var(--space-8); }
+  .staff-main, .admin-main { padding: var(--space-5) var(--space-6) var(--space-8); }
+  .admin-sidebar { padding: var(--space-5) var(--space-3); gap: var(--space-2); }
+  .admin-layout { grid-template-columns: 196px minmax(0, 1fr); }
+  .sidebar-item { padding: var(--space-2) var(--space-3); min-height: 38px; font-size: 12px; }
+  .page-heading { margin-bottom: var(--space-4); }
+  .page-heading p { margin-top: var(--space-2); line-height: 1.4; }
+  .admin-title { margin-bottom: var(--space-4); }
+  .admin-title h1 { font-size: 25px; }
+  .section-heading { margin-bottom: var(--space-3); }
+  .parent-main > .card, .staff-main > .card { margin-bottom: var(--space-4); }
+  .card, .admin-main .card { padding: var(--space-4) var(--space-5); }
+  .admin-main .metrics .card { padding: var(--space-3) var(--space-4); }
+  .metrics { margin: var(--space-3) 0 var(--space-4); gap: var(--space-3); }
+  .metrics strong { font-size: 24px; margin: var(--space-2) 0; }
+  .admin-overview-grid, .admin-panels { gap: var(--space-3); margin: var(--space-3) 0; }
+  .stat-row .stat { padding: var(--space-3); }
+  .field { margin-bottom: var(--space-3); }
+  input:not([type="checkbox"]), select { min-height: 42px; padding: 9px 12px; }
+  .button:not(.text):not(.icon-button) { min-height: 40px; padding: 8px 15px; }
+  th { padding: 9px 12px; }
+  td { padding: 11px 12px; }
+  .alert { margin: var(--space-3) 0; padding: var(--space-3) var(--space-4); }
+  .workspace-footer { padding: var(--space-3); }
+}
+/* A window shorter than a conventional laptop keeps the login form accessible. */
+@media (min-width: 1101px) and (max-height: 720px) {
+  .auth-page { height: auto; min-height: 100svh; }
+  .auth-visual { min-height: 620px; }
+  .illustration { transform: scale(.65); height: 185px; }
+  .auth-reassurance { margin-top: var(--space-2); padding-top: var(--space-2); }
+}
