@@ -1,6 +1,6 @@
 import type { StudentSummary } from "./cohorts"
 
-export type VisitStatus = "booked" | "checked-in" | "completed" | "no-show"
+export type VisitStatus = "booked" | "checked-in" | "completed" | "no-show" | "cancelled"
 export type Visit = {
   id: string
   date: string
@@ -51,7 +51,7 @@ export function visitsFromRoster(summaries: StudentSummary[]): Visit[] {
 export function statusOf(v: Visit, marks: Record<string, string>, done = false): VisitStatus {
   if (done) return "completed"
   const m = marks[v.id]
-  return m === "checked-in" || m === "completed" || m === "no-show" || m === "booked" ? m : (v.sampleStatus ?? "booked")
+  return m === "checked-in" || m === "completed" || m === "no-show" || m === "booked" || m === "cancelled" ? m : (v.sampleStatus ?? "booked")
 }
 
 export function dayStats(visits: Visit[], marks: Record<string, string>, date: string, doneIds: Set<string> = new Set()) {
