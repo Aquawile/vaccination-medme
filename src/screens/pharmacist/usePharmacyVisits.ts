@@ -30,8 +30,8 @@ export function usePharmacyVisits(): Visit[] {
   return useMemo(() => {
     const family = visitsFromRoster(roster)
     const parent: Visit[] = data.appointments
-      .filter((a) => !a.seeded && !a.cancelled)
-      .map((a) => ({ id: a.id, date: a.date, time: a.time, name: a.child.name, grade: "", vaccines: a.vaccines, origin: "parent" as const, appointmentId: a.id, pharmacist: YOU }))
+      .filter((a) => !a.seeded)
+      .map((a) => ({ id: a.id, date: a.date, time: a.time, name: a.child.name, grade: "", vaccines: a.vaccines, origin: "parent" as const, appointmentId: a.id, pharmacist: YOU, sampleStatus: a.cancelled ? "cancelled" as const : "booked" as const }))
     return [...sampleVisits, ...family, ...parent].sort((x, y) => `${x.date}${x.time}`.localeCompare(`${y.date}${y.time}`))
   }, [roster, data.appointments])
 }
