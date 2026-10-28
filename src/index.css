@@ -750,3 +750,11 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
 .pharmacy-workspace .pharmacy-auto-add .button {margin-bottom:12px}
 .pharmacy-workspace .pharmacy-automation-settings {margin-top:24px}
 @media(max-width:900px){.pharmacy-workspace .pharmacy-composer-meta,.pharmacy-workspace .pharmacy-template-save,.pharmacy-workspace .pharmacy-auto-add{grid-template-columns:1fr}.pharmacy-workspace .pharmacy-auto-add .button{margin:0}.pharmacy-workspace .pharmacy-planner .cal-tools {align-items:stretch}}
+
+/* Pharmacy calendar and automation alignment refinements. */
+.pharmacy-workspace .pharmacy-planner .cal-legend {display:flex;flex-direction:column;align-items:flex-start;gap:9px}
+.pharmacy-workspace .pharmacy-planner .cal-legend-key {display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pharmacy-workspace .pharmacy-planner .cal-legend-note {margin:0;padding-top:8px;width:100%;border-top:1px solid #e4e9eb;color:#657783;font-size:12px}
+.pharmacy-workspace .pharmacy-auto-add {grid-template-columns:minmax(140px,1fr) minmax(170px,1fr) minmax(170px,1fr) auto}
+@media(max-width:1150px){.pharmacy-workspace .pharmacy-auto-add {grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.pharmacy-workspace .pharmacy-auto-add {grid-template-columns:1fr}}
