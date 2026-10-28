@@ -18,7 +18,8 @@ export default function PublishSettings() {
   const [saved, setSaved] = useState("")
   const [autoTemplate, setAutoTemplate] = useState("reminder")
   const [autoDays, setAutoDays] = useState("3")
-  const [autoCadence, setAutoCadence] = useState<"before"|"repeat">("before")
+  const [autoCadence, setAutoCadence] = useState<"before"|"after"|"repeat">("before")
+  const [editingRule, setEditingRule] = useState("")
   const templates = { ...builtInTemplates, ...Object.fromEntries(data.customTemplates.map((t) => [t.id, t])) }
   const pick = (next: string) => {
     const l = effectiveLocation(locations.find((x) => x.id === next)!, data.published)
@@ -32,8 +33,9 @@ export default function PublishSettings() {
     setSaved(`Published. Families now see ${offered.map((v) => vaccines.find((x) => x.id === v)?.name).join(", ")} for ages ${minAge} to ${maxAge} at ${base.name}.`)
   }
   return (
-    <Card>
-      <Heading level={2}>Publish what you offer</Heading>
+    <div className="pharmacy-settings-sections">
+    <Card className="pharmacy-settings-section">
+      <Heading level={2}>Pharmacy offerings</Heading>
       <p className="muted">Families only see pharmacies that offer the vaccines and ages they need. Sample values, demo only.</p>
       <div className="controls">
         <Select label="Location" value={id} onChange={(e) => pick(e.target.value)}>{locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</Select>
@@ -46,6 +48,9 @@ export default function PublishSettings() {
           <Check key={v.id} checked={offered.includes(v.id)} onChange={(e) => { setOffered(e.target.checked ? [...offered, v.id] : offered.filter((x) => x !== v.id)); setSaved("") }}>{v.name} ({v.detail})</Check>
         ))}
       </fieldset>
+    </Card>
+    <Card className="pharmacy-settings-section">
+      <Heading level={2}>Inventory & supply</Heading>
       <fieldset className="publish-vaccines">
         <legend>Short on supply right now</legend>
         {vaccines.map((v) => (
@@ -53,8 +58,11 @@ export default function PublishSettings() {
         ))}
         <small className="muted">Fills the {"{short}"} field when you message families.</small>
       </fieldset>
+    </Card>
+    <Card className="pharmacy-settings-section">
+      <Heading level={2}>Messaging preferences</Heading>
       <fieldset className="publish-vaccines">
-        <legend>Automatic messages</legend>
+        <legend>Legacy default reminders</legend>
         <div className="controls">
           <Select label="Reminder timing" value={String(data.reminderRule.days)} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, days: Number(e.target.value) } }))}>
             {[1, 2, 3, 5, 7, 14].map((n) => <option key={n} value={n}>{n} day{n > 1 ? "s" : ""} before the visit</option>)}
@@ -68,30 +76,37 @@ export default function PublishSettings() {
         <Check checked={data.reminderRule.autoNoShow} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, autoNoShow: e.target.checked } }))}>Send the missed-visit notice as soon as I mark a no-show</Check>
         <small className="muted">You still mark who came. Timing, template and automation stay saved here across appointments. Demo only: nothing is delivered.</small>
       </fieldset>
-      <Card className="pharmacy-automation-settings">
+    </Card>
+    <Card className="pharmacy-automation-settings pharmacy-settings-section">
         <Heading level={2}>Automatic message rules</Heading>
         <p className="muted">Save a template schedule once. Before-visit rules use appointment dates; repeat rules are interval-based demonstrations. Real delivery would require explicit consent, appropriate recipients, and a backend. Nothing is sent.</p>
         <div className="pharmacy-auto-add">
           <Select label="Template" value={autoTemplate} onChange={(e)=>setAutoTemplate(e.target.value)}>
             {Object.entries(templates).filter(([k])=>k!=="custom"&&k!=="noshow").map(([k,t])=><option key={k} value={k}>{t.label}</option>)}
           </Select>
-          <Select label="Schedule type" value={autoCadence} onChange={(e)=>setAutoCadence(e.target.value as "before"|"repeat")}><option value="before">Before each appointment</option><option value="repeat">Repeat at intervals</option></Select>
-          <Select label={autoCadence==="before"?"Days before appointment":"Repeat every (days)"} value={autoDays} onChange={(e)=>setAutoDays(e.target.value)}>
-            {[0,1,2,3,5,7,14,30].filter((n)=>autoCadence==="before"||n>0).map((n)=><option key={n} value={n}>{n===0?"Appointment day":autoCadence==="before"?n+" days before": "Every "+n+" days"}</option>)}
+          <Select label="Schedule type" value={autoCadence} onChange={(e)=>setAutoCadence(e.target.value as "before"|"after"|"repeat")}><option value="before">Before each appointment</option><option value="after">After each appointment</option><option value="repeat">Repeat at intervals</option></Select>
+          <Select label={autoCadence==="before"?"Days before appointment":autoCadence==="after"?"Days after appointment":"Repeat every (days)"} value={autoDays} onChange={(e)=>setAutoDays(e.target.value)}>
+            {[0,1,2,3,5,7,14,30].filter((n)=>autoCadence!=="repeat"||n>0).map((n)=><option key={n} value={n}>{n===0?"Appointment day":autoCadence==="before"?n+" days before":autoCadence==="after"?n+" days after":"Every "+n+" days"}</option>)}
           </Select>
-          <Button variant="secondary" onClick={()=>update((d)=>({...d,automationRules:[...d.automationRules,{id:"auto-"+Date.now(),template:autoTemplate,days:autoCadence==="repeat"?Math.max(1,Number(autoDays)):Number(autoDays),enabled:true,cadence:autoCadence}]}))}>Save rule</Button>
+          <Button variant="secondary" onClick={()=>{update((d)=>({...d,automationRules:editingRule ? d.automationRules.map((r)=>r.id===editingRule?{...r,template:autoTemplate,days:Number(autoDays),cadence:autoCadence}:r) : [...d.automationRules,{id:"auto-"+Date.now(),template:autoTemplate,days:Number(autoDays),enabled:true,cadence:autoCadence}]}));setEditingRule("")}}>{editingRule?"Update rule":"Save new rule"}</Button>
         </div>
         {data.automationRules.length===0 ? <p className="muted">No additional rules saved yet.</p> :
           data.automationRules.map((r)=><div key={r.id} className="pharmacy-rule-line">
-            <strong>{templates[r.template]?.label??"Saved template"}</strong><span>{r.cadence==="repeat" ? "Every "+r.days+" days (demo schedule)" : r.days+" days before booked visits"}</span>
+            <strong>{templates[r.template]?.label??"Saved template"}</strong><span>{r.cadence==="repeat" ? "Every "+r.days+" days (demo schedule)" : r.days+" days "+(r.cadence==="after"?"after":"before")+" booked visits"}</span>
             <Check checked={r.enabled} onChange={(e)=>update((d)=>({...d,automationRules:d.automationRules.map((x)=>x.id===r.id?{...x,enabled:e.target.checked}:x)}))}>Enabled</Check>
+            <Button variant="secondary" onClick={()=>{setEditingRule(r.id);setAutoTemplate(r.template);setAutoDays(String(r.days));setAutoCadence(r.cadence)}}>Edit</Button>
             <Button variant="text" onClick={()=>update((d)=>({...d,automationRules:d.automationRules.filter((x)=>x.id!==r.id)}))}>Remove</Button>
           </div>)}
       </Card>
+      {editingRule && <Button variant="text" onClick={()=>setEditingRule("")}>Cancel editing</Button>}
+    </Card>
+    <Card className="pharmacy-settings-section">
+      <Heading level={2}>Publishing & compliance</Heading>
       {changed && <Alert kind="warning">You changed the sample vaccines or ages. Which vaccines and ages a pharmacist may give depends on the state. Check your state's own page before you publish.</Alert>}
       <OfficialSource topic="which vaccines and ages a pharmacist may give" />
       {saved && <Alert kind="success">{saved}</Alert>}
-      <div className="action-row"><Button disabled={invalid} onClick={publish}>Publish</Button></div>
+      <div className="action-row"><Button disabled={invalid} onClick={publish}>Publish offerings</Button></div>
     </Card>
+    </div>
   )
 }
