@@ -2,7 +2,8 @@ import { Fragment, useMemo, useRef, useState } from "react"
 import { Alert, Button, Card, Check, Heading, Select } from "../../components/ui"
 import { defaults } from "../../demo/config"
 import { dateLabel } from "../../demo/journey"
-import { builtInTemplates, mergeFields, reminderDate, type Template } from "../../domain/pharmacyTemplates"
+import { addDays } from "../../domain/calendar"
+import { builtInTemplates, mergeFields, type Template } from "../../domain/pharmacyTemplates"
 import { fakeReply, fillVisit, statusOf, type Visit } from "../../domain/pharmacyVisits"
 import { useDemo } from "../../state"
 import { vName } from "./usePharmacyVisits"
@@ -41,7 +42,16 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
   const sendingTo = mode === "single" ? (selected ? [selected] : []) : recipients
   const pick = (k: string) => { setKey(k); setSubject(all[k].subject); setBody(all[k].body); setSent("") }
   const insert = (f: string) => { const at = bodyRef.current ? bodyRef.current.selectionStart : body.length; setBody(body.slice(0, at) + f + body.slice(at)); setSent("") }
-  const upcoming = visits.filter((v) => v.date >= defaults.referenceDate).map((v) => ({ v, on: reminderDate(v.date, rule.days) }))
+  const savedRules = [...data.automationRules, ...(rule.auto ? [{id:"legacy-reminder",template:rule.template,days:rule.days,enabled:true,cadence:"before" as const}] : [])]
+  const enabledRules = savedRules.filter((r)=>r.enabled)
+  const previewRows = enabledRules.flatMap((r)=>{
+    if (r.cadence === "repeat") return []
+    if (r.cadence === "deadline-before" || r.cadence === "deadline-after") {
+      if (!r.dueDate) return []
+      return [{key:r.id,who:(r.stateCode??"State")+" deadline · confirm eligible recipients",template:all[r.template]?.label??"Saved template",date:addDays(r.dueDate,(r.cadence==="deadline-before"?-1:1)*r.days)}]
+    }
+    return visits.filter((v)=>v.date>=defaults.referenceDate).map((v)=>({key:r.id+"-"+v.id,who:v.name,template:all[r.template]?.label??"Saved template",date:addDays(v.date,(r.cadence==="before"?-1:1)*r.days)}))
+  }).sort((a,b)=>a.date.localeCompare(b.date))
 
   function submit() {
     send(key, { label: all[key]?.label ?? "Custom message", subject, body }, sendingTo)
@@ -51,11 +61,17 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
   return (
     <>
       <Card className="pharmacy-message-status">
-        <div className="section-heading"><div><Heading level={2}>Scheduled communications</Heading><p className="muted">Review the automation rules saved in Settings and the dates they would run. Demo only: no email is delivered.</p></div><Button variant="secondary" onClick={onSettings}>Configure automatic messages</Button></div>
-        {([...data.automationRules, ...(rule.auto ? [{ id: "default-reminder", template: rule.template, days: rule.days, enabled: true }] : [])].filter((r) => r.enabled)).length === 0
-          ? <p className="muted">No automatic messages are enabled.</p>
-          : [...data.automationRules, ...(rule.auto ? [{ id: "default-reminder", template: rule.template, days: rule.days, enabled: true }] : [])].filter((r)=>r.enabled).map((r)=><div className="pharmacy-rule-line" key={r.id}><strong>{all[r.template]?.label ?? "Saved template"}</strong><span>{("cadence" in r && r.cadence === "repeat") ? "Every "+r.days+" days (preview only)" : r.days+" days "+("cadence" in r && r.cadence === "after" ? "after" : "before")+" visits"}</span><span>Enabled</span></div>)}
-        <details className="peek"><summary>Illustrative reminder dates</summary><div className="table-scroll"><table><thead><tr><th>Family</th><th>Visit</th><th>Reminder scheduled</th></tr></thead><tbody>{upcoming.slice(0,20).map(({v,on})=><tr key={v.id}><td>{v.name}</td><td>{dateLabel(v.date)} {v.time}</td><td>{dateLabel(on)}</td></tr>)}</tbody></table></div></details>
+        <div className="section-heading"><div><Heading level={2}>Automatic message rules</Heading><p className="muted">These preferences are saved in Settings. Dates below show what the rules would schedule; no emails are delivered.</p></div><Button variant="secondary" onClick={onSettings}>Manage rules in Settings</Button></div>
+        {enabledRules.length===0 ? <p className="muted">No automatic message rules are enabled.</p> : enabledRules.map((r)=><div className="pharmacy-rule-line" key={r.id}>
+          <strong>{all[r.template]?.label??"Saved template"}</strong>
+          <span>{r.cadence==="repeat" ? "Repeat every "+r.days+" days (no start date)" : r.cadence.startsWith("deadline-") ? r.days+" days "+(r.cadence==="deadline-before"?"before":"after")+" "+(r.stateCode??"state")+" deadline "+(r.dueDate??"not set") : r.days+" days "+(r.cadence==="before"?"before":"after")+" each appointment"}</span><span>Enabled · demo</span>
+        </div>)}
+        {enabledRules.length>0 && <details className="peek"><summary>Preview potential message dates ({previewRows.length} entries)</summary>
+          <div className="table-scroll"><table><thead><tr><th>Potential recipient or deadline</th><th>Template</th><th>Illustrative date</th></tr></thead>
+          <tbody>{previewRows.slice(0,25).map((x)=><tr key={x.key}><td>{x.who}</td><td>{x.template}</td><td>{dateLabel(x.date)}</td></tr>)}</tbody></table></div>
+          {previewRows.length>25 && <p className="muted">Showing 25 of {previewRows.length} potential entries.</p>}
+          <p className="muted">No recipients are automatically enrolled. Deadline reminders require a verified state source and appropriate family eligibility.</p>
+        </details>}
       </Card>
       <Card className="pharmacy-message-composer" style={{ marginTop: "var(--space-5)" }}>
         <Heading level={2}>Send messages</Heading>
