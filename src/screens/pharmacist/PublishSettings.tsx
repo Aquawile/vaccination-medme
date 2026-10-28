@@ -56,7 +56,7 @@ export default function PublishSettings() {
           </Select>
           <Select label="Default message" value={data.reminderRule.template} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, template: e.target.value } }))}>
             <option value="reminder">Appointment reminder</option>
-            <option value="confirmation">Appointment confirmation</option>
+            <option value="followup">Next visit follow-up</option>
           </Select>
         </div>
         <Check checked={data.reminderRule.auto} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, auto: e.target.checked } }))}>Send visit reminders automatically ({data.reminderRule.days} days before)</Check>
