@@ -13,7 +13,7 @@ const PX = 56 // height of one hour in the week grid
 const minutes = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5))
 const short = (name: string) => { const p = name.split(" "); return p.length > 1 ? `${p[0]} ${p[p.length - 1][0]}.` : name }
 
-type Mode = "month" | "week" | "day"
+type Mode = "month" | "week"
 
 /** The pharmacy's own calendar. Month shows chips, week and day show a time grid. Appointments belonging to other pharmacists can be shown or hidden. */
 export default function PharmacyCalendar({ visits, day, onDay, onPick, showAll, onShowAll }: { visits: Visit[]; day: string; onDay: (d: string) => void; onPick: (id: string) => void; showAll: boolean; onShowAll: (v: boolean) => void }) {
@@ -31,11 +31,10 @@ export default function PharmacyCalendar({ visits, day, onDay, onPick, showAll, 
   const week = weekOf(day)
   const shift = (n: number) => {
     if (mode === "week") return onDay(addDays(day, n * 7))
-    if (mode === "day") return onDay(addDays(day, n))
     const d = new Date(Date.UTC(year, month + n, 1))
     onDay(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-01`)
   }
-  const title = mode === "month" ? `${months[month]} ${year}` : mode === "week" ? `${dateLabel(week[0])} to ${dateLabel(week[6])}` : dateLabel(day)
+  const title = mode === "month" ? `${months[month]} ${year}` : mode === "week" ? `${dateLabel(week[0])} to ${dateLabel(week[6])}`
   const cls = (v: Visit) => {
     const st = statusOf(v, data.visitMarks)
     return `ev ${v.pharmacist === YOU ? "mine" : "other"} ${st}`
@@ -74,7 +73,7 @@ export default function PharmacyCalendar({ visits, day, onDay, onPick, showAll, 
         <div className="cal-tools">
           <Check checked={showAll} onChange={(e) => onShowAll(e.target.checked)}>Show all pharmacists</Check>
           <div className="seg" role="group" aria-label="Calendar view">
-            {(["day", "week", "month"] as const).map((v) => <button key={v} aria-pressed={mode === v} className={mode === v ? "active" : ""} onClick={() => setMode(v)}>{v === "month" ? "Month" : v === "week" ? "Week" : "Day"}</button>)}
+            {(["week", "month"] as const).map((v) => <button key={v} aria-pressed={mode === v} className={mode === v ? "active" : ""} onClick={() => setMode(v)}>{v === "month" ? "Month" : "Week"}</button>)}
           </div>
         </div>
       </div>
@@ -89,13 +88,13 @@ export default function PharmacyCalendar({ visits, day, onDay, onPick, showAll, 
                   <span className="cal-num">{Number(date.slice(8))}</span>
                   <span className="chips">
                     {list.slice(0, 2).map((v) => chip(v))}
-                    {list.length > 2 && <button className="more" onClick={(e) => { e.stopPropagation(); setMode("day"); onDay(date) }}>+{list.length - 2} more · view day</button>}
+                    {list.length > 2 && <button className="more" onClick={(e) => { e.stopPropagation(); setMode("week"); onDay(date) }}>+{list.length - 2} more · view day</button>}
                   </span>
                 </div>
               )
             })}
           </div>
-        ) : grid(mode === "week" ? week : [day])}
+        ) : grid(week)}
       </div>
       <p className="cal-legend muted">
         <span className="ev mine sample">Yours</span> <span className="ev other sample">Another pharmacist</span> Completed visits are struck through, no-shows are dashed.
