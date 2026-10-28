@@ -411,3 +411,4 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
 .filter-chip { min-height: 32px; padding: 0 var(--space-3); border: 1px solid var(--border); border-radius: 999px; background: var(--white); font-size: 12px; font-weight: 600; color: var(--navy); } .filter-chip:hover { border-color: var(--deep-teal); background: var(--lavender-soft); }
 .chip-row { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-3) 0; }
 .filter-chip { min-height: 32px; padding: 0 var(--space-3); border: 1px solid var(--border); border-radius: 999px; background: var(--white); font-size: 12px; font-weight: 600; color: var(--navy); } .filter-chip:hover { border-color: var(--deep-teal); background: var(--lavender-soft); }
+.cal-body.no-panel { grid-template-columns: 1fr; } .no-panel .cal-day { min-height: 56px; }

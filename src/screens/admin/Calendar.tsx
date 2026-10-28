@@ -19,11 +19,13 @@ const PAGE = 10
 const mock = calendarMock as CalEvent[]
 
 /** One place for everything with a date. Visits and follow-ups come from MedMe's scheduling system (mocked here). */
-export default function Calendar({ summaries, state, onOpen, variant = "school", visits = [] }: { summaries: StudentSummary[]; state: string; onOpen: (id: string) => void; variant?: "school" | "pharmacy"; visits?: Visit[] }) {
+export default function Calendar({ summaries, state, onOpen, variant = "school", visits = [], day: dayProp, onDay, hidePanel = false }: { summaries: StudentSummary[]; state: string; onOpen: (id: string) => void; variant?: "school" | "pharmacy"; visits?: Visit[]; day?: string; onDay?: (d: string) => void; hidePanel?: boolean }) {
   const { data } = useDemo()
   const today = defaults.referenceDate
   const [view, setView] = useState<"month" | "week">("month")
-  const [day, setDay] = useState(() => (variant === "pharmacy" ? (visits.map((v) => v.date).filter((d) => d >= today).sort()[0] ?? today) : today))
+  const [inner, setInner] = useState(() => (variant === "pharmacy" ? (visits.map((v) => v.date).filter((d) => d >= today).sort()[0] ?? today) : today))
+  const day = dayProp ?? inner
+  const setDay = (d: string) => { setInner(d); onDay?.(d) }
   const [on, setOn] = useState<Record<CalType, boolean>>({ visit: true, notice: true, deadline: true })
   const [q, setQ] = useState("")
   const [page, setPage] = useState(0)
@@ -70,7 +72,7 @@ export default function Calendar({ summaries, state, onOpen, variant = "school",
             </div>
           </div>
         </div>
-        <div className="cal-body">
+        <div className={`cal-body ${hidePanel ? "no-panel" : ""}`}>
           {view === "month" ? (
             <div className="cal-grid" role="grid" aria-label={title}>
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => <div key={d} className="cal-head" role="columnheader">{d}</div>)}
@@ -100,7 +102,7 @@ export default function Calendar({ summaries, state, onOpen, variant = "school",
               })}
             </div>
           )}
-          <aside className="day-panel" aria-label="Selected day">
+          {!hidePanel && <aside className="day-panel" aria-label="Selected day">
             <div className="day-head">
               <strong>{dateLabel(day)}</strong>
               <span className="muted">{dayEvents.length} items</span>
@@ -120,7 +122,7 @@ export default function Calendar({ summaries, state, onOpen, variant = "school",
             {dayEvents.length > PAGE && (
               <div className="pager"><Button variant="secondary" disabled={page === 0} onClick={() => setPage(page - 1)}>Back</Button><Button variant="secondary" disabled={(page + 1) * PAGE >= dayEvents.length} onClick={() => setPage(page + 1)}>More</Button></div>
             )}
-          </aside>
+          </aside>}
         </div>
       </Card>
     </>

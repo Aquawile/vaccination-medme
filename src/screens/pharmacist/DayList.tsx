@@ -1,9 +1,7 @@
 import { useMemo, useState } from "react"
 import { Badge, Button, Card, Field, Heading } from "../../components/ui"
-import { defaults } from "../../demo/config"
 import { dateLabel } from "../../demo/journey"
-import { addDays } from "../../domain/calendar"
-import { dayStats, firstBusyDay, statusOf, type Visit } from "../../domain/pharmacyVisits"
+import { dayStats, statusOf, type Visit } from "../../domain/pharmacyVisits"
 import { useDemo } from "../../state"
 import { vName } from "./usePharmacyVisits"
 
@@ -11,9 +9,8 @@ const PAGE = 12
 const tone = { booked: "", "checked-in": "warning", completed: "success", "no-show": "warning" } as const
 
 /** One day's visits at a glance. Check in, mark no-shows, and message families who did not come. */
-export default function Today({ visits, onOpen, onNotify }: { visits: Visit[]; onOpen: (appointmentId: string) => void; onNotify: (template: string, ids: string[]) => void }) {
+export default function DayList({ visits, day, onOpen, onNotify }: { visits: Visit[]; day: string; onOpen: (appointmentId: string) => void; onNotify: (template: string, ids: string[]) => void }) {
   const { data, update, event } = useDemo()
-  const [day, setDay] = useState(() => firstBusyDay(visits, defaults.referenceDate))
   const [q, setQ] = useState("")
   const [page, setPage] = useState(0)
   const done = useMemo(() => new Set(data.appointments.filter((a) => a.doses.length >= a.vaccines.length && a.doses.length > 0).map((a) => a.id)), [data.appointments])
@@ -24,7 +21,6 @@ export default function Today({ visits, onOpen, onNotify }: { visits: Visit[]; o
     event(`Visit marked ${status}`, "visit")
   }
   const noShows = visits.filter((v) => v.date === day && statusOf(v, data.visitMarks, done.has(v.id)) === "no-show").map((v) => v.id)
-  const shift = (n: number) => { setDay(addDays(day, n)); setPage(0) }
   return (
     <>
       <div className="stat-row">
@@ -36,8 +32,6 @@ export default function Today({ visits, onOpen, onNotify }: { visits: Visit[]; o
       <Card className="cal-card">
         <div className="cal-bar">
           <div className="cal-nav">
-            <Button variant="secondary" aria-label="Previous day" onClick={() => shift(-1)}>‹</Button>
-            <Button variant="secondary" aria-label="Next day" onClick={() => shift(1)}>›</Button>
             <h2 className="cal-title">{dateLabel(day)}</h2>
             <span className="muted">{list.length} visits</span>
           </div>

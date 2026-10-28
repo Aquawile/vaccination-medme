@@ -53,7 +53,7 @@ test("a pharmacy publishes what it offers and warns when it changes the sample",
   await expect(page.getByText(/Check your state's own page before you publish/)).toBeVisible()
   await page.getByRole("button", { name: "Publish", exact: true }).click()
   await expect(page.getByText(/Families now see/)).toBeVisible()
-  await expect(page.getByRole("tab", { name: "Visits" })).toBeVisible()
+  await expect(page.getByRole("tab", { name: "Schedule" })).toBeVisible()
 })
 
 test("pharmacist works the day: check in, no-show, message, calendar, custom message", async ({ page }) => {
@@ -61,8 +61,9 @@ test("pharmacist works the day: check in, no-show, message, calendar, custom mes
   await page.getByLabel("Email address").fill("pharmacist@example.test")
   await page.getByLabel("Password", { exact: true }).fill("Demo123!")
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
-  await expect(page.getByRole("heading", { name: "Today" })).toBeVisible()
-  await page.getByRole("button", { name: "Next day" }).click()
+  await expect(page.getByRole("tab", { name: "Schedule" })).toBeVisible()
+  await expect(page.getByRole("tab", { name: "Today" })).toHaveCount(0)
+  await page.getByRole("gridcell", { name: /^Sep 11/ }).click()
   const rows = page.locator(".visit-table tbody tr")
   await expect(rows.first()).toBeVisible()
   await rows.nth(0).getByRole("button", { name: "Check in" }).click()
@@ -76,6 +77,6 @@ test("pharmacist works the day: check in, no-show, message, calendar, custom mes
   await page.getByLabel("Template").selectOption("custom")
   await page.getByRole("button", { name: "{vaccines}" }).click()
   await expect(page.getByRole("textbox", { name: "Message" })).toHaveValue("{vaccines}")
-  await page.getByRole("tab", { name: "Calendar" }).click()
+  await page.getByRole("tab", { name: "Schedule" }).click()
   await expect(page.getByRole("button", { name: "Month", exact: true })).toBeVisible()
 })
