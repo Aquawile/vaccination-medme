@@ -541,7 +541,7 @@ export default function Pharmacist() {
   const opened = data.appointments.find((a) => a.id === openId)
   const inApp = visits.filter((v) => v.origin === "parent" && !data.appointments.find((a) => a.id === v.appointmentId)?.cancelled)
   return (
-    <div className="admin-layout">
+    <div className="admin-layout pharmacy-workspace">
       <aside className="admin-sidebar">
         <div className="eyebrow">PHARMACY</div>
         {pharmacyTabs.map((t) => (
