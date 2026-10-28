@@ -2,8 +2,9 @@ import { Fragment, useMemo, useRef, useState } from "react"
 import { Alert, Button, Card, Check, Heading, Select } from "../../components/ui"
 import { defaults } from "../../demo/config"
 import { dateLabel } from "../../demo/journey"
-import { builtInTemplates, mergeFields, reminderDate, type Template } from "../../domain/pharmacyTemplates"
-import { fakeReply, fillVisit, type Visit } from "../../domain/pharmacyVisits"
+import { addDays } from "../../domain/calendar"
+import { builtInTemplates, mergeFields, type Template } from "../../domain/pharmacyTemplates"
+import { fakeReply, fillVisit, statusOf, type Visit } from "../../domain/pharmacyVisits"
 import { useDemo } from "../../state"
 import { vName } from "./usePharmacyVisits"
 import { useSendMessage } from "./useSendMessage"
@@ -24,9 +25,8 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
   const [mode, setMode] = useState<"group" | "single">("group")
   const [singleId, setSingleId] = useState("")
   const [groupSearch, setGroupSearch] = useState("")
-  const [groupScope, setGroupScope] = useState<"all"|"upcoming"|"day"|"checked-in"|"no-show">("all")
+  const [groupScope, setGroupScope] = useState<"all"|"upcoming"|"past"|"day"|"checked-in"|"completed"|"no-show"|"cancelled">("all")
   const [preview, setPreview] = useState(false)
-  const [tName, setTName] = useState("")
   const [open, setOpen] = useState("")
   const bodyRef = useRef<HTMLTextAreaElement>(null)
   const rule = data.reminderRule
@@ -35,39 +35,49 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
   const recipients = visits.filter((v) => ids.includes(v.id))
   const selected = visits.find((v) => v.id === singleId)
   const filteredVisits = visits.filter((v)=> {
-    const status = data.visitMarks[v.id] ?? "booked"
-    return (groupScope==="all" || (groupScope==="upcoming" && v.date>=defaults.referenceDate) || (groupScope==="day" && v.date===defaults.referenceDate) || (groupScope==="checked-in" && status==="checked-in") || (groupScope==="no-show" && status==="no-show")) && (v.name+" "+v.grade+" "+v.date).toLowerCase().includes(groupSearch.toLowerCase())
+    const status = statusOf(v,data.visitMarks)
+    return (groupScope==="all" || (groupScope==="past" && v.date<defaults.referenceDate) || (groupScope==="completed" && status==="completed") || (groupScope==="cancelled" && status==="cancelled") || (groupScope==="upcoming" && v.date>=defaults.referenceDate) || (groupScope==="day" && v.date===defaults.referenceDate) || (groupScope==="checked-in" && status==="checked-in") || (groupScope==="no-show" && status==="no-show")) && (v.name+" "+v.grade+" "+v.date).toLowerCase().includes(groupSearch.toLowerCase())
   })
   const selectFiltered = () => setIds((old)=>Array.from(new Set([...old,...filteredVisits.map((v)=>v.id)])))
   const sendingTo = mode === "single" ? (selected ? [selected] : []) : recipients
   const pick = (k: string) => { setKey(k); setSubject(all[k].subject); setBody(all[k].body); setSent("") }
   const insert = (f: string) => { const at = bodyRef.current ? bodyRef.current.selectionStart : body.length; setBody(body.slice(0, at) + f + body.slice(at)); setSent("") }
-  const upcoming = visits.filter((v) => v.date >= defaults.referenceDate).map((v) => ({ v, on: reminderDate(v.date, rule.days) }))
+  const savedRules = [...data.automationRules, ...(rule.auto ? [{id:"legacy-reminder",template:rule.template,days:rule.days,enabled:true,cadence:"before" as const}] : [])]
+  const enabledRules = savedRules.filter((r)=>r.enabled)
+  const previewRows = enabledRules.flatMap((r)=>{
+    if (r.cadence === "repeat") return []
+    if (r.cadence === "deadline-before" || r.cadence === "deadline-after") {
+      if (!r.dueDate) return []
+      return [{key:r.id,who:(r.stateCode??"State")+" deadline · confirm eligible recipients",template:all[r.template]?.label??"Saved template",date:addDays(r.dueDate,(r.cadence==="deadline-before"?-1:1)*r.days)}]
+    }
+    return visits.filter((v)=>v.date>=defaults.referenceDate).map((v)=>({key:r.id+"-"+v.id,who:v.name,template:all[r.template]?.label??"Saved template",date:addDays(v.date,(r.cadence==="before"?-1:1)*r.days)}))
+  }).sort((a,b)=>a.date.localeCompare(b.date))
 
   function submit() {
     send(key, { label: all[key]?.label ?? "Custom message", subject, body }, sendingTo)
     setSent(`Recorded for ${sendingTo.length} ${sendingTo.length === 1 ? "family" : "families"}. Simulated: nothing was delivered.${key === "noshow" ? " Visits booked in the app were cancelled and their times freed." : ""}`)
     setReviewed(false); setIds([]); setSingleId("")
   }
-  function saveTemplate() {
-    const id = `custom-${Date.now()}`
-    update((d) => ({ ...d, customTemplates: [...d.customTemplates, { id, label: tName.trim(), subject, body }] }))
-    setKey(id); setTName(""); setSent("Template saved locally. No message was sent.")
-  }
   return (
     <>
       <Card className="pharmacy-message-status">
-        <div className="section-heading"><div><Heading level={2}>Scheduled communications</Heading><p className="muted">Review the automation rules saved in Settings and the dates they would run. Demo only: no email is delivered.</p></div><Button variant="secondary" onClick={onSettings}>Configure automatic messages</Button></div>
-        {([...data.automationRules, ...(rule.auto ? [{ id: "default-reminder", template: rule.template, days: rule.days, enabled: true }] : [])].filter((r) => r.enabled)).length === 0
-          ? <p className="muted">No automatic messages are enabled.</p>
-          : [...data.automationRules, ...(rule.auto ? [{ id: "default-reminder", template: rule.template, days: rule.days, enabled: true }] : [])].filter((r)=>r.enabled).map((r)=><div className="pharmacy-rule-line" key={r.id}><strong>{all[r.template]?.label ?? "Saved template"}</strong><span>{("cadence" in r && r.cadence === "repeat") ? "Every "+r.days+" days (preview only)" : r.days+" days "+("cadence" in r && r.cadence === "after" ? "after" : "before")+" visits"}</span><span>Enabled</span></div>)}
-        <details className="peek"><summary>Illustrative reminder dates</summary><div className="table-scroll"><table><thead><tr><th>Family</th><th>Visit</th><th>Reminder scheduled</th></tr></thead><tbody>{upcoming.slice(0,20).map(({v,on})=><tr key={v.id}><td>{v.name}</td><td>{dateLabel(v.date)} {v.time}</td><td>{dateLabel(on)}</td></tr>)}</tbody></table></div></details>
+        <div className="section-heading"><div><Heading level={2}>Automatic message rules</Heading><p className="muted">These preferences are saved in Settings. Dates below show what the rules would schedule; no emails are delivered.</p></div><Button variant="secondary" onClick={onSettings}>Manage rules in Settings</Button></div>
+        {enabledRules.length===0 ? <p className="muted">No automatic message rules are enabled.</p> : enabledRules.map((r)=><div className="pharmacy-rule-line" key={r.id}>
+          <strong>{all[r.template]?.label??"Saved template"}</strong>
+          <span>{r.cadence==="repeat" ? "Repeat every "+r.days+" days (no start date)" : r.cadence.startsWith("deadline-") ? r.days+" days "+(r.cadence==="deadline-before"?"before":"after")+" "+(r.stateCode??"state")+" deadline "+(r.dueDate??"not set") : r.days+" days "+(r.cadence==="before"?"before":"after")+" each appointment"}</span><span>Enabled · demo</span>
+        </div>)}
+        {enabledRules.length>0 && <details className="peek"><summary>Preview potential message dates ({previewRows.length} entries)</summary>
+          <div className="table-scroll"><table><thead><tr><th>Potential recipient or deadline</th><th>Template</th><th>Illustrative date</th></tr></thead>
+          <tbody>{previewRows.slice(0,25).map((x)=><tr key={x.key}><td>{x.who}</td><td>{x.template}</td><td>{dateLabel(x.date)}</td></tr>)}</tbody></table></div>
+          {previewRows.length>25 && <p className="muted">Showing 25 of {previewRows.length} potential entries.</p>}
+          <p className="muted">No recipients are automatically enrolled. Deadline reminders require a verified state source and appropriate family eligibility.</p>
+        </details>}
       </Card>
       <Card className="pharmacy-message-composer" style={{ marginTop: "var(--space-5)" }}>
-        <Heading level={2}>Messages and templates</Heading>
-        <p className="muted">Save a template without sending. Choose individual families or select a filtered group below; one-family messages have their own tab.</p>
+        <Heading level={2}>Send messages</Heading>
+        <p className="muted">Choose a saved template, select recipients, review the text, and record a simulated send. Create and edit reusable templates in Settings.</p>
         <div className="seg pharmacy-message-tabs" role="group" aria-label="Compose mode">
-          <button className={mode === "group" ? "active" : ""} onClick={() => {setMode("group");setReviewed(false)}} aria-pressed={mode === "group"}>Group or template</button>
+          <button className={mode === "group" ? "active" : ""} onClick={() => {setMode("group");setReviewed(false)}} aria-pressed={mode === "group"}>Group message</button>
           <button className={mode === "single" ? "active" : ""} onClick={() => {setMode("single");setReviewed(false)}} aria-pressed={mode === "single"}>One family</button>
         </div>
         <div className="pharmacy-composer-meta">
@@ -78,13 +88,13 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
         {mode==="group" && <div className="pharmacy-group-picker">
           <div className="pharmacy-group-tools">
             <Select label="Filter families" value={groupScope} onChange={(e)=>setGroupScope(e.target.value as typeof groupScope)}>
-              <option value="all">All booked visits</option><option value="upcoming">Upcoming visits</option><option value="day">Reference date visits</option><option value="checked-in">Checked-in visits</option><option value="no-show">No-shows</option>
+              <option value="all">All visits (including past)</option><option value="upcoming">Upcoming visits</option><option value="past">Past visits</option><option value="day">Demo today</option><option value="checked-in">Checked-in visits</option><option value="completed">Completed visits</option><option value="no-show">No-shows</option><option value="cancelled">Cancelled visits</option>
             </Select>
             <div className="field"><label htmlFor="pm-group-search">Search children</label><input id="pm-group-search" value={groupSearch} onChange={(e)=>setGroupSearch(e.target.value)} placeholder="Name, grade or date" /></div>
           </div>
           <div className="pharmacy-group-actions"><strong>{ids.length} selected · {filteredVisits.length} matching visits</strong><Button variant="secondary" onClick={selectFiltered}>Select all matching</Button><Button variant="text" onClick={()=>setIds([])}>Clear selection</Button></div>
           <div className="pharmacy-group-list" role="group" aria-label="Choose families for group message">
-            {filteredVisits.slice(0,100).map((v)=><label key={v.id} className="pharmacy-group-choice"><input type="checkbox" checked={ids.includes(v.id)} onChange={(e)=>setIds((old)=>e.target.checked?[...old.filter((id)=>id!==v.id),v.id]:old.filter((id)=>id!==v.id))} /><span><strong>{v.name}</strong><small>{dateLabel(v.date)} · {v.time} · {v.pharmacist}</small></span></label>)}
+            {filteredVisits.slice(0,100).map((v)=><label key={v.id} className="pharmacy-group-choice"><input type="checkbox" checked={ids.includes(v.id)} onChange={(e)=>setIds((old)=>e.target.checked?[...old.filter((id)=>id!==v.id),v.id]:old.filter((id)=>id!==v.id))} /><span><strong>{v.name}</strong><small>{dateLabel(v.date)} · {v.time} · {v.pharmacist} · {statusOf(v,data.visitMarks)}</small></span></label>)}
             {filteredVisits.length>100&&<p className="muted">Showing the first 100. Select all matching to include all {filteredVisits.length} visits.</p>}
             {filteredVisits.length===0&&<p className="muted">No matching appointments.</p>}
           </div>
@@ -93,7 +103,6 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
         <div className="pharmacy-compose-toggle"><strong>{preview ? "Recipient preview" : "Edit message"}</strong><Button variant="secondary" onClick={()=>setPreview(!preview)}>{preview ? "Edit message" : "Preview for recipient"}</Button></div>
         {preview ? <div className="pharmacy-inline-preview">{sendingTo.length ? <><strong>{fill(subject,sendingTo[0])}</strong><p>{fill(body,sendingTo[0])}</p><small className="muted">Showing {sendingTo[0].name}</small></> : <p className="muted">Choose a recipient to preview personalized content.</p>}</div> :
           <div className="pharmacy-full-compose"><div className="field"><label htmlFor="pm-sub">Subject</label><input id="pm-sub" value={subject} onChange={(e)=>setSubject(e.target.value)} /></div><div className="field"><label htmlFor="pm-body">Message</label><textarea id="pm-body" ref={bodyRef} rows={9} value={body} onChange={(e)=>setBody(e.target.value)} /></div><div className="chip-row">{mergeFields.map((x)=><button key={x} type="button" className="filter-chip" onClick={()=>insert(x)}>{x}</button>)}</div></div>}
-        <div className="pharmacy-template-save"><div className="field"><label htmlFor="pm-tname">New template name</label><input id="pm-tname" value={tName} onChange={(e)=>setTName(e.target.value)} placeholder="Name this template" /></div><Button variant="secondary" disabled={!tName.trim() || !subject.trim() || !body.trim()} onClick={saveTemplate}>Save template only</Button></div>
         <div className="pharmacy-send-section"><p className="muted">To: {sendingTo.length ? sendingTo.map((v)=>v.name).slice(0,6).join(", ") : "No families selected"}. Timing: immediate simulated record; automatic schedules are in Settings.</p>
           <Check checked={reviewed} onChange={(e)=>setReviewed(e.target.checked)}>I reviewed the recipients and message.</Check>
           <div className="action-row"><Button disabled={!reviewed || sendingTo.length === 0 || !body.trim() || !subject.trim()} onClick={submit}>Record message for {sendingTo.length} families</Button></div>

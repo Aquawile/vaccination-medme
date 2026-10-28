@@ -15,6 +15,12 @@ describe("pharmacy visits", () => {
     expect(statusOf(v(), { "V-1": "no-show" })).toBe("no-show")
     expect(statusOf(v(), { "V-1": "no-show" }, true)).toBe("completed")
   })
+  it("supports fictional seeded statuses and pharmacist overrides", () => {
+    const statuses = ["booked","checked-in","completed","no-show","cancelled"] as const
+    statuses.forEach((sampleStatus) => expect(statusOf(v({sampleStatus}),{})).toBe(sampleStatus))
+    expect(statusOf(v({sampleStatus:"no-show"}),{"V-1":"checked-in"})).toBe("checked-in")
+    expect(statusOf(v({sampleStatus:"cancelled"}),{"V-1":"booked"})).toBe("booked")
+  })
   it("counts a day", () => {
     const visits = [v(), v({ id: "V-2" }), v({ id: "V-3", date: "2026-09-11" })]
     expect(dayStats(visits, { "V-2": "checked-in" }, "2026-09-10")).toEqual({ total: 2, booked: 1, checkedIn: 1, completed: 0, noShow: 0 })
