@@ -33,8 +33,8 @@ export default function PublishSettings() {
   const [templateSearch, setTemplateSearch] = useState("")
   const [templateFilter, setTemplateFilter] = useState<"all"|"custom"|"builtin">("all")
   const templates = { ...builtInTemplates, ...Object.fromEntries(data.customTemplates.map((t) => [t.id, t])) }
-  const templateLibrary = Object.entries(templates).filter(([id,t])=> (templateFilter==="all" || (templateFilter==="custom" ? id.startsWith("custom-") : !id.startsWith("custom-"))) && (t.label+" "+t.subject+" "+t.body).toLowerCase().includes(templateSearch.trim().toLowerCase()))
-  const editSavedTemplate = (t: {id:string;label:string;subject:string;body:string}) => {setEditingTemplate(t.id.startsWith("custom-")?t.id:"");setEditingBuiltIn(t.id.startsWith("custom-")?"":t.id);setTemplateName(t.label);setTemplateSubject(t.subject);setTemplateBody(t.body);document.getElementById("pst-name")?.scrollIntoView({behavior:"smooth",block:"center"})}
+  const templateLibrary = Object.entries(templates).filter(([id,t])=> (templateFilter==="all" || (templateFilter==="custom" ? data.customTemplates.some((x)=>x.id===id) : !data.customTemplates.some((x)=>x.id===id))) && (t.label+" "+t.subject+" "+t.body).toLowerCase().includes(templateSearch.trim().toLowerCase()))
+  const editSavedTemplate = (t: {id:string;label:string;subject:string;body:string}) => {setEditingTemplate(t.id);setEditingBuiltIn(t.id.startsWith("custom-")?"":t.id);setTemplateName(t.label);setTemplateSubject(t.subject);setTemplateBody(t.body);document.getElementById("pst-name")?.scrollIntoView({behavior:"smooth",block:"center"})}
   const resetTemplateEditor = () => {setEditingBuiltIn("");setEditingTemplate("");setTemplateName("");setTemplateSubject("");setTemplateBody("")}
   const legalRule = autoCadence.startsWith("deadline-")
   const validDays = Number.isInteger(Number(autoDays)) && Number(autoDays) >= (autoCadence==="repeat"?1:0) && Number(autoDays)<=365
@@ -92,24 +92,24 @@ export default function PublishSettings() {
       <div className="pharmacy-template-library">
         {templateLibrary.length===0 && <p className="muted">No templates match this search.</p>}
         {templateLibrary.map(([id,t])=>{
-          const custom = id.startsWith("custom-")
+          const custom = data.customTemplates.some((x)=>x.id===id)
           const activeRules = data.automationRules.filter((r)=>r.template===id && r.enabled).length + (data.reminderRule.auto && data.reminderRule.template===id?1:0)
           return <div key={id} className="pharmacy-template-item">
-            <div><strong>{t.label}</strong><small className="muted">{custom?"My saved template":"Built-in template"} · {activeRules ? activeRules+" active automation rule(s)" : "Manual use only"}</small><p>{t.subject}</p><p className="muted pharmacy-template-excerpt">{t.body}</p></div>
+            <div><strong>{t.label}</strong><small className="muted">{custom?"Editable template":"Built-in template"} · {activeRules ? activeRules+" active automation rule(s)" : "Manual use only"}</small><p>{t.subject}</p><p className="muted pharmacy-template-excerpt">{t.body}</p></div>
             <div className="pharmacy-template-item-actions">
               <Button variant="secondary" onClick={()=>editSavedTemplate({id,label:t.label,subject:t.subject,body:t.body})}>Edit</Button>
-              {custom && <Button variant="text" onClick={()=>update((d)=>({...d,customTemplates:d.customTemplates.filter((x)=>x.id!==id),automationRules:d.automationRules.map((r)=>r.template===id?{...r,enabled:false}:r)}))}>Delete</Button>}
+              {custom && id.startsWith("custom-") && <Button variant="text" onClick={()=>update((d)=>({...d,customTemplates:d.customTemplates.filter((x)=>x.id!==id),automationRules:d.automationRules.map((r)=>r.template===id?{...r,enabled:false}:r)}))}>Delete</Button>}
             </div>
           </div>
         })}
       </div>
       <div className="pharmacy-template-editor">
-        <Heading level={3}>{editingTemplate?"Edit saved template":editingBuiltIn?"Edit built-in template":"Create a template"}</Heading>
+        <Heading level={3}>{editingTemplate?"Edit template":"Create a template"}</Heading>
         <div className="field"><label htmlFor="pst-name">Template name</label><input id="pst-name" value={templateName} onChange={(e)=>setTemplateName(e.target.value)} placeholder="e.g. Return visit follow-up" /></div>
         <div className="field"><label htmlFor="pst-sub">Email subject</label><input id="pst-sub" value={templateSubject} onChange={(e)=>setTemplateSubject(e.target.value)} /></div>
         <div className="field"><label htmlFor="pst-body">Message body</label><textarea id="pst-body" rows={7} value={templateBody} onChange={(e)=>setTemplateBody(e.target.value)} placeholder="Use {student}, {date}, {time} for personalized fields." /></div>
         <div className="action-row">
-          <Button disabled={!templateName.trim()||!templateSubject.trim()||!templateBody.trim()} onClick={()=>{update((d)=>({...d,customTemplates:editingTemplate?d.customTemplates.map((t)=>t.id===editingTemplate?{...t,label:templateName.trim(),subject:templateSubject,body:templateBody}:t):[...d.customTemplates,{id:"custom-"+Date.now(),label:templateName.trim(),subject:templateSubject,body:templateBody}]}));resetTemplateEditor()}}>{editingTemplate?"Save changes":editingBuiltIn?"Save edited template":"Save as new template"}</Button>
+          <Button disabled={!templateName.trim()||!templateSubject.trim()||!templateBody.trim()} onClick={()=>{update((d)=>({...d,customTemplates:editingTemplate ? (d.customTemplates.some((t)=>t.id===editingTemplate) ? d.customTemplates.map((t)=>t.id===editingTemplate?{...t,label:templateName.trim(),subject:templateSubject,body:templateBody}:t) : [...d.customTemplates,{id:editingTemplate,label:templateName.trim(),subject:templateSubject,body:templateBody}]) : [...d.customTemplates,{id:"custom-"+Date.now(),label:templateName.trim(),subject:templateSubject,body:templateBody}]}));resetTemplateEditor()}}>{editingTemplate?"Save changes":"Save as new template"}</Button>
           {(editingTemplate || templateName || templateSubject || templateBody) && <Button variant="text" onClick={resetTemplateEditor}>Clear editor</Button>}
         </div>
         <p className="muted">Templates are saved locally in this demo. Sending is done in Messages; automatic scheduling is configured separately below.</p>
