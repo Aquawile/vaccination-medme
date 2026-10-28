@@ -85,19 +85,6 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
           </table></div>
         )}
       </Card>
-      <Card className="pharmacy-message-status">
-        <div className="section-heading"><div><Heading level={2}>Automatic message rules</Heading><p className="muted">These preferences are saved in Settings. Dates below show what the rules would schedule; no emails are delivered.</p></div><Button variant="secondary" onClick={onSettings}>Manage rules in Settings</Button></div>
-        {enabledRules.length===0 ? <p className="muted">No automatic message rules are enabled.</p> : enabledRules.map((r)=><div className="pharmacy-rule-line" key={r.id}>
-          <strong>{all[r.template]?.label??"Saved template"}</strong>
-          <span>{r.cadence==="repeat" ? "Repeat every "+r.days+" days (no start date)" : r.cadence.startsWith("deadline-") ? r.days+" days "+(r.cadence==="deadline-before"?"before":"after")+" "+(r.stateCode??"state")+" deadline "+(r.dueDate??"not set") : r.days+" days "+(r.cadence==="before"?"before":"after")+" each appointment"}</span><span>Enabled · demo</span>
-        </div>)}
-        {enabledRules.length>0 && <details className="peek"><summary>Preview potential message dates ({previewRows.length} entries)</summary>
-          <div className="table-scroll"><table><thead><tr><th>Potential recipient or deadline</th><th>Template</th><th>Illustrative date</th></tr></thead>
-          <tbody>{previewRows.slice(0,25).map((x)=><tr key={x.key}><td>{x.who}</td><td>{x.template}</td><td>{dateLabel(x.date)}</td></tr>)}</tbody></table></div>
-          {previewRows.length>25 && <p className="muted">Showing 25 of {previewRows.length} potential entries.</p>}
-          <p className="muted">No recipients are automatically enrolled. Deadline reminders require a verified state source and appropriate family eligibility.</p>
-        </details>}
-      </Card>
       <Card className="pharmacy-message-composer" style={{ marginTop: "var(--space-5)" }}>
         <Heading level={2}>Send messages</Heading>
         <p className="muted">Choose a saved template, select recipients, review the text, and record a simulated send. Create and edit reusable templates in Settings.</p>
@@ -133,6 +120,19 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
           <div className="action-row"><Button disabled={!reviewed || sendingTo.length === 0 || !body.trim() || !subject.trim()} onClick={submit}>Record message for {sendingTo.length} families</Button></div>
         </div>
         {sent && <Alert kind="success">{sent}</Alert>}
+      </Card>
+      <Card className="pharmacy-message-status pharmacy-message-rules-bottom">
+        <div className="section-heading"><div><Heading level={2}>Automatic message rules</Heading><p className="muted">These preferences are saved in Settings. Dates below show what the rules would schedule; no emails are delivered.</p></div><Button variant="secondary" onClick={onSettings}>Manage rules in Settings</Button></div>
+        {enabledRules.length===0 ? <p className="muted">No automatic message rules are enabled.</p> : enabledRules.map((r)=><div className="pharmacy-rule-line" key={r.id}>
+          <strong>{all[r.template]?.label??"Saved template"}</strong>
+          <span>{r.cadence==="repeat" ? "Repeat every "+r.days+" days (no start date)" : r.cadence.startsWith("deadline-") ? r.days+" days "+(r.cadence==="deadline-before"?"before":"after")+" "+(r.stateCode??"state")+" deadline "+(r.dueDate??"not set") : r.days+" days "+(r.cadence==="before"?"before":"after")+" each appointment"}</span><span>Enabled · demo</span>
+        </div>)}
+        {enabledRules.length>0 && <details className="peek"><summary>Preview potential message dates ({previewRows.length} entries)</summary>
+          <div className="table-scroll"><table><thead><tr><th>Potential recipient or deadline</th><th>Template</th><th>Illustrative date</th></tr></thead>
+          <tbody>{previewRows.slice(0,25).map((x)=><tr key={x.key}><td>{x.who}</td><td>{x.template}</td><td>{dateLabel(x.date)}</td></tr>)}</tbody></table></div>
+          {previewRows.length>25 && <p className="muted">Showing 25 of {previewRows.length} potential entries.</p>}
+          <p className="muted">No recipients are automatically enrolled. Deadline reminders require a verified state source and appropriate family eligibility.</p>
+        </details>}
       </Card>
 
     </>
