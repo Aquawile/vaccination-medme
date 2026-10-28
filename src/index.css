@@ -525,7 +525,7 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
     border-radius: 7px;
   }
   .workspace:has(.parent-nav) .parent-nav .button:hover,
-  .workspace:has(.parent-nav) .parent-nav .button[aria-current="page"] {
+  .workspace:has(.parent-nav) .parent-nav .button.nav-active {
     background: var(--navy);
     color: var(--white);
   }
