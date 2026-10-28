@@ -60,6 +60,31 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
   }
   return (
     <>
+      <Card className="pharmacy-sent-log">
+        <Heading level={2}>Sent and replies</Heading>
+        {data.pharmacyMessages.length === 0 ? <p className="muted">Nothing sent yet.</p> : (
+          <div className="table-scroll"><table>
+            <thead><tr><th>Date</th><th>Type</th><th>Subject</th><th>Families</th><th>Replies</th></tr></thead>
+            <tbody>{data.pharmacyMessages.map((m) => {
+              const replies = m.visitIds.filter((id) => fakeReply(id).state === "Replied").length
+              return (
+                <Fragment key={m.id}>
+                  <tr><td>{dateLabel(m.date)}</td><td>{m.kind}{m.auto ? " (auto)" : ""}</td><td>{m.subject}</td><td>{m.visitIds.length}</td><td><button className="link-button" aria-expanded={open === m.id} onClick={() => setOpen(open === m.id ? "" : m.id)}>{replies} of {m.visitIds.length}</button></td></tr>
+                  {open === m.id && (
+                    <tr><td colSpan={5}>
+                      <ul className="reply-list">{m.visitIds.map((id) => {
+                        const v = visits.find((x) => x.id === id), r = fakeReply(id)
+                        return <li key={id}><strong>{v?.name ?? id}</strong> <span className="muted">{r.state}</span>{r.text && <q>{r.text}</q>}</li>
+                      })}</ul>
+                      <a href={GMAIL_SENT} target="_blank" rel="noreferrer">Open in Gmail</a> <span className="muted">Demo link. A real build opens the message in the mailbox it was sent from.</span>
+                    </td></tr>
+                  )}
+                </Fragment>
+              )
+            })}</tbody>
+          </table></div>
+        )}
+      </Card>
       <Card className="pharmacy-message-status">
         <div className="section-heading"><div><Heading level={2}>Automatic message rules</Heading><p className="muted">These preferences are saved in Settings. Dates below show what the rules would schedule; no emails are delivered.</p></div><Button variant="secondary" onClick={onSettings}>Manage rules in Settings</Button></div>
         {enabledRules.length===0 ? <p className="muted">No automatic message rules are enabled.</p> : enabledRules.map((r)=><div className="pharmacy-rule-line" key={r.id}>
@@ -109,31 +134,7 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
         </div>
         {sent && <Alert kind="success">{sent}</Alert>}
       </Card>
-      <Card style={{ marginTop: "var(--space-5)" }}>
-        <Heading level={2}>Sent and replies</Heading>
-        {data.pharmacyMessages.length === 0 ? <p className="muted">Nothing sent yet.</p> : (
-          <div className="table-scroll"><table>
-            <thead><tr><th>Date</th><th>Type</th><th>Subject</th><th>Families</th><th>Replies</th></tr></thead>
-            <tbody>{data.pharmacyMessages.map((m) => {
-              const replies = m.visitIds.filter((id) => fakeReply(id).state === "Replied").length
-              return (
-                <Fragment key={m.id}>
-                  <tr><td>{dateLabel(m.date)}</td><td>{m.kind}{m.auto ? " (auto)" : ""}</td><td>{m.subject}</td><td>{m.visitIds.length}</td><td><button className="link-button" aria-expanded={open === m.id} onClick={() => setOpen(open === m.id ? "" : m.id)}>{replies} of {m.visitIds.length}</button></td></tr>
-                  {open === m.id && (
-                    <tr><td colSpan={5}>
-                      <ul className="reply-list">{m.visitIds.map((id) => {
-                        const v = visits.find((x) => x.id === id), r = fakeReply(id)
-                        return <li key={id}><strong>{v?.name ?? id}</strong> <span className="muted">{r.state}</span>{r.text && <q>{r.text}</q>}</li>
-                      })}</ul>
-                      <a href={GMAIL_SENT} target="_blank" rel="noreferrer">Open in Gmail</a> <span className="muted">Demo link. A real build opens the message in the mailbox it was sent from.</span>
-                    </td></tr>
-                  )}
-                </Fragment>
-              )
-            })}</tbody>
-          </table></div>
-        )}
-      </Card>
+
     </>
   )
 }

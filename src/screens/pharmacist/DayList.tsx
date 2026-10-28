@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
-import { Alert, Badge, Button, Card, Field } from "../../components/ui"
+import { Badge, Button, Card, Field } from "../../components/ui"
 import { dateLabel } from "../../demo/journey"
-import { overlapping, statusOf, YOU, type Visit } from "../../domain/pharmacyVisits"
+import { statusOf, YOU, type Visit } from "../../domain/pharmacyVisits"
 import { builtInTemplates } from "../../domain/pharmacyTemplates"
 import { useDemo } from "../../state"
 import { useSendMessage } from "./useSendMessage"
@@ -42,7 +42,7 @@ export default function DayList({ visits: allVisits, day, showAll, onShowAll, on
   const noShows = visits.filter((v) => within(v) && statusOf(v, data.visitMarks, done.has(v.id)) === "no-show").map((v) => v.id)
   return (
     <>
-      {!showAll && hidden > 0 && <Alert>{hidden} other appointment{hidden > 1 ? "s" : ""} during this period belong{hidden > 1 ? "" : "s"} to other pharmacists, so they are not listed here. <Button variant="text" onClick={() => onShowAll(true)}>Show everyone</Button></Alert>}
+      {!showAll && hidden > 0 && <div className="pharmacy-staff-notice"><span>{hidden} appointment{hidden>1?"s":""} assigned to other pharmacists are hidden for this date.</span><Button variant="secondary" onClick={() => onShowAll(true)}>Show all pharmacists</Button></div>}
       <div className="pharmacy-period-tools"><strong>Check-in & attendance · {dateLabel(day)}</strong><span className="muted">Select another day using the calendar. Only visits on this date are actionable here.</span></div>
       <div className="stat-row">
         <div className="stat"><strong>{stats.total}</strong><span>Appointments</span></div>
@@ -77,13 +77,20 @@ export default function DayList({ visits: allVisits, day, showAll, onShowAll, on
                       {showAll && <td>{v.pharmacist === YOU ? "You" : v.pharmacist}</td>}
                       <td><Badge kind={tone[st]}>{st === "no-show" ? "No-show" : st === "checked-in" ? "Checked in" : st === "completed" ? "Completed" : st === "cancelled" ? "Cancelled" : "Booked"}</Badge></td>
                       <td className="row-actions">
-                        {overlapping(allVisits, v).length > 0 && <span className="muted" title="Another visit starts at this time">+{overlapping(allVisits, v).length} at {v.time}</span>}
-                        {st === "booked" && <Button variant="secondary" onClick={() => mark(v, "checked-in")}>Check in</Button>}
-                        {st === "booked" && <Button variant="text" onClick={() => mark(v, "no-show")}>No-show</Button>}{st === "booked" && <Button variant="text" onClick={() => cancel(v)}>Cancel</Button>}
-                        {(st === "cancelled" || st === "no-show") && <Button variant="text" onClick={() => restore(v)}>Restore booking</Button>}
-                        {st === "checked-in" && <Button variant="secondary" onClick={() => (v.appointmentId ? onOpen(v.appointmentId) : mark(v, "completed"))}>{v.appointmentId ? "Record dose" : "Mark completed"}</Button>}
-                        <Button variant="text" onClick={() => onNotify(st === "no-show" ? "noshow" : "reminder", [v.id])}>Message family</Button>
-                        {v.appointmentId && st !== "booked" && st !== "checked-in" && <Button variant="text" onClick={() => onOpen(v.appointmentId!)}>Open</Button>}
+                        <div className="pharmacy-visit-action-set">
+                          {st === "booked" && <Button variant="secondary" onClick={() => mark(v, "checked-in")}>Check in</Button>}
+                          {st === "checked-in" && <Button variant="secondary" onClick={() => (v.appointmentId ? onOpen(v.appointmentId) : mark(v, "completed"))}>{v.appointmentId ? "Record dose" : "Mark complete"}</Button>}
+                          {(st === "cancelled" || st === "no-show") && <Button variant="secondary" onClick={() => restore(v)}>Restore booking</Button>}
+                          <details className="pharmacy-visit-more">
+                            <summary>More actions</summary>
+                            <div className="pharmacy-visit-more-menu">
+                              {st === "booked" && <><button type="button" onClick={() => mark(v, "no-show")}>Mark no-show</button><button type="button" onClick={() => cancel(v)}>Cancel booking</button></>}
+                              {st === "checked-in" && <button type="button" onClick={() => mark(v, "booked")}>Undo check-in</button>}
+                              <button type="button" onClick={() => onNotify(st === "no-show" ? "noshow" : "reminder", [v.id])}>Message family</button>
+                              {v.appointmentId && <button type="button" onClick={() => onOpen(v.appointmentId!)}>Appointment details</button>}
+                            </div>
+                          </details>
+                        </div>
                       </td>
                     </tr>
                   )
