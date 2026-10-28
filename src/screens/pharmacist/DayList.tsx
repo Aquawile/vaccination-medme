@@ -80,16 +80,10 @@ export default function DayList({ visits: allVisits, day, showAll, onShowAll, on
                         <div className="pharmacy-visit-action-set">
                           {st === "booked" && <Button variant="secondary" onClick={() => mark(v, "checked-in")}>Check in</Button>}
                           {st === "checked-in" && <Button variant="secondary" onClick={() => (v.appointmentId ? onOpen(v.appointmentId) : mark(v, "completed"))}>{v.appointmentId ? "Record dose" : "Mark complete"}</Button>}
-                          {(st === "cancelled" || st === "no-show") && <Button variant="secondary" onClick={() => restore(v)}>Restore booking</Button>}
-                          <details className="pharmacy-visit-more">
-                            <summary>More actions</summary>
-                            <div className="pharmacy-visit-more-menu">
-                              {st === "booked" && <><button type="button" onClick={() => mark(v, "no-show")}>Mark no-show</button><button type="button" onClick={() => cancel(v)}>Cancel booking</button></>}
-                              {st === "checked-in" && <button type="button" onClick={() => mark(v, "booked")}>Undo check-in</button>}
-                              <button type="button" onClick={() => onNotify(st === "no-show" ? "noshow" : "reminder", [v.id])}>Message family</button>
-                              {v.appointmentId && <button type="button" onClick={() => onOpen(v.appointmentId!)}>Appointment details</button>}
-                            </div>
-                          </details>
+                          {st === "completed" && <span className="pharmacy-visit-done">Completed</span>}
+                          {st === "cancelled" && <span className="pharmacy-visit-done">Cancelled</span>}
+                          {(st === "booked" || st === "checked-in") && <Button variant="text" onClick={() => cancel(v)}>Cancel</Button>}
+                          {(st === "cancelled" || st === "no-show") && <Button variant="text" onClick={() => restore(v)}>Restore</Button>}
                         </div>
                       </td>
                     </tr>
