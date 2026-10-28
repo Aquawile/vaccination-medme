@@ -365,10 +365,10 @@ export default function Parent() {
             </Card>
             <div className="family-dashboard-grid">
               <Card className="family-records">
-                <div className="section-heading"><div><Heading level={2}>Records to review</Heading><p className="muted">Check the record status before arranging a visit.</p></div><Button variant="secondary" onClick={() => setView("records")}>Open records</Button></div>
-                <div className="family-status-row"><span>School requirements</span><Badge kind="warning">Sample · unverified</Badge><Button variant="text" onClick={() => setView("details")}>Review</Button></div>
-                <div className="family-status-row"><span>Vaccination record</span><Badge kind={data.record.state === "complete" ? "success" : "warning"}>{data.record.state === "complete" ? "Sample complete" : "Review needed"}</Badge><Button variant="text" onClick={() => setView("records")}>View</Button></div>
-                <div className="family-status-row"><span>Saved selections</span><Badge>{data.selection.length} selected</Badge><Button variant="text" onClick={() => setView("details")}>Update</Button></div>
+                <div className="section-heading"><div><Heading level={2}>Your child's vaccination information</Heading><p className="muted">Sample history and school requirements are different. Review both before booking.</p></div><Button variant="secondary" onClick={() => setView("records")}>View dose history</Button></div>
+                <div className="family-status-row"><span><strong>School requirements</strong><small className="muted">Example school checklist; not clinically verified</small></span><Badge kind="warning">Needs review</Badge><Button variant="text" onClick={() => setView("details")}>Review</Button></div>
+                <div className="family-status-row"><span><strong>Dose history</strong><small className="muted">3 fictional school entries + {data.appointments.reduce((n,a)=>n+a.doses.length,0)} pharmacist-recorded dose(s)</small></span><Badge>Demo history</Badge><Button variant="text" onClick={() => setView("records")}>View</Button></div>
+                <div className="family-status-row"><span><strong>Vaccines selected</strong><small className="muted">Saved for appointment planning</small></span><Badge>{data.selection.length} selected</Badge><Button variant="text" onClick={() => setView("details")}>Update</Button></div>
               </Card>
               <Card className="family-next-step">
                 <div className="card-heading"><span className="surface-icon"><Icon name="document" /></span><Heading level={2}>Next step</Heading></div>
