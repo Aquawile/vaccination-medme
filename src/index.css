@@ -798,3 +798,22 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
 .demo-quick-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .demo-quick-actions button{min-width:0;white-space:normal;font-size:12px;padding:10px 5px}
 @media(max-width:530px){.demo-quick-actions{grid-template-columns:1fr}}
+
+/* W-136: consistent settings inputs and aligned saved rule actions. */
+.pharmacy-workspace .pharmacy-template-editor textarea,
+.pharmacy-workspace .pharmacy-template-editor #pst-body {
+  display:block;box-sizing:border-box;min-height:170px;width:100%;
+  padding:12px 14px;border:1px solid #cddce0;border-radius:8px;
+  background:#fff;color:#173c4a;font:inherit;line-height:1.55;
+  outline:none;box-shadow:none;transition:border-color .15s,box-shadow .15s;
+}
+.pharmacy-workspace .pharmacy-template-editor textarea:focus,
+.pharmacy-workspace .pharmacy-template-editor #pst-body:focus {
+  border:1px solid #0e687b;border-radius:8px;
+  outline:none;box-shadow:0 0 0 2px rgba(6,72,90,.14);
+}
+.pharmacy-workspace .pharmacy-rule-row{display:grid;grid-template-columns:minmax(150px,1fr) minmax(170px,1.5fr) auto;align-items:center;column-gap:16px;row-gap:8px}
+.pharmacy-workspace .pharmacy-rule-actions{display:flex;justify-content:flex-end;align-items:center;gap:12px;flex-wrap:wrap}
+.pharmacy-workspace .pharmacy-rule-actions .check{margin:0;display:inline-flex;align-items:center;gap:7px}
+.pharmacy-workspace .pharmacy-rule-actions label{margin:0;white-space:nowrap}
+@media(max-width:880px){.pharmacy-workspace .pharmacy-rule-row{grid-template-columns:1fr}.pharmacy-workspace .pharmacy-rule-actions{justify-content:flex-start}}
