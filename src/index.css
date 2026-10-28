@@ -426,3 +426,156 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
 .ev.block { position: absolute; left: 3px; right: 3px; width: auto; }
 .peek { margin: var(--space-3) 0; } .peek summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--deep-teal); min-height: 32px; display: flex; align-items: center; }
 .reply-list { list-style: none; margin: 0 0 var(--space-3); padding: 0; display: grid; gap: 6px; font-size: 13px; } .reply-list q { display: block; margin-top: 2px; color: var(--navy); }
+
+
+/* W-132: Desktop workspace density. Retains the Figma-derived MedMe visual tokens.
+   Fit standard laptop viewports without compressing real tables, lists, or records. */
+@media (min-width: 1101px) {
+  .auth-page {
+    height: 100svh;
+    min-height: 0;
+    grid-template-columns: minmax(0, 45%) minmax(0, 1fr);
+    padding: var(--space-3);
+    gap: var(--space-3);
+  }
+  .auth-visual { min-height: 0; }
+  .visual-top { padding: var(--space-4) var(--space-6); }
+  .visual-content { padding: var(--space-2) var(--space-5); }
+  .visual-content h2 { font-size: clamp(24px, 2.35vw, 34px); line-height: 1.2; }
+  .visual-content > p { margin-top: var(--space-3); line-height: 1.55; }
+  .visual-features { margin-top: var(--space-4); }
+  .visual-bottom { padding: var(--space-3); }
+  .illustration { transform: scale(.78); transform-origin: center; height: 225px; margin-bottom: 0; }
+  .auth-top { padding: var(--space-3) var(--space-6); }
+  .auth-form-container { max-width: 390px; padding: var(--space-2) 0; }
+  .welcome-icon { width: 40px; height: 40px; margin-bottom: var(--space-3); }
+  .auth-form-container h1 { font-size: 27px; }
+  .auth-description { margin: var(--space-2) 0 var(--space-4); }
+  .auth-form-container .field { margin-bottom: var(--space-3); }
+  .auth-reassurance { margin-top: var(--space-3); padding-top: var(--space-3); }
+  .auth-footer { padding: var(--space-2) var(--space-6); }
+
+
+  /* Only the parent and pharmacy share these density adjustments. */
+  .workspace:has(.parent-nav) .workspace-header { min-height: 60px; padding: var(--space-2) var(--space-6); }
+  .workspace:has(.parent-nav) .parent-main { padding: var(--space-5) var(--space-6) var(--space-8); }
+  .pharmacy-workspace .admin-main { padding: var(--space-5) var(--space-6) var(--space-8); }
+  .pharmacy-workspace .page-heading, .workspace:has(.parent-nav) .page-heading { margin-bottom: var(--space-4); }
+  .pharmacy-workspace .page-heading p, .workspace:has(.parent-nav) .page-heading p { margin-top: var(--space-2); line-height: 1.4; }
+  .pharmacy-workspace .section-heading, .workspace:has(.parent-nav) .section-heading { margin-bottom: var(--space-3); }
+  .pharmacy-workspace .card, .workspace:has(.parent-nav) .card { padding: var(--space-4) var(--space-5); }
+  .pharmacy-workspace .field, .workspace:has(.parent-nav) .field { margin-bottom: var(--space-3); }
+  .pharmacy-workspace input:not([type="checkbox"]), .pharmacy-workspace select,
+  .workspace:has(.parent-nav) input:not([type="checkbox"]), .workspace:has(.parent-nav) select { min-height: 42px; padding: 9px 12px; }
+  .pharmacy-workspace th, .workspace:has(.parent-nav) th { padding: 9px 12px; }
+  .pharmacy-workspace td, .workspace:has(.parent-nav) td { padding: 11px 12px; }
+  .pharmacy-workspace .alert, .workspace:has(.parent-nav) .alert { margin: var(--space-3) 0; padding: var(--space-3) var(--space-4); }
+}
+/* A window shorter than a conventional laptop keeps the login form accessible. */
+@media (min-width: 1101px) and (max-height: 720px) {
+  .auth-page { height: auto; min-height: 100svh; }
+  .auth-visual { min-height: 620px; }
+  .illustration { transform: scale(.65); height: 185px; }
+  .auth-reassurance { margin-top: var(--space-2); padding-top: var(--space-2); }
+}
+
+/* W-132 visual reference pass: parent and pharmacy ONLY.
+   Match the functional clinical-workspace hierarchy of supplied screenshots.
+   School admin selectors deliberately remain unchanged. */
+@media (min-width: 1101px) {
+  /* Parent: use the available width for a quiet, structured records workspace. */
+  .workspace:has(.parent-nav) {
+    --parent-rail: 198px;
+    background: var(--canvas);
+  }
+  .workspace:has(.parent-nav) .parent-nav {
+    position: fixed;
+    inset: 60px auto 0 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    width: var(--parent-rail);
+    padding: var(--space-5) var(--space-3);
+    gap: var(--space-2);
+    overflow-y: auto;
+    background: var(--deep-teal);
+    border: 0;
+  }
+  .workspace:has(.parent-nav) .parent-nav .button {
+    justify-content: flex-start;
+    text-align: left;
+    min-height: 43px;
+    padding: 9px 12px;
+    color: var(--white);
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+  }
+  .workspace:has(.parent-nav) .parent-nav .button:hover,
+  .workspace:has(.parent-nav) .parent-nav .button.nav-active {
+    background: var(--navy);
+    color: var(--white);
+  }
+  .workspace:has(.parent-nav) .parent-main {
+    margin-left: var(--parent-rail);
+    margin-right: auto;
+    max-width: none;
+    width: calc(100% - var(--parent-rail));
+    padding: var(--space-6) var(--space-8);
+  }
+  .workspace:has(.parent-nav) .workspace-footer { padding-left: calc(var(--parent-rail) + var(--space-4)); }
+  .workspace:has(.parent-nav) .page-heading h1 { font-size: 27px; line-height: 1.25; }
+  .workspace:has(.parent-nav) .page-heading { margin-bottom: var(--space-4); }
+  .workspace:has(.parent-nav) .child-summary {
+    border-left: 3px solid var(--jade);
+    padding: var(--space-4) var(--space-5);
+  }
+  .workspace:has(.parent-nav) .surface-icon,
+  .workspace:has(.parent-nav) .avatar { background: var(--lavender-soft); color: var(--deep-teal); }
+  .workspace:has(.parent-nav) .vaccine-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-3); }
+  .workspace:has(.parent-nav) .vaccine-list > * { min-width: 0; }
+  .workspace:has(.parent-nav) .progress { margin-bottom: var(--space-5); }
+  .workspace:has(.parent-nav) .card-heading { margin-bottom: var(--space-4); }
+  .workspace:has(.parent-nav) .record-source { border-left: 3px solid var(--periwinkle); }
+  .workspace:has(.parent-nav) .next-step { background: var(--deep-teal); color: var(--white); }
+
+  /* Pharmacy: a compact appointment-first workspace, not a marketing page. */
+  .pharmacy-workspace { grid-template-columns: 198px minmax(0,1fr); }
+  .pharmacy-workspace > .admin-sidebar {
+    padding: var(--space-4) var(--space-3);
+    gap: 5px;
+    background: var(--deep-teal);
+    border-right: 0;
+  }
+  .pharmacy-workspace > .admin-sidebar > .eyebrow { color: var(--lavender); margin: var(--space-3) 0; }
+  .pharmacy-workspace > .admin-sidebar .sidebar-item {
+    color: var(--white);
+    background: transparent;
+    border-radius: 7px;
+    padding: 10px 13px;
+    min-height: 42px;
+    font-size: 13px;
+  }
+  .pharmacy-workspace > .admin-sidebar .sidebar-item:hover,
+  .pharmacy-workspace > .admin-sidebar .sidebar-item[aria-current="page"] {
+    background: var(--navy) !important;
+    box-shadow: inset 3px 0 0 var(--jade);
+  }
+  .pharmacy-workspace > .admin-main { max-width: none; padding: var(--space-5) var(--space-6); }
+  .pharmacy-workspace .admin-title { margin-bottom: var(--space-3); }
+  .pharmacy-workspace .admin-title h1 { font-size: 27px; line-height: 1.2; }
+  .pharmacy-workspace .admin-title .eyebrow { color: var(--deep-teal); }
+  .pharmacy-workspace .appointment-details .detail-grid { gap: var(--space-3); }
+  .pharmacy-workspace .appointment-details .card { padding: var(--space-5); }
+  .pharmacy-workspace .cal-card { overflow: hidden; }
+  .pharmacy-workspace .cal-body { min-width: 0; }
+  .pharmacy-workspace .day-panel { max-height: 490px; }
+  .pharmacy-workspace .today-body { padding: var(--space-3); }
+  .pharmacy-workspace .ev.block { border-left: 3px solid var(--jade); }
+  .pharmacy-workspace .visit-table td { padding: 9px 11px; }
+}
+@media (min-width: 1101px) and (max-width: 1279px) {
+  .workspace:has(.parent-nav) .vaccine-list { grid-template-columns: 1fr; }
+}
