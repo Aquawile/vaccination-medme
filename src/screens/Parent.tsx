@@ -357,6 +357,34 @@ export default function Parent() {
             <Heading>Your school notice</Heading>
             <p>A few clear steps to review records and arrange a visit.</p>
           </div>
+          <div className="family-overview">
+            <Card className="family-profile">
+              <span className="avatar" aria-hidden="true">{data.child.name.charAt(0)}</span>
+              <div><Heading level={2}>{data.child.name}</Heading><p className="muted">Grade {data.child.grade} · {data.child.school}</p></div>
+              <Badge>Demo profile</Badge>
+            </Card>
+            <div className="family-dashboard-grid">
+              <Card className="family-records">
+                <div className="section-heading"><div><Heading level={2}>Records to review</Heading><p className="muted">Check the record status before arranging a visit.</p></div><Button variant="secondary" onClick={() => setView("records")}>Open records</Button></div>
+                <div className="family-status-row"><span>School requirements</span><Badge kind="warning">Sample · unverified</Badge><Button variant="text" onClick={() => setView("details")}>Review</Button></div>
+                <div className="family-status-row"><span>Vaccination record</span><Badge kind={data.record.state === "complete" ? "success" : "warning"}>{data.record.state === "complete" ? "Sample complete" : "Review needed"}</Badge><Button variant="text" onClick={() => setView("records")}>View</Button></div>
+                <div className="family-status-row"><span>Saved selections</span><Badge>{data.selection.length} selected</Badge><Button variant="text" onClick={() => setView("details")}>Update</Button></div>
+              </Card>
+              <Card className="family-next-step">
+                <div className="card-heading"><span className="surface-icon"><Icon name="document" /></span><Heading level={2}>Next step</Heading></div>
+                <strong>Review school requirements</strong>
+                <p className="muted">Check your child's record against the school's sample list and choose what to book.</p>
+                <Button className="full" onClick={() => { if (!data.noticeOpened) { update((d) => ({ ...d, noticeOpened: true })); event("Sample school notice opened (simulated scan)", "scan") }; setView("details") }}>View requirements <Icon name="arrow" size={17} /></Button>
+              </Card>
+            </div>
+            <Card className="family-appointment-summary">
+              <span className="surface-icon"><Icon name="calendar" /></span>
+              <div><Heading level={2}>Upcoming appointments</Heading><p className="muted">{data.appointments.filter((a) => !a.seeded && !a.cancelled).length} active demo appointments</p></div>
+              <Button variant="secondary" onClick={() => setView("appointments")}>Manage appointments</Button>
+            </Card>
+          </div>
+          <details className="family-notice-details">
+            <summary>Read the full fictional school notice</summary>
           <Card className="school-notice">
             <span className="surface-icon">
               <Icon name="document" />
@@ -408,6 +436,7 @@ export default function Parent() {
               <Icon name="arrow" size={17} />
             </Button>
           </Card>
+          </details>
           {data.appointments.some((a) => !a.seeded) && (
             <Button
               className="full next-step"
