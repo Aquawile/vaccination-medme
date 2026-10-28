@@ -76,7 +76,7 @@ test("connected booking, clinician doses, PDF, reporting, sharing and school out
     .toBe(1)
   await logout(page)
   await login(page, "pharmacist")
-  await page.getByRole("tab", { name: "Visits" }).click()
+  await page.getByText("Booked in the app").locator("..").getByRole("button").first().click()
   await expect(
     page.getByText("APPOINTMENT · APT-", { exact: false }),
   ).toBeVisible()

@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent } from "react"
 import Calendar from "./admin/Calendar"
-import Today from "./pharmacist/Today"
+import DayList from "./pharmacist/DayList"
+import { firstBusyDay } from "../domain/pharmacyVisits"
 import PharmacyMessages from "./pharmacist/Messages"
 import { usePharmacyVisits } from "./pharmacist/usePharmacyVisits"
 import PublishSettings from "./pharmacist/PublishSettings"
@@ -33,96 +34,7 @@ import { saveDose, simulatedRequest } from "../demo/services"
 import { exportDoses } from "../demo/documents"
 import { useDemo } from "../state"
 import { defaults } from "../demo/config"
-function Visits({ selected, setSelected }: { selected: string; setSelected: (id: string) => void }) {
-  const { data, update, event } = useDemo()
-  const [filter, setFilter] = useState("all")
-  const [query, setQuery] = useState("")
-  const appointments = data.appointments
-    .filter(
-      (a) =>
-        (filter === "all" || a.locationId === filter) &&
-        `${a.child.name} ${a.child.school}`.toLowerCase().includes(query.toLowerCase()),
-    )
-    .slice()
-    .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))
-  const appointment = data.appointments.find((a) => a.id === selected)
-  return (
-    <div className="staff-main" style={{ padding: 0 }}>
-      <div className="schedule-layout">
-        <Card className="schedule">
-          <div className="section-heading">
-            <Heading level={2}>Schedule</Heading>
-            <Badge>{appointments.length}</Badge>
-          </div>
-          <Select
-            label="Location"
-            value={filter}
-            onChange={(e) => {
-              setFilter(e.target.value)
-              const next = data.appointments.find(
-                (a) =>
-                  e.target.value === "all" || a.locationId === e.target.value,
-              )
-              if (next) setSelected(next.id)
-            }}
-          >
-            <option value="all">All demo locations</option>
-            {locations.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </Select>
-          <Field
-            label="Find a student"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name or school"
-          />
-          {appointments.map((a) => (
-            <Button
-              key={a.id}
-              variant={
-                a.id === selected ? "appointment selected" : "appointment"
-              }
-              onClick={() => setSelected(a.id)}
-            >
-              <span className="appointment-time">
-                {a.time}
-                <span>{a.date.slice(5)}</span>
-              </span>
-              <span>
-                <strong>{a.child.name}</strong>
-                <span>
-                  {a.vaccines.length} selected vaccine
-                  {a.vaccines.length > 1 ? "s" : ""}
-                </span>
-                <Badge
-                  kind={appointmentStatus(a) === "Completed" ? "success" : ""}
-                >
-                  {appointmentStatus(a)}
-                </Badge>
-                <small>{a.seeded ? "Seeded example" : "Parent booking"}</small>
-              </span>
-            </Button>
-          ))}
-          {!appointments.length && (
-            <p className="muted">No appointments at this location.</p>
-          )}
-        </Card>
-        {appointment && appointments.some((a) => a.id === appointment.id) ? (
-          <AppointmentDetails key={appointment.id} appointment={appointment} />
-        ) : (
-          <Card>
-            <Heading level={2}>Choose an appointment</Heading>
-            <p className="muted">Select a visit from the schedule.</p>
-          </Card>
-        )}
-      </div>
-    </div>
-  )
-}
-function AppointmentDetails({ appointment: a }: { appointment: Appointment }) {
+export function AppointmentDetails({ appointment: a }: { appointment: Appointment }) {
   const { data, update, event } = useDemo()
   const next = a.vaccines.find((id) => !a.doses.some((d) => d.vaccine === id))
   const [vaccine, setVaccine] = useState(next || a.vaccines[0])
@@ -611,22 +523,22 @@ function AppointmentDetails({ appointment: a }: { appointment: Appointment }) {
 }
 
 const pharmacyTabs = [
-  { id: "today", label: "Today" },
-  { id: "calendar", label: "Calendar" },
-  { id: "visits", label: "Visits" },
+  { id: "schedule", label: "Schedule" },
   { id: "messages", label: "Messages" },
   { id: "settings", label: "Settings" },
 ]
-const pharmacyIcons: Record<string, string> = { today: "grid", calendar: "calendar", visits: "user", messages: "document", settings: "lock" }
+const pharmacyIcons: Record<string, string> = { schedule: "calendar", messages: "document", settings: "lock" }
 
 export default function Pharmacist() {
   const { data } = useDemo()
-  const [tab, setTab] = useState("today")
-  const [selected, setSelected] = useState(data.appointments.find((a) => !a.seeded && !a.cancelled)?.id || "DEMO-001")
-  const [compose, setCompose] = useState<{ template: string; ids: string[] } | null>(null)
+  const [tab, setTab] = useState("schedule")
   const visits = usePharmacyVisits()
-  const openVisit = (id: string) => { setSelected(id); setTab("visits") }
+  const [day, setDay] = useState(() => firstBusyDay(visits, defaults.referenceDate))
+  const [openId, setOpenId] = useState("")
+  const [compose, setCompose] = useState<{ template: string; ids: string[] } | null>(null)
   const notify = (template: string, ids: string[]) => { setCompose({ template, ids }); setTab("messages") }
+  const opened = data.appointments.find((a) => a.id === openId)
+  const inApp = visits.filter((v) => v.origin === "parent" && !data.appointments.find((a) => a.id === v.appointmentId)?.cancelled)
   return (
     <div className="admin-layout">
       <aside className="admin-sidebar">
@@ -647,9 +559,29 @@ export default function Pharmacist() {
         </div>
         <Tabs tabs={pharmacyTabs} active={tab} onChange={setTab} />
         <div style={{ marginTop: "var(--space-5)" }}>
-          {tab === "today" && <Today visits={visits} onOpen={openVisit} onNotify={notify} />}
-          {tab === "calendar" && <Calendar variant="pharmacy" visits={visits} summaries={[]} state={data.schoolState} onOpen={() => setTab("today")} />}
-          {tab === "visits" && <Visits selected={selected} setSelected={setSelected} />}
+          {tab === "schedule" && (
+            opened ? (
+              <>
+                <Button variant="text" onClick={() => setOpenId("")}>Back to the day</Button>
+                <AppointmentDetails key={opened.id} appointment={opened} />
+              </>
+            ) : (
+              <>
+                {inApp.length > 0 && (
+                  <Alert>
+                    <strong>Booked in the app</strong>
+                    <span className="action-row" style={{ margin: "var(--space-2) 0 0" }}>
+                      {inApp.map((v) => <Button key={v.id} variant="secondary" onClick={() => { setDay(v.date); setOpenId(v.appointmentId!) }}>{v.name}, {dateLabel(v.date)} {v.time}</Button>)}
+                    </span>
+                  </Alert>
+                )}
+                <Calendar variant="pharmacy" visits={visits} summaries={[]} state={data.schoolState} onOpen={() => {}} day={day} onDay={setDay} hidePanel />
+                <div style={{ marginTop: "var(--space-4)" }}>
+                  <DayList visits={visits} day={day} onOpen={setOpenId} onNotify={notify} />
+                </div>
+              </>
+            )
+          )}
           {tab === "messages" && <PharmacyMessages key={compose ? compose.template + compose.ids.join() : "new"} visits={visits} initial={compose} />}
           {tab === "settings" && <PublishSettings />}
         </div>
