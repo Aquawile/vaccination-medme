@@ -37,7 +37,7 @@ export default function Calendar({ summaries, state, onOpen, variant = "school",
     ...visits.map((v): CalEvent => ({ date: v.date, type: "visit", title: v.name, detail: `${v.time} · ${v.vaccines.length ? v.vaccines.join(", ") : "As booked"}${data.visitMarks[v.id] ? ` · ${data.visitMarks[v.id]}` : ""}` })),
     ...data.pharmacyMessages.map((m): CalEvent => ({ date: m.date, type: "notice", title: m.kind, detail: `Sent to ${m.visitIds.length} families` })),
   ], [visits, data.visitMarks, data.pharmacyMessages])
-  const all = useMemo(() => (pharmacy ? pharmacyEvents : buildEvents(summaries, data.outreach, allKeyDates, state, [...mock, ...clinics])), [pharmacy, pharmacyEvents, summaries, data.outreach, state, clinics.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  const all = useMemo(() => (pharmacy ? pharmacyEvents : buildEvents(summaries, data.outreach, allKeyDates, state, [...mock, ...clinics, ...data.appointments.filter(a=>!a.seeded).map(a=>({date:a.date,type:"visit" as const,title:a.child.name,detail:a.cancelled?"Cancelled":a.doses.length?"Completed":data.visitMarks[a.id]==="no-show"?"Missed":"Booked"}))])), [pharmacy, pharmacyEvents, summaries, data.outreach, data.appointments, data.visitMarks, state, clinics.length]) // eslint-disable-line react-hooks/exhaustive-deps
   const events = useMemo(() => all.filter((e) => on[e.type]), [all, on])
   const counts = useMemo(() => countsByDay(events), [events])
   const year = Number(day.slice(0, 4)), month = Number(day.slice(5, 7)) - 1

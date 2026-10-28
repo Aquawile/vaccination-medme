@@ -1,5 +1,5 @@
 import { optedOut } from "../../domain/consent"
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Alert, Badge, Button, Card, Check, Heading, Select } from "../../components/ui"
 import { buildQueues, type StudentSummary } from "../../domain/cohorts"
 import { vaccineName } from "../../data/vaccines"
@@ -14,10 +14,10 @@ const template = {
   body: "Hello {parent},\n\nThe school's record for {student} does not yet show: {vaccines}. You can see the school's list and book a visit at a participating pharmacy through MedMe. Whether and when to vaccinate is your decision.\n\nIf you already have these records, you can upload them and we will update the school's file.\n\nThank you,\n{school}",
 }
 
-const templates: Record<string, { label: string; subject: string; body: string }> = {
+export const templates: Record<string, { label: string; subject: string; body: string }> = {
   missing: { label: "Missing doses", ...template },
   booked: { label: "Visit booked, a reminder", subject: "{student}: your vaccination visit", body: "Hello {parent},\n\n{student} has a visit booked. The school's list still shows: {vaccines}. You can see or change the visit in the app.\n\nThank you,\n{school}" },
-  records: { label: "Records not found", subject: "{student}: we could not find a record", body: "Hello {parent},\n\nThe school has no vaccination record on file for {student}. If you have one, you can upload it in the app. If not, you can look up the school's list and decide what to do next.\n\nThank you,\n{school}" },
+  records: { label: "Records not found", subject: "{student}: we could not find a record", body: "Hello {parent},\n\nThe school has no vaccination record on file for {student}. If you have one, contact the school about accepted ways to submit it. If not, you can look up the school's list and decide what to do next.\n\nThank you,\n{school}" },
   custom: { label: "Custom message", subject: "", body: "" },
 }
 const fieldTags = ["{parent}", "{student}", "{vaccines}", "{school}"]
@@ -33,7 +33,9 @@ export default function Outreach({
 }) {
   const { data, update, event } = useDemo()
   const queues = useMemo(() => buildQueues(summaries), [summaries])
+  const availableTemplates = { ...templates, ...Object.fromEntries(data.schoolTemplates.map((t)=>[t.id,t])) }
   const [audience, setAudience] = useState(initialAudience || "needs-visit")
+  useEffect(()=>{ if(initialAudience) setAudience(initialAudience) },[initialAudience])
   const [subject, setSubject] = useState(template.subject)
   const [body, setBody] = useState(template.body)
   const [tpl, setTpl] = useState("missing")
@@ -79,8 +81,8 @@ export default function Outreach({
       <Card>
         <div className="section-heading">
           <div>
-            <Heading level={2}>Contact families</Heading>
-            <p className="muted">Pick who to reach, check the message, then send. A person approves every message.</p>
+            <Heading level={2}>Send a school message</Heading>
+            <p className="muted">Select the recipient criteria, choose a saved template or write a custom message, preview, then record a simulated send.</p>
           </div>
           <Badge>Template, edited by a person</Badge>
         </div>
@@ -94,11 +96,11 @@ export default function Outreach({
           {recipients.length > 0 && <> · e.g. {recipients.slice(0, 3).map((r) => r.student.name).join(", ")}{recipients.length > 3 ? ` and ${recipients.length - 3} more` : ""}</>}
         </p>
         <div className="controls">
-          <Select label="Template" value={tpl} onChange={(e) => { setTpl(e.target.value); setSubject(templates[e.target.value].subject); setBody(templates[e.target.value].body); setSent("") }}>
-            {Object.entries(templates).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
+          <Select label="Template" value={tpl} onChange={(e) => { setTpl(e.target.value); setSubject(availableTemplates[e.target.value].subject); setBody(availableTemplates[e.target.value].body); setSent("") }}>
+            {Object.entries(availableTemplates).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
           </Select>
         </div>
-        <div className="compose">
+        <div className="compose admin-outreach-compose">
           <div>
             <div className="field"><label htmlFor="o-sub">Subject</label><input id="o-sub" value={subject} onChange={(e) => { setSubject(e.target.value); setSent("") }} /></div>
             <div className="field"><label htmlFor="o-body">Message</label><textarea id="o-body" ref={bodyRef} value={body} onChange={(e) => { setBody(e.target.value); setSent("") }} /></div>
@@ -118,8 +120,8 @@ export default function Outreach({
         </div>
         {sent && <Alert kind="success">{sent}</Alert>}
       </Card>
-      <Card style={{ marginTop: "var(--space-5)" }}>
-        <Heading level={2}>Sent</Heading>
+      <Card className="school-outreach-log" style={{ marginTop: "var(--space-5)" }}>
+        <Heading level={2}>Sent history</Heading>
         {data.outreach.length === 0 ? (
           <p className="muted">Nothing sent yet.</p>
         ) : (
@@ -129,6 +131,7 @@ export default function Outreach({
           </table></div>
         )}
       </Card>
+      <Card className="school-schedule-summary"><Heading level={2}>Scheduled demo rules</Heading><p className="muted">Configure rules and template wording in Settings. These saved schedules do not automatically deliver messages.</p>{data.schoolAutomationRules.length===0 ? <p className="muted">No rules configured.</p> : data.schoolAutomationRules.map((r)=><div key={r.id} className="pharmacy-rule-line"><strong>{availableTemplates[r.template]?.label??"Template"}</strong><span>{r.audience} · {dateLabel(r.sendDate)}</span><Badge>{r.enabled?"Enabled (demo)":"Paused"}</Badge></div>)}</Card>
       <NoticeLog summaries={summaries} />
     </>
   )
