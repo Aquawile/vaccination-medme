@@ -19,7 +19,7 @@ type Mode = "month" | "week" | "day"
 export default function PharmacyCalendar({ visits, day, onDay, onPick, showAll, onShowAll }: { visits: Visit[]; day: string; onDay: (d: string) => void; onPick: (id: string) => void; showAll: boolean; onShowAll: (v: boolean) => void }) {
   const { data } = useDemo()
   const today = defaults.referenceDate
-  const [mode, setMode] = useState<Mode>("month")
+  const [mode, setMode] = useState<Mode>("week")
   const shown = useMemo(() => visits.filter((v) => showAll || v.pharmacist === YOU), [visits, showAll])
   const byDay = useMemo(() => {
     const m = new Map<string, Visit[]>()
@@ -63,7 +63,7 @@ export default function PharmacyCalendar({ visits, day, onDay, onPick, showAll, 
     </div>
   )
   return (
-    <Card className="cal-card">
+    <Card className="cal-card pharmacy-planner">
       <div className="cal-bar">
         <div className="cal-nav">
           <Button variant="secondary" onClick={() => onDay(today)}>Today</Button>
@@ -88,8 +88,8 @@ export default function PharmacyCalendar({ visits, day, onDay, onPick, showAll, 
                 <div key={date} role="gridcell" tabIndex={0} className={`cal-day tall ${inMonth ? "" : "outside"} ${date === day ? "selected" : ""} ${date === today ? "today" : ""}`} aria-label={`${dateLabel(date)}, ${list.length} visits`} onClick={() => onDay(date)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onDay(date) } }}>
                   <span className="cal-num">{Number(date.slice(8))}</span>
                   <span className="chips">
-                    {list.slice(0, 3).map((v) => chip(v))}
-                    {list.length > 3 && <button className="more" onClick={(e) => { e.stopPropagation(); setMode("day"); onDay(date) }}>+{list.length - 3} more</button>}
+                    {list.slice(0, 2).map((v) => chip(v))}
+                    {list.length > 2 && <button className="more" onClick={(e) => { e.stopPropagation(); setMode("day"); onDay(date) }}>+{list.length - 2} more · view day</button>}
                   </span>
                 </div>
               )
