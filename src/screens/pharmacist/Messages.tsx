@@ -23,6 +23,8 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
   const [sent, setSent] = useState("")
   const [mode, setMode] = useState<"group" | "single">("group")
   const [singleId, setSingleId] = useState("")
+  const [groupSearch, setGroupSearch] = useState("")
+  const [groupScope, setGroupScope] = useState<"all"|"upcoming"|"day"|"checked-in"|"no-show">("all")
   const [preview, setPreview] = useState(false)
   const [tName, setTName] = useState("")
   const [open, setOpen] = useState("")
@@ -32,6 +34,11 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
   const fill = (t: string, v: Visit) => fillVisit(t, v, { pharmacy: defaults.pharmacy, vaccineName: vName, short })
   const recipients = visits.filter((v) => ids.includes(v.id))
   const selected = visits.find((v) => v.id === singleId)
+  const filteredVisits = visits.filter((v)=> {
+    const status = data.visitMarks[v.id] ?? "booked"
+    return (groupScope==="all" || (groupScope==="upcoming" && v.date>=defaults.referenceDate) || (groupScope==="day" && v.date===defaults.referenceDate) || (groupScope==="checked-in" && status==="checked-in") || (groupScope==="no-show" && status==="no-show")) && (v.name+" "+v.grade+" "+v.date).toLowerCase().includes(groupSearch.toLowerCase())
+  })
+  const selectFiltered = () => setIds((old)=>Array.from(new Set([...old,...filteredVisits.map((v)=>v.id)])))
   const sendingTo = mode === "single" ? (selected ? [selected] : []) : recipients
   const pick = (k: string) => { setKey(k); setSubject(all[k].subject); setBody(all[k].body); setSent("") }
   const insert = (f: string) => { const at = bodyRef.current ? bodyRef.current.selectionStart : body.length; setBody(body.slice(0, at) + f + body.slice(at)); setSent("") }
@@ -58,7 +65,7 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
       </Card>
       <Card className="pharmacy-message-composer" style={{ marginTop: "var(--space-5)" }}>
         <Heading level={2}>Messages and templates</Heading>
-        <p className="muted">Saving a template never sends a message. Group recipients come from appointment actions; use One family to pick a person.</p>
+        <p className="muted">Save a template without sending. Choose individual families or select a filtered group below; one-family messages have their own tab.</p>
         <div className="seg pharmacy-message-tabs" role="group" aria-label="Compose mode">
           <button className={mode === "group" ? "active" : ""} onClick={() => {setMode("group");setReviewed(false)}} aria-pressed={mode === "group"}>Group or template</button>
           <button className={mode === "single" ? "active" : ""} onClick={() => {setMode("single");setReviewed(false)}} aria-pressed={mode === "single"}>One family</button>
@@ -68,6 +75,21 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
           {mode === "single" ? <Select label="Recipient" value={singleId} onChange={(e)=>setSingleId(e.target.value)}><option value="">Choose one family</option>{visits.map((v)=><option key={v.id} value={v.id}>{v.name} · {dateLabel(v.date)} {v.time}</option>)}</Select> :
             <div className="pharmacy-recipient-summary"><strong>{recipients.length} families selected</strong><p className="muted">{recipients.length ? recipients.slice(0,5).map((v)=>v.name).join(", ") : "Open a group from the appointment list to send to those families."}</p></div>}
         </div>
+        {mode==="group" && <div className="pharmacy-group-picker">
+          <div className="pharmacy-group-tools">
+            <Select label="Filter families" value={groupScope} onChange={(e)=>setGroupScope(e.target.value as typeof groupScope)}>
+              <option value="all">All booked visits</option><option value="upcoming">Upcoming visits</option><option value="day">Reference date visits</option><option value="checked-in">Checked-in visits</option><option value="no-show">No-shows</option>
+            </Select>
+            <div className="field"><label htmlFor="pm-group-search">Search children</label><input id="pm-group-search" value={groupSearch} onChange={(e)=>setGroupSearch(e.target.value)} placeholder="Name, grade or date" /></div>
+          </div>
+          <div className="pharmacy-group-actions"><strong>{ids.length} selected · {filteredVisits.length} matching visits</strong><Button variant="secondary" onClick={selectFiltered}>Select all matching</Button><Button variant="text" onClick={()=>setIds([])}>Clear selection</Button></div>
+          <div className="pharmacy-group-list" role="group" aria-label="Choose families for group message">
+            {filteredVisits.slice(0,100).map((v)=><label key={v.id} className="pharmacy-group-choice"><input type="checkbox" checked={ids.includes(v.id)} onChange={(e)=>setIds((old)=>e.target.checked?[...old.filter((id)=>id!==v.id),v.id]:old.filter((id)=>id!==v.id))} /><span><strong>{v.name}</strong><small>{dateLabel(v.date)} · {v.time} · {v.pharmacist}</small></span></label>)}
+            {filteredVisits.length>100&&<p className="muted">Showing the first 100. Select all matching to include all {filteredVisits.length} visits.</p>}
+            {filteredVisits.length===0&&<p className="muted">No matching appointments.</p>}
+          </div>
+          <p className="muted">Selected recipients remain selected when filters change. No message is sent until you approve and record it below.</p>
+        </div>}
         <div className="pharmacy-compose-toggle"><strong>{preview ? "Recipient preview" : "Edit message"}</strong><Button variant="secondary" onClick={()=>setPreview(!preview)}>{preview ? "Edit message" : "Preview for recipient"}</Button></div>
         {preview ? <div className="pharmacy-inline-preview">{sendingTo.length ? <><strong>{fill(subject,sendingTo[0])}</strong><p>{fill(body,sendingTo[0])}</p><small className="muted">Showing {sendingTo[0].name}</small></> : <p className="muted">Choose a recipient to preview personalized content.</p>}</div> :
           <div className="pharmacy-full-compose"><div className="field"><label htmlFor="pm-sub">Subject</label><input id="pm-sub" value={subject} onChange={(e)=>setSubject(e.target.value)} /></div><div className="field"><label htmlFor="pm-body">Message</label><textarea id="pm-body" ref={bodyRef} rows={9} value={body} onChange={(e)=>setBody(e.target.value)} /></div><div className="chip-row">{mergeFields.map((x)=><button key={x} type="button" className="filter-chip" onClick={()=>insert(x)}>{x}</button>)}</div></div>}
