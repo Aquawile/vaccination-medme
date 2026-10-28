@@ -34,7 +34,7 @@ export default function PharmacyCalendar({ visits, day, onDay, onPick, showAll, 
     const d = new Date(Date.UTC(year, month + n, 1))
     onDay(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-01`)
   }
-  const title = mode === "month" ? `${months[month]} ${year}` : mode === "week" ? `${dateLabel(week[0])} to ${dateLabel(week[6])}`
+  const title = mode === "month" ? `${months[month]} ${year}` : `${dateLabel(week[0])} to ${dateLabel(week[6])}`
   const cls = (v: Visit) => {
     const st = statusOf(v, data.visitMarks)
     return `ev ${v.pharmacist === YOU ? "mine" : "other"} ${st}`
