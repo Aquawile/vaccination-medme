@@ -77,9 +77,9 @@ export default function PublishSettings() {
           </Select>
           <Select label="Schedule type" value={autoCadence} onChange={(e)=>setAutoCadence(e.target.value as "before"|"repeat")}><option value="before">Before each appointment</option><option value="repeat">Repeat at intervals</option></Select>
           <Select label={autoCadence==="before"?"Days before appointment":"Repeat every (days)"} value={autoDays} onChange={(e)=>setAutoDays(e.target.value)}>
-            {[0,1,2,3,5,7,14,30].map((n)=><option key={n} value={n}>{n===0?"Appointment day":autoCadence==="before"?n+" days before": "Every "+n+" days"}</option>)}
+            {[0,1,2,3,5,7,14,30].filter((n)=>autoCadence==="before"||n>0).map((n)=><option key={n} value={n}>{n===0?"Appointment day":autoCadence==="before"?n+" days before": "Every "+n+" days"}</option>)}
           </Select>
-          <Button variant="secondary" onClick={()=>update((d)=>({...d,automationRules:[...d.automationRules,{id:"auto-"+Date.now(),template:autoTemplate,days:Math.max(1,Number(autoDays)),enabled:true,cadence:autoCadence}]}))}>Save rule</Button>
+          <Button variant="secondary" onClick={()=>update((d)=>({...d,automationRules:[...d.automationRules,{id:"auto-"+Date.now(),template:autoTemplate,days:autoCadence==="repeat"?Math.max(1,Number(autoDays)):Number(autoDays),enabled:true,cadence:autoCadence}]}))}>Save rule</Button>
         </div>
         {data.automationRules.length===0 ? <p className="muted">No additional rules saved yet.</p> :
           data.automationRules.map((r)=><div key={r.id} className="pharmacy-rule-line">
