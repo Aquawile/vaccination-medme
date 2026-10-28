@@ -12,7 +12,6 @@ import {
 } from "../components/ui"
 import { defaults, vaccines } from "../demo/config"
 import { useDemo } from "../state"
-import RecordPanel from "../components/RecordPanel"
 import entrySources from "../data/entrySources.json"
 import RequirementSummary from "../components/RequirementSummary"
 import Records from "./parent/Records"
@@ -189,25 +188,15 @@ export function ChildRequirements({ onBook }: { onBook: () => void }) {
             </div>
             <Badge>Oregon</Badge>
           </Card>
-          <div className="record-source">
-            <Icon name="document" />
-            <div>
-              <strong>Sample record</strong>
-              <p>
-                {data.record.source} · Retrieved {data.record.retrieved}
-              </p>
-            </div>
-            <Badge>
-              {data.record.state === "complete"
-                ? "Sample complete"
-                : "Awaiting clinical review"}
-            </Badge>
-          </div>
-          <RecordPanel />
-          {data.record.state !== "sample" && (
-            <RecordState state={data.record.state} />
-          )}
           <RequirementSummary />
+          <Card className="parent-record-help">
+            <Heading level={2}>How to provide vaccination documentation</Heading>
+            <p>Ask your child's clinic, pharmacy, or school for their vaccination history. In Oregon, a school may use the Certificate of Immunization Status (CIS) or an accepted immunization record. This app does not request, upload, or send records to a school.</p>
+            <p><strong>Before the appointment:</strong> bring any existing immunization record and discuss discrepancies with the clinician. The pharmacist reviews vaccine history before administering a dose.</p>
+            <p><strong>After the appointment:</strong> the pharmacist records the dose in the demo. Find the simulated visit summary under Your appointments and the entry under Records. A real provider must supply official documentation.</p>
+            <p><a href="https://www.oregon.gov/oha/PH/PREVENTIONWELLNESS/VACCINESIMMUNIZATION/GETTINGIMMUNIZED/Documents/SchCISform.pdf" target="_blank" rel="noreferrer">Oregon Certificate of Immunization Status (official form)</a></p>
+            <p className="muted">A parent or guardian ordinarily provides and signs the CIS with dose dates and child/contact information; exemptions use separate documentation. Verify the current rules with your school or Oregon Health Authority.</p>
+          </Card>
           <Alert>
             <strong>Sample requirements, not clinical guidance</strong>
             <p>
