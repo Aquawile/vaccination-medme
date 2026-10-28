@@ -1,7 +1,9 @@
 import { useState } from "react"
 import { Alert, Button, Card, Check, Field, Heading, Select } from "../../components/ui"
 import OfficialSource from "../../components/OfficialSource"
-import { vaccines } from "../../demo/config"
+import { states, vaccines } from "../../demo/config"
+import { addDays } from "../../domain/calendar"
+import { dateLabel } from "../../demo/journey"
 import { effectiveLocation, locations } from "../../demo/journey"
 import { useDemo } from "../../state"
 import { builtInTemplates } from "../../domain/pharmacyTemplates"
@@ -18,13 +20,20 @@ export default function PublishSettings() {
   const [saved, setSaved] = useState("")
   const [autoTemplate, setAutoTemplate] = useState("reminder")
   const [autoDays, setAutoDays] = useState("3")
-  const [autoCadence, setAutoCadence] = useState<"before"|"after"|"repeat">("before")
+  const [autoCadence, setAutoCadence] = useState<"before"|"after"|"repeat"|"deadline-before"|"deadline-after">("before")
+  const [deadlineDate, setDeadlineDate] = useState("")
+  const [deadlineState, setDeadlineState] = useState("Oregon")
+  const [deadlineSource, setDeadlineSource] = useState("")
   const [editingRule, setEditingRule] = useState("")
   const [templateName, setTemplateName] = useState("")
   const [templateSubject, setTemplateSubject] = useState("")
   const [templateBody, setTemplateBody] = useState("")
   const [editingTemplate, setEditingTemplate] = useState("")
   const templates = { ...builtInTemplates, ...Object.fromEntries(data.customTemplates.map((t) => [t.id, t])) }
+  const legalRule = autoCadence.startsWith("deadline-")
+  const validDays = Number.isInteger(Number(autoDays)) && Number(autoDays) >= (autoCadence==="repeat"?1:0) && Number(autoDays)<=365
+  const validDeadline = !legalRule || (/^\d{4}-\d{2}-\d{2}$/.test(deadlineDate) && /^https:\/\//i.test(deadlineSource.trim()))
+  const deadlinePreview = legalRule && deadlineDate && validDays ? addDays(deadlineDate,(autoCadence==="deadline-before"?-1:1)*Number(autoDays)) : ""
   const pick = (next: string) => {
     const l = effectiveLocation(locations.find((x) => x.id === next)!, data.published)
     setId(next); setOffered(l.vaccines); setMinAge(String(l.minAge)); setMaxAge(String(l.maxAge)); setSaved("")
@@ -95,22 +104,36 @@ export default function PublishSettings() {
     </Card>
     <Card className="pharmacy-automation-settings pharmacy-settings-section">
         <Heading level={2}>Automatic message rules</Heading>
-        <p className="muted">Save a template schedule once. Before-visit rules use appointment dates; repeat rules are interval-based demonstrations. Real delivery would require explicit consent, appropriate recipients, and a backend. Nothing is sent.</p>
+        <p className="muted">Save each template with its own timing, then edit or toggle it in the list below. State deadline dates must be entered from a verified official source; these are illustrative scheduling preferences, not a legal determination or actual delivery.</p>
         <div className="pharmacy-auto-add">
           <Select label="Template" value={autoTemplate} onChange={(e)=>setAutoTemplate(e.target.value)}>
             {Object.entries(templates).filter(([k])=>k!=="custom"&&k!=="noshow").map(([k,t])=><option key={k} value={k}>{t.label}</option>)}
           </Select>
-          <Select label="Schedule type" value={autoCadence} onChange={(e)=>setAutoCadence(e.target.value as "before"|"after"|"repeat")}><option value="before">Before each appointment</option><option value="after">After each appointment</option><option value="repeat">Repeat at intervals</option></Select>
-          <Select label={autoCadence==="before"?"Days before appointment":autoCadence==="after"?"Days after appointment":"Repeat every (days)"} value={autoDays} onChange={(e)=>setAutoDays(e.target.value)}>
-            {[0,1,2,3,5,7,14,30].filter((n)=>autoCadence!=="repeat"||n>0).map((n)=><option key={n} value={n}>{n===0?"Appointment day":autoCadence==="before"?n+" days before":autoCadence==="after"?n+" days after":"Every "+n+" days"}</option>)}
+          <Select label="When should it run?" value={autoCadence} onChange={(e)=>setAutoCadence(e.target.value as typeof autoCadence)}>
+            <option value="before">Before each appointment</option>
+            <option value="after">After each appointment</option>
+            <option value="repeat">Repeat every X days (demo only)</option>
+            <option value="deadline-before">Before a state deadline</option>
+            <option value="deadline-after">After a state deadline</option>
           </Select>
-          <Button variant="secondary" onClick={()=>{update((d)=>({...d,automationRules:editingRule ? d.automationRules.map((r)=>r.id===editingRule?{...r,template:autoTemplate,days:Number(autoDays),cadence:autoCadence}:r) : [...d.automationRules,{id:"auto-"+Date.now(),template:autoTemplate,days:Number(autoDays),enabled:true,cadence:autoCadence}]}));setEditingRule("")}}>{editingRule?"Update rule":"Save new rule"}</Button>
+          <Field label={autoCadence==="repeat"?"Repeat every (days)":autoCadence==="before"?"Days before visit":autoCadence==="after"?"Days after visit":autoCadence==="deadline-before"?"Days before state deadline":"Days after state deadline"} type="number" min={autoCadence==="repeat"?1:0} max={365} value={autoDays} onChange={(e)=>setAutoDays(e.target.value)} />
+          {legalRule && <div className="pharmacy-deadline-fields">
+            <Select label="State" value={deadlineState} onChange={(e)=>setDeadlineState(e.target.value)}>{states.map((v)=><option key={v} value={v}>{v}</option>)}</Select>
+            <Field label="Verified state deadline" type="date" value={deadlineDate} onChange={(e)=>setDeadlineDate(e.target.value)} />
+            <Field label="Official source URL (required)" type="url" value={deadlineSource} onChange={(e)=>setDeadlineSource(e.target.value)} placeholder="https://..." />
+            <p className="muted">Enter a deadline checked against your state's current official requirements. The app does not calculate legal deadlines or determine vaccine eligibility. {deadlinePreview ? "Illustrative rule date: "+dateLabel(deadlinePreview) : ""}</p>
+          </div>}
+          <Button variant="secondary" disabled={!validDays||!validDeadline} onClick={()=>{
+            const extra = legalRule ? {dueDate:deadlineDate,stateCode:deadlineState,sourceUrl:deadlineSource.trim()} : {dueDate:undefined,stateCode:undefined,sourceUrl:undefined}
+            update((d)=>({...d,automationRules:editingRule ? d.automationRules.map((r)=>r.id===editingRule?{...r,template:autoTemplate,days:Number(autoDays),cadence:autoCadence,...extra}:r):[...d.automationRules,{id:"auto-"+Date.now(),template:autoTemplate,days:Number(autoDays),enabled:true,cadence:autoCadence,...extra}]}))
+            setEditingRule("")
+          }}>{editingRule?"Update rule":"Save new rule"}</Button>
         </div>
         {data.automationRules.length===0 ? <p className="muted">No additional rules saved yet.</p> :
           data.automationRules.map((r)=><div key={r.id} className="pharmacy-rule-line">
-            <strong>{templates[r.template]?.label??"Saved template"}</strong><span>{r.cadence==="repeat" ? "Every "+r.days+" days (demo schedule)" : r.days+" days "+(r.cadence==="after"?"after":"before")+" booked visits"}</span>
+            <strong>{templates[r.template]?.label??"Saved template"}</strong><span>{r.cadence==="repeat" ? "Every "+r.days+" days (demo schedule)" : r.cadence.startsWith("deadline-") ? r.days+" days "+(r.cadence==="deadline-before"?"before":"after")+" "+(r.stateCode??"state")+" deadline "+(r.dueDate??"not set") : r.days+" days "+(r.cadence==="after"?"after":"before")+" booked visits"}</span>
             <Check checked={r.enabled} onChange={(e)=>update((d)=>({...d,automationRules:d.automationRules.map((x)=>x.id===r.id?{...x,enabled:e.target.checked}:x)}))}>Enabled</Check>
-            <Button variant="secondary" onClick={()=>{setEditingRule(r.id);setAutoTemplate(r.template);setAutoDays(String(r.days));setAutoCadence(r.cadence)}}>Edit</Button>
+            <Button variant="secondary" onClick={()=>{setEditingRule(r.id);setAutoTemplate(r.template);setAutoDays(String(r.days));setAutoCadence(r.cadence);setDeadlineDate(r.dueDate??"");setDeadlineState(r.stateCode??"Oregon");setDeadlineSource(r.sourceUrl??"")}}>Edit</Button>
             <Button variant="text" onClick={()=>update((d)=>({...d,automationRules:d.automationRules.filter((x)=>x.id!==r.id)}))}>Remove</Button>
           </div>)}
       {editingRule && <Button variant="text" onClick={()=>setEditingRule("")}>Cancel editing</Button>}
