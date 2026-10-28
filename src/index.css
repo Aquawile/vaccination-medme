@@ -489,3 +489,104 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
   .illustration { transform: scale(.65); height: 185px; }
   .auth-reassurance { margin-top: var(--space-2); padding-top: var(--space-2); }
 }
+
+/* W-132 visual reference pass: parent and pharmacy ONLY.
+   Match the functional clinical-workspace hierarchy of supplied screenshots.
+   School admin selectors deliberately remain unchanged. */
+@media (min-width: 1101px) {
+  /* Parent: use the available width for a quiet, structured records workspace. */
+  .workspace:has(.parent-nav) {
+    --parent-rail: 198px;
+    background: var(--canvas);
+  }
+  .workspace:has(.parent-nav) .parent-nav {
+    position: fixed;
+    inset: 60px auto 0 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    width: var(--parent-rail);
+    padding: var(--space-5) var(--space-3);
+    gap: var(--space-2);
+    overflow-y: auto;
+    background: var(--deep-teal);
+    border: 0;
+  }
+  .workspace:has(.parent-nav) .parent-nav .button {
+    justify-content: flex-start;
+    text-align: left;
+    min-height: 43px;
+    padding: 9px 12px;
+    color: var(--white);
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+  }
+  .workspace:has(.parent-nav) .parent-nav .button:hover,
+  .workspace:has(.parent-nav) .parent-nav .button[aria-current="page"] {
+    background: var(--navy);
+    color: var(--white);
+  }
+  .workspace:has(.parent-nav) .parent-main {
+    margin-left: var(--parent-rail);
+    margin-right: auto;
+    max-width: none;
+    width: calc(100% - var(--parent-rail));
+    padding: var(--space-6) var(--space-8);
+  }
+  .workspace:has(.parent-nav) .workspace-footer { padding-left: calc(var(--parent-rail) + var(--space-4)); }
+  .workspace:has(.parent-nav) .page-heading h1 { font-size: 27px; line-height: 1.25; }
+  .workspace:has(.parent-nav) .page-heading { margin-bottom: var(--space-4); }
+  .workspace:has(.parent-nav) .child-summary {
+    border-left: 3px solid var(--jade);
+    padding: var(--space-4) var(--space-5);
+  }
+  .workspace:has(.parent-nav) .surface-icon,
+  .workspace:has(.parent-nav) .avatar { background: var(--lavender-soft); color: var(--deep-teal); }
+  .workspace:has(.parent-nav) .vaccine-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-3); }
+  .workspace:has(.parent-nav) .vaccine-list > * { min-width: 0; }
+  .workspace:has(.parent-nav) .progress { margin-bottom: var(--space-5); }
+  .workspace:has(.parent-nav) .card-heading { margin-bottom: var(--space-4); }
+  .workspace:has(.parent-nav) .record-source { border-left: 3px solid var(--periwinkle); }
+  .workspace:has(.parent-nav) .next-step { background: var(--deep-teal); color: var(--white); }
+
+  /* Pharmacy: a compact appointment-first workspace, not a marketing page. */
+  .pharmacy-workspace { grid-template-columns: 198px minmax(0,1fr); }
+  .pharmacy-workspace > .admin-sidebar {
+    padding: var(--space-4) var(--space-3);
+    gap: 5px;
+    background: var(--deep-teal);
+    border-right: 0;
+  }
+  .pharmacy-workspace > .admin-sidebar > .eyebrow { color: var(--lavender); margin: var(--space-3) 0; }
+  .pharmacy-workspace > .admin-sidebar .sidebar-item {
+    color: var(--white);
+    background: transparent;
+    border-radius: 7px;
+    padding: 10px 13px;
+    min-height: 42px;
+    font-size: 13px;
+  }
+  .pharmacy-workspace > .admin-sidebar .sidebar-item:hover,
+  .pharmacy-workspace > .admin-sidebar .sidebar-item[aria-current="page"] {
+    background: var(--navy) !important;
+    box-shadow: inset 3px 0 0 var(--jade);
+  }
+  .pharmacy-workspace > .admin-main { max-width: none; padding: var(--space-5) var(--space-6); }
+  .pharmacy-workspace .admin-title { margin-bottom: var(--space-3); }
+  .pharmacy-workspace .admin-title h1 { font-size: 27px; line-height: 1.2; }
+  .pharmacy-workspace .admin-title .eyebrow { color: var(--deep-teal); }
+  .pharmacy-workspace .appointment-details .detail-grid { gap: var(--space-3); }
+  .pharmacy-workspace .appointment-details .card { padding: var(--space-5); }
+  .pharmacy-workspace .cal-card { overflow: hidden; }
+  .pharmacy-workspace .cal-body { min-width: 0; }
+  .pharmacy-workspace .day-panel { max-height: 490px; }
+  .pharmacy-workspace .today-body { padding: var(--space-3); }
+  .pharmacy-workspace .ev.block { border-left: 3px solid var(--jade); }
+  .pharmacy-workspace .visit-table td { padding: 9px 11px; }
+}
+@media (min-width: 1101px) and (max-width: 1279px) {
+  .workspace:has(.parent-nav) .vaccine-list { grid-template-columns: 1fr; }
+}
