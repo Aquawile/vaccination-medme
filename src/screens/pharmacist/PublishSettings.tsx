@@ -113,6 +113,11 @@ export default function PublishSettings() {
     </Card>
     <Card className="pharmacy-automation-settings pharmacy-settings-section">
         <Heading level={2}>Automatic message rules</Heading>
+        <div className="pharmacy-automation-legacy">
+          <Check checked={data.reminderRule.autoNoShow} onChange={(e)=>update((d)=>({...d,reminderRule:{...d.reminderRule,autoNoShow:e.target.checked}}))}>Record a simulated no-show notice immediately when a visit is marked no-show</Check>
+          {data.reminderRule.auto && <div className="pharmacy-rule-line"><span>Previously configured default reminder · {data.reminderRule.days} days before visit</span><Check checked={data.reminderRule.auto} onChange={(e)=>update((d)=>({...d,reminderRule:{...d.reminderRule,auto:e.target.checked}}))}>Enabled</Check></div>}
+          <small className="muted">No-show notifications are simulated, never delivered. Other scheduled messages are configured per template below.</small>
+        </div>
         <p className="muted">Save each template with its own timing, then edit or toggle it in the list below. State deadline dates must be entered from a verified official source; these are illustrative scheduling preferences, not a legal determination or actual delivery.</p>
         <div className="pharmacy-auto-add">
           <Select label="Template" value={autoTemplate} onChange={(e)=>setAutoTemplate(e.target.value)}>
@@ -139,12 +144,12 @@ export default function PublishSettings() {
           }}>{editingRule?"Update rule":"Save new rule"}</Button>
         </div>
         {data.automationRules.length===0 ? <p className="muted">No additional rules saved yet.</p> :
-          data.automationRules.map((r)=><div key={r.id} className="pharmacy-rule-line pharmacy-rule-row">
+          data.automationRules.map((r)=><div key={r.id} className="pharmacy-rule-line">
             <strong>{templates[r.template]?.label??"Saved template"}</strong><span>{r.cadence==="repeat" ? "Every "+r.days+" days (demo schedule)" : r.cadence.startsWith("deadline-") ? r.days+" days "+(r.cadence==="deadline-before"?"before":"after")+" "+(r.stateCode??"state")+" deadline "+(r.dueDate??"not set") : r.days+" days "+(r.cadence==="after"?"after":"before")+" booked visits"}</span>
             {r.sourceUrl && <a href={r.sourceUrl} target="_blank" rel="noreferrer">Review saved state source</a>}
-            <div className="pharmacy-rule-actions"><Check checked={r.enabled} onChange={(e)=>update((d)=>({...d,automationRules:d.automationRules.map((x)=>x.id===r.id?{...x,enabled:e.target.checked}:x)}))}>Enabled</Check>
+            <Check checked={r.enabled} onChange={(e)=>update((d)=>({...d,automationRules:d.automationRules.map((x)=>x.id===r.id?{...x,enabled:e.target.checked}:x)}))}>Enabled</Check>
             <Button variant="secondary" onClick={()=>{setEditingRule(r.id);setAutoTemplate(r.template);setAutoDays(String(r.days));setAutoCadence(r.cadence);setDeadlineDate(r.dueDate??"");setDeadlineState(r.stateCode??"Oregon");setDeadlineSource(r.sourceUrl??"")}}>Edit</Button>
-            <Button variant="text" onClick={()=>update((d)=>({...d,automationRules:d.automationRules.filter((x)=>x.id!==r.id)}))}>Remove</Button></div>
+            <Button variant="text" onClick={()=>update((d)=>({...d,automationRules:d.automationRules.filter((x)=>x.id!==r.id)}))}>Remove</Button>
           </div>)}
       {editingRule && <Button variant="text" onClick={()=>setEditingRule("")}>Cancel editing</Button>}
     </Card>
