@@ -20,6 +20,10 @@ export default function PublishSettings() {
   const [autoDays, setAutoDays] = useState("3")
   const [autoCadence, setAutoCadence] = useState<"before"|"after"|"repeat">("before")
   const [editingRule, setEditingRule] = useState("")
+  const [templateName, setTemplateName] = useState("")
+  const [templateSubject, setTemplateSubject] = useState("")
+  const [templateBody, setTemplateBody] = useState("")
+  const [editingTemplate, setEditingTemplate] = useState("")
   const templates = { ...builtInTemplates, ...Object.fromEntries(data.customTemplates.map((t) => [t.id, t])) }
   const pick = (next: string) => {
     const l = effectiveLocation(locations.find((x) => x.id === next)!, data.published)
@@ -76,6 +80,18 @@ export default function PublishSettings() {
         <Check checked={data.reminderRule.autoNoShow} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, autoNoShow: e.target.checked } }))}>Send the missed-visit notice as soon as I mark a no-show</Check>
         <small className="muted">You still mark who came. Timing, template and automation stay saved here across appointments. Demo only: nothing is delivered.</small>
       </fieldset>
+    </Card>
+    <Card className="pharmacy-settings-section">
+      <Heading level={2}>Message templates</Heading>
+      <p className="muted">Create reusable wording here. Saving a template does not send it. Choose saved templates in Messages or automatic rules below.</p>
+      <div className="field"><label htmlFor="pst-name">Template name</label><input id="pst-name" value={templateName} onChange={(e)=>setTemplateName(e.target.value)} placeholder="e.g. Return visit follow-up" /></div>
+      <div className="field"><label htmlFor="pst-sub">Email subject</label><input id="pst-sub" value={templateSubject} onChange={(e)=>setTemplateSubject(e.target.value)} /></div>
+      <div className="field"><label htmlFor="pst-body">Message body</label><textarea id="pst-body" rows={6} value={templateBody} onChange={(e)=>setTemplateBody(e.target.value)} placeholder="Use {student}, {date}, {time} for personalized fields." /></div>
+      <div className="action-row">
+        <Button disabled={!templateName.trim()||!templateSubject.trim()||!templateBody.trim()} onClick={()=>{update((d)=>({...d,customTemplates:editingTemplate ? d.customTemplates.map((t)=>t.id===editingTemplate?{...t,label:templateName,subject:templateSubject,body:templateBody}:t):[...d.customTemplates,{id:"custom-"+Date.now(),label:templateName,subject:templateSubject,body:templateBody}]}));setEditingTemplate("");setTemplateName("");setTemplateSubject("");setTemplateBody("")}}>{editingTemplate?"Update template":"Save new template"}</Button>
+        {editingTemplate && <Button variant="text" onClick={()=>{setEditingTemplate("");setTemplateName("");setTemplateSubject("");setTemplateBody("")}}>Cancel</Button>}
+      </div>
+      {data.customTemplates.length>0 && <div className="pharmacy-template-library">{data.customTemplates.map((t)=><div key={t.id} className="pharmacy-rule-line"><strong>{t.label}</strong><span>{t.subject}</span><Button variant="secondary" onClick={()=>{setEditingTemplate(t.id);setTemplateName(t.label);setTemplateSubject(t.subject);setTemplateBody(t.body)}}>Edit</Button><Button variant="text" onClick={()=>update((d)=>({...d,customTemplates:d.customTemplates.filter((x)=>x.id!==t.id),automationRules:d.automationRules.map((r)=>r.template===t.id?{...r,enabled:false}:r)}))}>Delete</Button></div>)}</div>}
     </Card>
     <Card className="pharmacy-automation-settings pharmacy-settings-section">
         <Heading level={2}>Automatic message rules</Heading>
