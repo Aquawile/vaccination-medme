@@ -3,7 +3,7 @@ import { Alert, Button, Card, Check, Heading, Select } from "../../components/ui
 import { defaults } from "../../demo/config"
 import { dateLabel } from "../../demo/journey"
 import { builtInTemplates, mergeFields, reminderDate, type Template } from "../../domain/pharmacyTemplates"
-import { fakeReply, fillVisit, type Visit } from "../../domain/pharmacyVisits"
+import { fakeReply, fillVisit, statusOf, type Visit } from "../../domain/pharmacyVisits"
 import { useDemo } from "../../state"
 import { vName } from "./usePharmacyVisits"
 import { useSendMessage } from "./useSendMessage"
@@ -24,7 +24,7 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
   const [mode, setMode] = useState<"group" | "single">("group")
   const [singleId, setSingleId] = useState("")
   const [groupSearch, setGroupSearch] = useState("")
-  const [groupScope, setGroupScope] = useState<"all"|"upcoming"|"day"|"checked-in"|"no-show">("all")
+  const [groupScope, setGroupScope] = useState<"all"|"upcoming"|"past"|"day"|"checked-in"|"completed"|"no-show"|"cancelled">("all")
   const [preview, setPreview] = useState(false)
   const [open, setOpen] = useState("")
   const bodyRef = useRef<HTMLTextAreaElement>(null)
@@ -34,8 +34,8 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
   const recipients = visits.filter((v) => ids.includes(v.id))
   const selected = visits.find((v) => v.id === singleId)
   const filteredVisits = visits.filter((v)=> {
-    const status = data.visitMarks[v.id] ?? "booked"
-    return (groupScope==="all" || (groupScope==="upcoming" && v.date>=defaults.referenceDate) || (groupScope==="day" && v.date===defaults.referenceDate) || (groupScope==="checked-in" && status==="checked-in") || (groupScope==="no-show" && status==="no-show")) && (v.name+" "+v.grade+" "+v.date).toLowerCase().includes(groupSearch.toLowerCase())
+    const status = statusOf(v,data.visitMarks)
+    return (groupScope==="all" || (groupScope==="past" && v.date<defaults.referenceDate) || (groupScope==="completed" && status==="completed") || (groupScope==="cancelled" && status==="cancelled") || (groupScope==="upcoming" && v.date>=defaults.referenceDate) || (groupScope==="day" && v.date===defaults.referenceDate) || (groupScope==="checked-in" && status==="checked-in") || (groupScope==="no-show" && status==="no-show")) && (v.name+" "+v.grade+" "+v.date).toLowerCase().includes(groupSearch.toLowerCase())
   })
   const selectFiltered = () => setIds((old)=>Array.from(new Set([...old,...filteredVisits.map((v)=>v.id)])))
   const sendingTo = mode === "single" ? (selected ? [selected] : []) : recipients
@@ -72,13 +72,13 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
         {mode==="group" && <div className="pharmacy-group-picker">
           <div className="pharmacy-group-tools">
             <Select label="Filter families" value={groupScope} onChange={(e)=>setGroupScope(e.target.value as typeof groupScope)}>
-              <option value="all">All booked visits</option><option value="upcoming">Upcoming visits</option><option value="day">Reference date visits</option><option value="checked-in">Checked-in visits</option><option value="no-show">No-shows</option>
+              <option value="all">All visits (including past)</option><option value="upcoming">Upcoming visits</option><option value="past">Past visits</option><option value="day">Demo today</option><option value="checked-in">Checked-in visits</option><option value="completed">Completed visits</option><option value="no-show">No-shows</option><option value="cancelled">Cancelled visits</option>
             </Select>
             <div className="field"><label htmlFor="pm-group-search">Search children</label><input id="pm-group-search" value={groupSearch} onChange={(e)=>setGroupSearch(e.target.value)} placeholder="Name, grade or date" /></div>
           </div>
           <div className="pharmacy-group-actions"><strong>{ids.length} selected · {filteredVisits.length} matching visits</strong><Button variant="secondary" onClick={selectFiltered}>Select all matching</Button><Button variant="text" onClick={()=>setIds([])}>Clear selection</Button></div>
           <div className="pharmacy-group-list" role="group" aria-label="Choose families for group message">
-            {filteredVisits.slice(0,100).map((v)=><label key={v.id} className="pharmacy-group-choice"><input type="checkbox" checked={ids.includes(v.id)} onChange={(e)=>setIds((old)=>e.target.checked?[...old.filter((id)=>id!==v.id),v.id]:old.filter((id)=>id!==v.id))} /><span><strong>{v.name}</strong><small>{dateLabel(v.date)} · {v.time} · {v.pharmacist}</small></span></label>)}
+            {filteredVisits.slice(0,100).map((v)=><label key={v.id} className="pharmacy-group-choice"><input type="checkbox" checked={ids.includes(v.id)} onChange={(e)=>setIds((old)=>e.target.checked?[...old.filter((id)=>id!==v.id),v.id]:old.filter((id)=>id!==v.id))} /><span><strong>{v.name}</strong><small>{dateLabel(v.date)} · {v.time} · {v.pharmacist} · {statusOf(v,data.visitMarks)}</small></span></label>)}
             {filteredVisits.length>100&&<p className="muted">Showing the first 100. Select all matching to include all {filteredVisits.length} visits.</p>}
             {filteredVisits.length===0&&<p className="muted">No matching appointments.</p>}
           </div>
