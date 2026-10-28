@@ -102,7 +102,7 @@ export const initialData = {
   /** Reminder rule: how many days ahead, which template, and whether to send without asking. */
   reminderRule: { days: 3, template: "reminder", auto: false, autoNoShow: false },
   // DEMO-FAKE: persisted automation configurations; evaluated against appointment dates, never delivered externally.
-  automationRules: [] as { id: string; template: string; days: number; enabled: boolean; cadence: "before" | "repeat" }[],
+  automationRules: [] as { id: string; template: string; days: number; enabled: boolean; cadence: "before" | "after" | "repeat" }[],
   customTemplates: [] as { id: string; label: string; subject: string; body: string }[],
   // DEMO-FAKE: what each pharmacy has published (vaccines and ages); empty means the sample defaults
   published: {} as Record<string, { vaccines: string[]; minAge: number; maxAge: number }>,
