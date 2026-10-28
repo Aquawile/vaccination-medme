@@ -88,7 +88,7 @@ export default function PharmacyCalendar({ visits, day, onDay, onPick, showAll, 
                   <span className="cal-num">{Number(date.slice(8))}</span>
                   <span className="chips">
                     {list.slice(0, 2).map((v) => chip(v))}
-                    {list.length > 2 && <button className="more" onClick={(e) => { e.stopPropagation(); setMode("week"); onDay(date) }}>+{list.length - 2} more · view day</button>}
+                    {list.length > 2 && <button className="more" onClick={(e) => { e.stopPropagation(); setMode("week"); onDay(date) }}>+{list.length - 2} more · select date</button>}
                   </span>
                 </div>
               )
@@ -96,9 +96,7 @@ export default function PharmacyCalendar({ visits, day, onDay, onPick, showAll, 
           </div>
         ) : grid(week)}
       </div>
-      <p className="cal-legend muted">
-        <span className="ev mine sample">Yours</span> <span className="ev other sample">Another pharmacist</span> Completed visits are struck through, no-shows are dashed.
-      </p>
+      <div className="cal-legend muted"><div className="cal-legend-key"><span className="ev mine sample">Your appointments</span><span className="ev other sample">Other pharmacists</span></div><p className="cal-legend-note">Completed visits use muted styling; no-shows are shown separately.</p></div>
     </Card>
   )
 }
