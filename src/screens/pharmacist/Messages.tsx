@@ -31,24 +31,16 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
   const short = data.shortSupply.map(vName).join(", ")
   const fill = (t: string, v: Visit) => fillVisit(t, v, { pharmacy: defaults.pharmacy, vaccineName: vName, short })
   const recipients = visits.filter((v) => ids.includes(v.id))
-  const first = recipients[0]
   const selected = visits.find((v) => v.id === singleId)
   const sendingTo = mode === "single" ? (selected ? [selected] : []) : recipients
   const pick = (k: string) => { setKey(k); setSubject(all[k].subject); setBody(all[k].body); setSent("") }
   const insert = (f: string) => { const at = bodyRef.current ? bodyRef.current.selectionStart : body.length; setBody(body.slice(0, at) + f + body.slice(at)); setSent("") }
-  const remindedIds = new Set(data.pharmacyMessages.filter((m) => m.kind === all[rule.template]?.label).flatMap((m) => m.visitIds))
-  const upcoming = visits.filter((v) => v.date >= defaults.referenceDate).slice(0, 40).map((v) => ({ v, on: reminderDate(v.date, rule.days) }))
-  const due = upcoming.filter((u) => u.on <= defaults.referenceDate && !remindedIds.has(u.v.id))
+  const upcoming = visits.filter((v) => v.date >= defaults.referenceDate).map((v) => ({ v, on: reminderDate(v.date, rule.days) }))
 
   function submit() {
     send(key, { label: all[key]?.label ?? "Custom message", subject, body }, sendingTo)
     setSent(`Recorded for ${sendingTo.length} ${sendingTo.length === 1 ? "family" : "families"}. Simulated: nothing was delivered.${key === "noshow" ? " Visits booked in the app were cancelled and their times freed." : ""}`)
     setReviewed(false); setIds([]); setSingleId("")
-  }
-  function sendDue() {
-    const t = all[rule.template]
-    send(rule.template, t, due.map((u) => u.v))
-    setSent(`Reminders recorded for ${due.length} families. Simulated: nothing was delivered.`)
   }
   function saveTemplate() {
     const id = `custom-${Date.now()}`
@@ -61,7 +53,7 @@ export default function Messages({ visits, initial, onSettings }: { visits: Visi
         <div className="section-heading"><div><Heading level={2}>Scheduled communications</Heading><p className="muted">Review the automation rules saved in Settings and the dates they would run. Demo only: no email is delivered.</p></div><Button variant="secondary" onClick={onSettings}>Configure automatic messages</Button></div>
         {([...data.automationRules, ...(rule.auto ? [{ id: "default-reminder", template: rule.template, days: rule.days, enabled: true }] : [])].filter((r) => r.enabled)).length === 0
           ? <p className="muted">No automatic messages are enabled.</p>
-          : [...data.automationRules, ...(rule.auto ? [{ id: "default-reminder", template: rule.template, days: rule.days, enabled: true }] : [])].filter((r)=>r.enabled).map((r)=><div className="pharmacy-rule-line" key={r.id}><strong>{all[r.template]?.label ?? "Saved template"}</strong><span>{r.days} days before booked visits</span><span>Enabled</span></div>)}
+          : [...data.automationRules, ...(rule.auto ? [{ id: "default-reminder", template: rule.template, days: rule.days, enabled: true }] : [])].filter((r)=>r.enabled).map((r)=><div className="pharmacy-rule-line" key={r.id}><strong>{all[r.template]?.label ?? "Saved template"}</strong><span>{r.cadence === "repeat" ? "Every "+r.days+" days (preview only)" : r.days+" days before visits"}</span><span>Enabled</span></div>)}
         <details className="peek"><summary>Illustrative reminder dates</summary><div className="table-scroll"><table><thead><tr><th>Family</th><th>Visit</th><th>Reminder scheduled</th></tr></thead><tbody>{upcoming.slice(0,20).map(({v,on})=><tr key={v.id}><td>{v.name}</td><td>{dateLabel(v.date)} {v.time}</td><td>{dateLabel(on)}</td></tr>)}</tbody></table></div></details>
       </Card>
       <Card className="pharmacy-message-composer" style={{ marginTop: "var(--space-5)" }}>
