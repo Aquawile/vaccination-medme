@@ -78,25 +78,6 @@ export default function PublishSettings() {
       </fieldset>
     </Card>
     <Card className="pharmacy-settings-section">
-      <Heading level={2}>Messaging preferences</Heading>
-      <p className="muted">Global notification defaults. Individual template automation is managed in Automatic message rules below.</p>
-      <fieldset className="publish-vaccines">
-        <legend>Legacy default reminders</legend>
-        <div className="controls">
-          <Select label="Reminder timing" value={String(data.reminderRule.days)} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, days: Number(e.target.value) } }))}>
-            {[1, 2, 3, 5, 7, 14].map((n) => <option key={n} value={n}>{n} day{n > 1 ? "s" : ""} before the visit</option>)}
-          </Select>
-          <Select label="Default message" value={data.reminderRule.template} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, template: e.target.value } }))}>
-            <option value="reminder">Appointment reminder</option>
-            <option value="followup">Next visit follow-up</option>
-          </Select>
-        </div>
-        <Check checked={data.reminderRule.auto} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, auto: e.target.checked } }))}>Send visit reminders automatically ({data.reminderRule.days} days before)</Check>
-        <Check checked={data.reminderRule.autoNoShow} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, autoNoShow: e.target.checked } }))}>Send the missed-visit notice as soon as I mark a no-show</Check>
-        <small className="muted">You still mark who came. Timing, template and automation stay saved here across appointments. Demo only: nothing is delivered.</small>
-      </fieldset>
-    </Card>
-    <Card className="pharmacy-settings-section">
       <Heading level={2}>Message templates</Heading>
       <p className="muted">Browse every available template here. Edit saved templates, or make an editable copy of a built-in template. Saving does not send or automate anything.</p>
       <div className="pharmacy-template-search">
@@ -132,10 +113,15 @@ export default function PublishSettings() {
     </Card>
     <Card className="pharmacy-automation-settings pharmacy-settings-section">
         <Heading level={2}>Automatic message rules</Heading>
+        <div className="pharmacy-automation-legacy">
+          <Check checked={data.reminderRule.autoNoShow} onChange={(e)=>update((d)=>({...d,reminderRule:{...d.reminderRule,autoNoShow:e.target.checked}}))}>Record a simulated no-show notice immediately when a visit is marked no-show</Check>
+          {data.reminderRule.auto && <div className="pharmacy-rule-line"><span>Previously configured default reminder · {data.reminderRule.days} days before visit</span><Check checked={data.reminderRule.auto} onChange={(e)=>update((d)=>({...d,reminderRule:{...d.reminderRule,auto:e.target.checked}}))}>Enabled</Check></div>}
+          <small className="muted">No-show notifications are simulated, never delivered. Other scheduled messages are configured per template below.</small>
+        </div>
         <p className="muted">Save each template with its own timing, then edit or toggle it in the list below. State deadline dates must be entered from a verified official source; these are illustrative scheduling preferences, not a legal determination or actual delivery.</p>
         <div className="pharmacy-auto-add">
           <Select label="Template" value={autoTemplate} onChange={(e)=>setAutoTemplate(e.target.value)}>
-            {Object.entries(templates).filter(([k])=>k!=="custom"&&k!=="noshow").map(([k,t])=><option key={k} value={k}>{t.label}</option>)}
+            {Object.entries(templates).filter(([k])=>k!=="custom").map(([k,t])=><option key={k} value={k}>{t.label}</option>)}
           </Select>
           <Select label="When should it run?" value={autoCadence} onChange={(e)=>setAutoCadence(e.target.value as typeof autoCadence)}>
             <option value="before">Before each appointment</option>
