@@ -31,7 +31,14 @@ export default function DayList({ visits: allVisits, day, showAll, onShowAll, on
     // DEMO-FAKE: with automatic no-show notices on, the notice is recorded right away instead of waiting for the pharmacist.
     if (status === "no-show" && data.reminderRule.autoNoShow) send("noshow", builtInTemplates.noshow, [v], true)
   }
-  const cancel = (v: Visit) => { if (!v.appointmentId) return; update((d) => ({...d, appointments:d.appointments.map((a) => a.id===v.appointmentId && !a.doses.length ? {...a,cancelled:true} : a)})); event(`Demo appointment cancelled for ${v.name}`,"visit") }
+  const cancel = (v: Visit) => {
+    update((d) => ({...d,visitMarks:{...d.visitMarks,[v.id]:"cancelled"},appointments:v.appointmentId?d.appointments.map((a)=>a.id===v.appointmentId && !a.doses.length?{...a,cancelled:true}:a):d.appointments}))
+    event("Demo appointment cancelled for "+v.name,"visit")
+  }
+  const restore = (v: Visit) => {
+    update((d)=>({...d,visitMarks:{...d.visitMarks,[v.id]:"booked"},appointments:v.appointmentId?d.appointments.map((a)=>a.id===v.appointmentId?{...a,cancelled:false}:a):d.appointments}))
+    event("Demo appointment restored for "+v.name,"visit")
+  }
   const noShows = visits.filter((v) => within(v) && statusOf(v, data.visitMarks, done.has(v.id)) === "no-show").map((v) => v.id)
   return (
     <>
@@ -72,7 +79,8 @@ export default function DayList({ visits: allVisits, day, showAll, onShowAll, on
                       <td className="row-actions">
                         {overlapping(allVisits, v).length > 0 && <span className="muted" title="Another visit starts at this time">+{overlapping(allVisits, v).length} at {v.time}</span>}
                         {st === "booked" && <Button variant="secondary" onClick={() => mark(v, "checked-in")}>Check in</Button>}
-                        {st === "booked" && <Button variant="text" onClick={() => mark(v, "no-show")}>No-show</Button>}{st === "booked" && v.appointmentId && <Button variant="text" onClick={() => cancel(v)}>Cancel</Button>}
+                        {st === "booked" && <Button variant="text" onClick={() => mark(v, "no-show")}>No-show</Button>}{st === "booked" && <Button variant="text" onClick={() => cancel(v)}>Cancel</Button>}
+                        {(st === "cancelled" || st === "no-show") && <Button variant="text" onClick={() => restore(v)}>Restore booking</Button>}
                         {st === "checked-in" && <Button variant="secondary" onClick={() => (v.appointmentId ? onOpen(v.appointmentId) : mark(v, "completed"))}>{v.appointmentId ? "Record dose" : "Mark completed"}</Button>}
                         <Button variant="text" onClick={() => onNotify(st === "no-show" ? "noshow" : "reminder", [v.id])}>Message family</Button>
                         {v.appointmentId && st !== "booked" && st !== "checked-in" && <Button variant="text" onClick={() => onOpen(v.appointmentId!)}>Open</Button>}
