@@ -61,7 +61,7 @@ export default function Admin() {
           <button
             key={t.id}
             className="sidebar-item"
-            style={{ border: 0, textAlign: "left", background: current === t.id ? undefined : "transparent" }}
+            style={{ border: 0, textAlign: "left" }}
             aria-current={current === t.id ? "page" : undefined}
             onClick={() => go(t.id)}
           >
@@ -69,14 +69,6 @@ export default function Admin() {
             {t.label}
           </button>
         ))}
-        <div className="sidebar-note">
-          <Icon name="info" />
-          <p>
-            End-to-end prototype
-            <br />
-            <span>Local data, clearly labeled.</span>
-          </p>
-        </div>
       </aside>
       <main className="admin-main">
         <div className="admin-title">
