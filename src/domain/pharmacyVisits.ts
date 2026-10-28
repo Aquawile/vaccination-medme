@@ -12,7 +12,14 @@ export type Visit = {
   origin: "family" | "parent"
   appointmentId?: string
   studentId?: string
+  /** Who is booked to give the shot. */
+  pharmacist: string
 }
+
+// DEMO-FAKE: sample pharmacist names. In a real build this comes from the pharmacy's staff schedule.
+export const YOU = "Jordan Ellis"
+export const COLLEAGUES = ["Priya Raman", "Sam Okafor"]
+const STAFF = [YOU, YOU, COLLEAGUES[0], COLLEAGUES[1]]
 
 const SLOTS = ["09:00", "09:30", "10:00", "10:30", "11:00", "13:00", "13:30", "14:00", "14:30", "15:30"]
 
@@ -34,6 +41,7 @@ export function visitsFromRoster(summaries: StudentSummary[]): Visit[] {
         vaccines: s.missing,
         origin: "family" as const,
         studentId: s.student.id,
+        pharmacist: STAFF[(n + date.length + Number(date.slice(-2))) % STAFF.length],
       }
     })
 }
@@ -68,4 +76,19 @@ export function fillVisit(text: string, v: Visit, extra: { pharmacy: string; vac
     "{short}": extra.short || "none right now",
   }
   return Object.entries(map).reduce((t, [k, val]) => t.split(k).join(val), text)
+}
+
+/** Other pharmacists' visits that start at the same time as this one. */
+export function overlapping(visits: Visit[], v: Visit): Visit[] {
+  return visits.filter((o) => o.id !== v.id && o.date === v.date && o.time === v.time)
+}
+
+export type ReplyState = { state: "No response yet" | "Opened" | "Replied"; text?: string }
+// DEMO-FAKE: replies are made up from the visit id so the sent log has something to show. A real build reads them from the mailbox.
+export function fakeReply(visitId: string): ReplyState {
+  const n = [...visitId].reduce((a, c) => a + c.charCodeAt(0), 0) % 4
+  if (n === 0) return { state: "Replied", text: "Thanks, we will be there." }
+  if (n === 1) return { state: "Replied", text: "Can we move this to later in the week?" }
+  if (n === 2) return { state: "Opened" }
+  return { state: "No response yet" }
 }

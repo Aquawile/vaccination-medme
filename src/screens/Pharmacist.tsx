@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from "react"
-import Calendar from "./admin/Calendar"
 import DayList from "./pharmacist/DayList"
+import PharmacyCalendar from "./pharmacist/PharmacyCalendar"
 import { firstBusyDay } from "../domain/pharmacyVisits"
 import PharmacyMessages from "./pharmacist/Messages"
 import { usePharmacyVisits } from "./pharmacist/usePharmacyVisits"
@@ -534,6 +534,7 @@ export default function Pharmacist() {
   const [tab, setTab] = useState("schedule")
   const visits = usePharmacyVisits()
   const [day, setDay] = useState(() => firstBusyDay(visits, defaults.referenceDate))
+  const [showAll, setShowAll] = useState(false)
   const [openId, setOpenId] = useState("")
   const [compose, setCompose] = useState<{ template: string; ids: string[] } | null>(null)
   const notify = (template: string, ids: string[]) => { setCompose({ template, ids }); setTab("messages") }
@@ -575,9 +576,9 @@ export default function Pharmacist() {
                     </span>
                   </Alert>
                 )}
-                <Calendar variant="pharmacy" visits={visits} summaries={[]} state={data.schoolState} onOpen={() => {}} day={day} onDay={setDay} hidePanel />
+                <PharmacyCalendar visits={visits} day={day} onDay={setDay} onPick={setOpenId} showAll={showAll} onShowAll={setShowAll} />
                 <div style={{ marginTop: "var(--space-4)" }}>
-                  <DayList visits={visits} day={day} onOpen={setOpenId} onNotify={notify} />
+                  <DayList visits={visits} day={day} showAll={showAll} onShowAll={setShowAll} onOpen={setOpenId} onNotify={notify} />
                 </div>
               </>
             )

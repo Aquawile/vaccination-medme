@@ -48,6 +48,12 @@ export default function PublishSettings() {
         ))}
         <small className="muted">Fills the {"{short}"} field when you message families.</small>
       </fieldset>
+      <fieldset className="publish-vaccines">
+        <legend>Automatic messages</legend>
+        <Check checked={data.reminderRule.auto} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, auto: e.target.checked } }))}>Send visit reminders automatically ({data.reminderRule.days} days before)</Check>
+        <Check checked={data.reminderRule.autoNoShow} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, autoNoShow: e.target.checked } }))}>Send the missed-visit notice as soon as I mark a no-show</Check>
+        <small className="muted">You still mark who came. Choose the reminder message and how many days ahead in Messages. Demo only: nothing is delivered.</small>
+      </fieldset>
       {changed && <Alert kind="warning">You changed the sample vaccines or ages. Which vaccines and ages a pharmacist may give depends on the state. Check your state's own page before you publish.</Alert>}
       <OfficialSource topic="which vaccines and ages a pharmacist may give" />
       {saved && <Alert kind="success">{saved}</Alert>}
