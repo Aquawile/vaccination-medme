@@ -21,6 +21,8 @@ export default function DayList({ visits: allVisits, day, showAll, onShowAll, on
   const done = useMemo(() => new Set(data.appointments.filter((a) => a.doses.length >= a.vaccines.length && a.doses.length > 0).map((a) => a.id)), [data.appointments])
   const stats = dayStats(visits, data.visitMarks, day, done)
   const list = visits.filter((v) => v.date === day && `${v.name} ${v.grade}`.toLowerCase().includes(q.trim().toLowerCase()))
+  const lastPage = Math.max(0, Math.ceil(list.length / PAGE) - 1)
+  const visiblePage = Math.min(page, lastPage)
   const mark = (v: Visit, status: string) => {
     update((d) => ({ ...d, visitMarks: { ...d.visitMarks, [v.id]: status } }))
     event(`Visit marked ${status}`, "visit")
@@ -54,7 +56,7 @@ export default function DayList({ visits: allVisits, day, showAll, onShowAll, on
             <div className="table-scroll"><table className="visit-table">
               <thead><tr><th>Time</th><th>Child</th><th>Vaccines</th>{showAll && <th>With</th>}<th>Status</th><th>Actions</th></tr></thead>
               <tbody>
-                {list.slice(page * PAGE, page * PAGE + PAGE).map((v) => {
+                {list.slice(visiblePage * PAGE, visiblePage * PAGE + PAGE).map((v) => {
                   const st = statusOf(v, data.visitMarks, done.has(v.id))
                   return (
                     <tr key={v.id}>
@@ -79,10 +81,10 @@ export default function DayList({ visits: allVisits, day, showAll, onShowAll, on
           )}
           {list.length > PAGE && (
             <div className="pager">
-              <span className="muted">{page * PAGE + 1} to {Math.min(list.length, (page + 1) * PAGE)} of {list.length}</span>
+              <span className="muted">{visiblePage * PAGE + 1} to {Math.min(list.length, (visiblePage + 1) * PAGE)} of {list.length}</span>
               <span className="action-row" style={{ margin: 0 }}>
-                <Button variant="secondary" disabled={page === 0} onClick={() => setPage(page - 1)}>Back</Button>
-                <Button variant="secondary" disabled={(page + 1) * PAGE >= list.length} onClick={() => setPage(page + 1)}>More</Button>
+                <Button variant="secondary" disabled={visiblePage === 0} onClick={() => setPage(visiblePage - 1)}>Back</Button>
+                <Button variant="secondary" disabled={(visiblePage + 1) * PAGE >= list.length} onClick={() => setPage(visiblePage + 1)}>More</Button>
               </span>
             </div>
           )}

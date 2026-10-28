@@ -617,3 +617,22 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
   .family-dashboard-grid { grid-template-columns: minmax(0, 1.4fr) minmax(260px,1fr); }
   .family-status-row { gap: var(--space-2); }
 }
+
+/* W-132: pharmacy operating console. Scoped to pharmacist screens only. */
+@media (min-width: 1101px) {
+ .pharmacy-workspace .pharmacy-planner { border-radius: var(--radius-control); padding: 0; overflow: hidden; }
+ .pharmacy-workspace .pharmacy-planner .cal-bar { background: var(--white); border-bottom: 1px solid var(--border); padding: var(--space-3) var(--space-4); }
+ .pharmacy-workspace .pharmacy-planner .cal-day.tall { min-height: 84px; background: var(--white); }
+ .pharmacy-workspace .pharmacy-planner .cal-day.selected { background: var(--lavender-soft); }
+ .pharmacy-workspace .pharmacy-planner .cal-day .more { color: var(--deep-teal); font-weight: 700; }
+ .pharmacy-workspace .pharmacy-planner .ev.mine { background: var(--deep-teal); border-left: 3px solid var(--jade); color: var(--white); }
+ .pharmacy-workspace .pharmacy-planner .tg-head button.selected { background: var(--lavender-soft); }
+ .pharmacy-workspace .pharmacy-planner .cal-legend { padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border); }
+ .pharmacy-workspace .pharmacy-message-status .section-heading { align-items: center; }
+ .pharmacy-workspace .pharmacy-reminder-metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: var(--space-3); margin: var(--space-3) 0; }
+ .pharmacy-workspace .pharmacy-reminder-metrics > div { border: 1px solid var(--border); border-radius: var(--radius-control); padding: var(--space-3); background: var(--subtle); }
+ .pharmacy-workspace .pharmacy-reminder-metrics strong { display: block; font-size: 22px; font-variant-numeric: tabular-nums; line-height: 1.3; }
+ .pharmacy-workspace .pharmacy-reminder-metrics span { color: var(--text-secondary); font-size: 12px; }
+ .pharmacy-workspace .visit-table { table-layout: auto; }
+ .pharmacy-workspace .visit-table tr:hover td { background: var(--lavender-soft); }
+}

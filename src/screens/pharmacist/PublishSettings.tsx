@@ -50,9 +50,18 @@ export default function PublishSettings() {
       </fieldset>
       <fieldset className="publish-vaccines">
         <legend>Automatic messages</legend>
+        <div className="controls">
+          <Select label="Reminder timing" value={String(data.reminderRule.days)} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, days: Number(e.target.value) } }))}>
+            {[1, 2, 3, 5, 7, 14].map((n) => <option key={n} value={n}>{n} day{n > 1 ? "s" : ""} before the visit</option>)}
+          </Select>
+          <Select label="Default message" value={data.reminderRule.template} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, template: e.target.value } }))}>
+            <option value="reminder">Appointment reminder</option>
+            <option value="followup">Next visit follow-up</option>
+          </Select>
+        </div>
         <Check checked={data.reminderRule.auto} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, auto: e.target.checked } }))}>Send visit reminders automatically ({data.reminderRule.days} days before)</Check>
         <Check checked={data.reminderRule.autoNoShow} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, autoNoShow: e.target.checked } }))}>Send the missed-visit notice as soon as I mark a no-show</Check>
-        <small className="muted">You still mark who came. Choose the reminder message and how many days ahead in Messages. Demo only: nothing is delivered.</small>
+        <small className="muted">You still mark who came. Timing, template and automation stay saved here across appointments. Demo only: nothing is delivered.</small>
       </fieldset>
       {changed && <Alert kind="warning">You changed the sample vaccines or ages. Which vaccines and ages a pharmacist may give depends on the state. Check your state's own page before you publish.</Alert>}
       <OfficialSource topic="which vaccines and ages a pharmacist may give" />

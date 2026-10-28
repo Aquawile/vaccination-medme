@@ -587,7 +587,7 @@ export default function Pharmacist() {
               </>
             )
           )}
-          {tab === "messages" && <PharmacyMessages key={compose ? compose.template + compose.ids.join() : "new"} visits={visits} initial={compose} />}
+          {tab === "messages" && <PharmacyMessages key={compose ? compose.template + compose.ids.join() : "new"} visits={visits} initial={compose} onSettings={() => setTab("settings")} />}
           {tab === "settings" && <PublishSettings />}
         </div>
       </main>

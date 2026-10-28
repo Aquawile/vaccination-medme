@@ -11,7 +11,7 @@ import { useSendMessage } from "./useSendMessage"
 // DEMO-FAKE: stands in for the mailbox the message was sent from. A real build links to the actual sent message.
 const GMAIL_SENT = "https://mail.google.com/mail/u/0/#sent"
 
-export default function Messages({ visits, initial }: { visits: Visit[]; initial: { template: string; ids: string[] } | null }) {
+export default function Messages({ visits, initial, onSettings }: { visits: Visit[]; initial: { template: string; ids: string[] } | null; onSettings: () => void }) {
   const { data, update } = useDemo()
   const send = useSendMessage()
   const all: Record<string, Template> = useMemo(() => ({ ...builtInTemplates, ...Object.fromEntries(data.customTemplates.map((t) => [t.id, t])) }), [data.customTemplates])
@@ -33,7 +33,6 @@ export default function Messages({ visits, initial }: { visits: Visit[]; initial
   const matches = find.trim().length > 0 ? visits.filter((v) => v.name.toLowerCase().includes(find.trim().toLowerCase()) && !ids.includes(v.id)).slice(0, 6) : []
   const pick = (k: string) => { setKey(k); setSubject(all[k].subject); setBody(all[k].body); setSent("") }
   const insert = (f: string) => { const at = bodyRef.current ? bodyRef.current.selectionStart : body.length; setBody(body.slice(0, at) + f + body.slice(at)); setSent("") }
-  const setRule = (patch: Partial<typeof rule>) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, ...patch } }))
   const remindedIds = new Set(data.pharmacyMessages.filter((m) => m.kind === all[rule.template]?.label).flatMap((m) => m.visitIds))
   const upcoming = visits.filter((v) => v.date >= defaults.referenceDate).slice(0, 40).map((v) => ({ v, on: reminderDate(v.date, rule.days) }))
   const due = upcoming.filter((u) => u.on <= defaults.referenceDate && !remindedIds.has(u.v.id))
@@ -55,30 +54,15 @@ export default function Messages({ visits, initial }: { visits: Visit[]; initial
   }
   return (
     <>
-      <Card>
-        <Heading level={2}>Automatic reminders</Heading>
-        <p className="muted">Each visit gets a reminder this many days before it. Names, dates, times and vaccines fill in from the booking. You still mark who came; set sending to automatic in Settings.</p>
-        <div className="controls">
-          <Select label="Days before the visit" value={String(rule.days)} onChange={(e) => setRule({ days: Number(e.target.value) })}>
-            {[1, 2, 3, 5, 7, 14].map((n) => <option key={n} value={n}>{n} day{n > 1 ? "s" : ""} before</option>)}
-          </Select>
-          <Select label="Reminder message" value={rule.template} onChange={(e) => setRule({ template: e.target.value })}>
-            {Object.entries(all).filter(([k]) => k !== "custom" && k !== "noshow").map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
-          </Select>
-        </div>
-        <details className="peek"><summary>See the message</summary><pre className="preview">{all[rule.template]?.subject}{"\n\n"}{all[rule.template]?.body}</pre></details>
-        <p className="muted"><strong>{due.length}</strong> reminders are due now and {upcoming.length - due.length} more are scheduled. {rule.auto ? "They send automatically." : "They wait for you to send them."}</p>
-        <div className="action-row"><Button disabled={due.length === 0} onClick={sendDue}>Send {due.length} due reminders</Button></div>
-        {upcoming.length > 0 && (
-          <details className="peek"><summary>Scheduled reminders</summary>
-            <div className="table-scroll"><table>
-              <thead><tr><th>Child</th><th>Visit</th><th>Reminder goes</th><th>Status</th><th /></tr></thead>
-              <tbody>{upcoming.slice(0, 12).map(({ v, on }) => (
-                <tr key={v.id}><td>{v.name}</td><td>{dateLabel(v.date)} {v.time}</td><td>{dateLabel(on)}</td><td>{remindedIds.has(v.id) ? "Sent" : on <= defaults.referenceDate ? "Due" : "Scheduled"}</td><td><Button variant="text" onClick={() => { setIds([v.id]); setKey(rule.template); setSubject(all[rule.template].subject); setBody(all[rule.template].body) }}>Edit and send</Button></td></tr>
-              ))}</tbody>
-            </table></div>
-          </details>
-        )}
+      <Card className="pharmacy-message-status">
+        <div className="section-heading"><div><Heading level={2}>Reminder queue</Heading><p className="muted">Automation is configured once in Settings, not per appointment.</p></div><Button variant="secondary" onClick={() => onSettings()}>Open settings</Button></div>
+        <div className="pharmacy-reminder-metrics"><div><strong>{due.length}</strong><span>Due</span></div><div><strong>{upcoming.length - due.length}</strong><span>Upcoming</span></div><div><strong>{rule.auto ? "On" : "Off"}</strong><span>Automatic sending</span></div></div>
+        <p className="muted">Rule: {rule.days} day{rule.days === 1 ? "" : "s"} before a visit · {all[rule.template]?.label ?? "Saved template"}. Demo only: no email or text is delivered.</p>
+        {!rule.auto && <div className="action-row"><Button disabled={due.length === 0} onClick={sendDue}>Record {due.length} due reminders</Button></div>}
+        <details className="peek"><summary>Review scheduled reminders</summary>
+          <div className="table-scroll"><table><thead><tr><th>Child</th><th>Visit</th><th>Reminder</th><th>Status</th></tr></thead><tbody>{upcoming.slice(0, 20).map(({ v, on }) => <tr key={v.id}><td>{v.name}</td><td>{dateLabel(v.date)} {v.time}</td><td>{dateLabel(on)}</td><td>{remindedIds.has(v.id) ? "Recorded" : on <= defaults.referenceDate ? "Due" : "Scheduled"}</td></tr>)}</tbody></table></div>
+          {upcoming.length > 20 && <p className="muted">Showing 20 of {upcoming.length}. Use the calendar to review other dates.</p>}
+        </details>
       </Card>
       <Card style={{ marginTop: "var(--space-5)" }}>
         <Heading level={2}>Message families</Heading>
