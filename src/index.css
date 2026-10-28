@@ -986,3 +986,20 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
 .admin-main .admin-outreach-compose{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
 @media(max-width:1000px){.admin-main .school-student-filters,.admin-main .school-rule-form{grid-template-columns:1fr 1fr}.admin-main .admin-outreach-compose{grid-template-columns:1fr}}
 @media(max-width:600px){.admin-main .school-student-filters,.admin-main .school-rule-form{grid-template-columns:1fr}.admin-main .school-rule-item{align-items:flex-start;flex-direction:column}}
+
+/* School admin: neutral selected navigation and consistent Today queue geometry. */
+@media(min-width:901px){
+  .admin-layout>.admin-sidebar .sidebar-item[aria-current="page"],
+  .admin-layout>.admin-sidebar .sidebar-item:hover{
+    background:rgba(255,255,255,.16)!important;
+    box-shadow:none!important;
+  }
+}
+.admin-main .queue-grid{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
+.admin-main .queue-card{height:100%;box-sizing:border-box}
+.admin-main .queue-card>.section-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:12px;min-height:88px}
+.admin-main .queue-card>.section-heading>div{min-width:0}
+.admin-main .queue-card .queue-count{display:block;min-width:2.5ch;text-align:right;font-variant-numeric:tabular-nums;line-height:1.2}
+.admin-main .queue-card .queue-list{width:100%;flex:1}
+.admin-main .queue-card>.action-row{margin-top:auto;padding-top:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+@media(max-width:1100px){.admin-main .queue-grid{grid-template-columns:1fr}}
