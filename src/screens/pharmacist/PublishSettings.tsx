@@ -4,6 +4,7 @@ import OfficialSource from "../../components/OfficialSource"
 import { vaccines } from "../../demo/config"
 import { effectiveLocation, locations } from "../../demo/journey"
 import { useDemo } from "../../state"
+import { builtInTemplates } from "../../domain/pharmacyTemplates"
 
 /** The pharmacy owner chooses which vaccines and ages are shown to families. Changes from the sample are flagged for a check against the state's own page. */
 export default function PublishSettings() {
@@ -15,6 +16,9 @@ export default function PublishSettings() {
   const [minAge, setMinAge] = useState(String(current.minAge))
   const [maxAge, setMaxAge] = useState(String(current.maxAge))
   const [saved, setSaved] = useState("")
+  const [autoTemplate, setAutoTemplate] = useState("reminder")
+  const [autoDays, setAutoDays] = useState("3")
+  const templates = { ...builtInTemplates, ...Object.fromEntries(data.customTemplates.map((t) => [t.id, t])) }
   const pick = (next: string) => {
     const l = effectiveLocation(locations.find((x) => x.id === next)!, data.published)
     setId(next); setOffered(l.vaccines); setMinAge(String(l.minAge)); setMaxAge(String(l.maxAge)); setSaved("")
@@ -63,6 +67,25 @@ export default function PublishSettings() {
         <Check checked={data.reminderRule.autoNoShow} onChange={(e) => update((d) => ({ ...d, reminderRule: { ...d.reminderRule, autoNoShow: e.target.checked } }))}>Send the missed-visit notice as soon as I mark a no-show</Check>
         <small className="muted">You still mark who came. Timing, template and automation stay saved here across appointments. Demo only: nothing is delivered.</small>
       </fieldset>
+      <Card className="pharmacy-automation-settings">
+        <Heading level={2}>Automatic message rules</Heading>
+        <p className="muted">Each rule is saved once and schedules its template before booked visits. DEMO-FAKE: nothing is delivered.</p>
+        <div className="pharmacy-auto-add">
+          <Select label="Template" value={autoTemplate} onChange={(e)=>setAutoTemplate(e.target.value)}>
+            {Object.entries(templates).filter(([k])=>k!=="custom"&&k!=="noshow").map(([k,t])=><option key={k} value={k}>{t.label}</option>)}
+          </Select>
+          <Select label="Timing" value={autoDays} onChange={(e)=>setAutoDays(e.target.value)}>
+            {[0,1,2,3,5,7,14,30].map((n)=><option key={n} value={n}>{n===0?"Appointment day":n+" days before"}</option>)}
+          </Select>
+          <Button variant="secondary" onClick={()=>update((d)=>({...d,automationRules:[...d.automationRules,{id:"auto-"+Date.now(),template:autoTemplate,days:Number(autoDays),enabled:true}]}))}>Save rule</Button>
+        </div>
+        {data.automationRules.length===0 ? <p className="muted">No additional rules saved yet.</p> :
+          data.automationRules.map((r)=><div key={r.id} className="pharmacy-rule-line">
+            <strong>{templates[r.template]?.label??"Saved template"}</strong><span>{r.days===0?"Appointment day":r.days+" days before visits"}</span>
+            <Check checked={r.enabled} onChange={(e)=>update((d)=>({...d,automationRules:d.automationRules.map((x)=>x.id===r.id?{...x,enabled:e.target.checked}:x)}))}>Enabled</Check>
+            <Button variant="text" onClick={()=>update((d)=>({...d,automationRules:d.automationRules.filter((x)=>x.id!==r.id)}))}>Remove</Button>
+          </div>)}
+      </Card>
       {changed && <Alert kind="warning">You changed the sample vaccines or ages. Which vaccines and ages a pharmacist may give depends on the state. Check your state's own page before you publish.</Alert>}
       <OfficialSource topic="which vaccines and ages a pharmacist may give" />
       {saved && <Alert kind="success">{saved}</Alert>}
