@@ -790,3 +790,11 @@ table.numeric { table-layout: auto; } table.numeric th, table.numeric td { paddi
 .pharmacy-workspace .pharmacy-template-editor .field,.pharmacy-workspace .pharmacy-template-editor input,.pharmacy-workspace .pharmacy-template-editor textarea{width:100%}
 .pharmacy-workspace .pharmacy-template-editor textarea{min-height:145px;resize:vertical}
 @media(max-width:760px){.pharmacy-workspace .pharmacy-template-search{grid-template-columns:1fr}.pharmacy-workspace .pharmacy-template-item{align-items:flex-start;flex-direction:column}}
+
+/* Temporary demo-only role shortcuts; remove before production release. */
+.demo-quick-access{margin-top:20px;padding:16px;border:1px solid #c8dfe2;border-radius:9px;background:#f1f7f7}
+.demo-quick-access>strong{display:block;color:#06485a;font-size:14px}
+.demo-quick-access p{font-size:12px;line-height:1.45;margin:6px 0 12px}
+.demo-quick-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.demo-quick-actions button{min-width:0;white-space:normal;font-size:12px;padding:10px 5px}
+@media(max-width:530px){.demo-quick-actions{grid-template-columns:1fr}}
